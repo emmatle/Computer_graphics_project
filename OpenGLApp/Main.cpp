@@ -65,6 +65,7 @@ GLFWwindow* setWindow();
 int loadFont(const std::string& font_name);
 
 
+
 Button startButton;
 
 int main()
@@ -84,20 +85,25 @@ int main()
         soundEngine.startEngine();
 
         //----Set Music
-        menuMusic = SoundManager("../resources/Music/menu.mp3", soundEngine.volMusic, true, &soundEngine);
-        sfxMouse = SoundManager("../resources/SFX/mouseClick.wav", soundEngine.volMusic, false, &soundEngine);
+        menuMusic = SoundManager(getResource("Music/menu.mp3"), soundEngine.volMusic, true, &soundEngine);
+        sfxMouse = SoundManager(getResource("SFX/mouseClick.wav"), soundEngine.volMusic, false, &soundEngine);
 
         //----Opening Window
         GLFWwindow* window = setWindow();
 
         //----Load Font
-        loadFont("../resources/Fonts/Antonio/static/Antonio-Bold.ttf");
+        loadFont(getResource("Fonts/Antonio/static/Antonio-Bold.ttf"));
 
         //----Start the Main View
         MainViewController mainView;
         mainView.main(window);
         glfwSetWindowShouldClose(window, true);
         return 0;
+}
+
+// Function to link the relative path to the full path
+inline std::string getResource(const std::string& relativePath) {
+    return std::string(RESOURCE_PATH) + "/" + relativePath;
 }
 
 void getScreenSize(int& screenWidth, int& screenHeight) {

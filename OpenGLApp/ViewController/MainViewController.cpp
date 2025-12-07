@@ -8,16 +8,16 @@ void MainViewController::loadModels() {
 int MainViewController::main(GLFWwindow* window)
 {
     // Shader Loading
-    shaderText = Shader("../resources/Shaders/shaderText.vs", "../resources/Shaders/shaderText.fs");
-    gameShader = Shader("../resources/Shaders/shader.vs", "../resources/Shaders/shader.fs");
-    menuBGShader = Shader("../resources/Shaders/2DImage.vs", "../resources/Shaders/2DImage.fs");
+    shaderText = Shader(getResource("Shaders/shaderText.vs").c_str(), getResource("Shaders/shaderText.fs").c_str());
+    gameShader = Shader(getResource("Shaders/shader.vs").c_str(), getResource("Shaders/shader.fs").c_str());
+    menuBGShader = Shader(getResource("Shaders/2DImage.vs").c_str(), getResource("Shaders/2DImage.fs").c_str());
 
     sprite2D = SpriteRenderer(menuBGShader);
 
-    Texture2D backGroundTexture = loadTextureFromFile("../resources/Backgrounds/templateBackground.png",false);
+    Texture2D backGroundTexture = loadTextureFromFile(getResource("Backgrounds/templateBackground.png").c_str(),false);
 
-    Texture2D startButtonTexture = loadTextureFromFile("../resources/Buttons/StartButton/unselected.png", true);
-    Texture2D startButtonTextureSelected = loadTextureFromFile("../resources/Buttons/StartButton/selected.png", true);
+    Texture2D startButtonTexture = loadTextureFromFile(getResource("Buttons/StartButton/unselected.png").c_str(), true);
+    Texture2D startButtonTextureSelected = loadTextureFromFile(getResource("Buttons/StartButton/selected.png").c_str(), true);
 
     startButton = Button(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -39,7 +39,6 @@ int MainViewController::main(GLFWwindow* window)
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
         // Background
         menuBGShader.use();

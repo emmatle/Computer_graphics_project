@@ -48,6 +48,7 @@ extern void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 extern void processInput(GLFWwindow* window);
 extern void RenderText(const Shader& shader, std::string text, float x, float y, float scale, glm::vec3 color);
 extern Texture2D loadTextureFromFile(const char* file, bool alpha);
+extern inline std::string getResource(const std::string& relativePath);
 
 class MainViewController
 {
