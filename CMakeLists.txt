@@ -50,6 +50,8 @@ file(GLOB_RECURSE APP_SOURCES
         "OpenGLApp/*.cpp"
         "OpenGLApp/*/*.cpp"
         "glad/src/glad.c"
+        "imgui/*.cpp"
+        "imgui/*/*.cpp"
 )
 
 
@@ -74,11 +76,11 @@ message(STATUS "Include directories")
 target_include_directories(${APP_NAME} PRIVATE
         .
         OpenGLApp
-        OpenGLApp/DataClasses
-        OpenGLApp/GameClasses
-        OpenGLApp/ViewController
         glad/include
-        glm-master
+        glm
+        imgui
+        json
+        stb
 )
 
 # === Link libraries ===
