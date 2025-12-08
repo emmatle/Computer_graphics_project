@@ -1,21 +1,15 @@
-#include <glad/glad.h>
-#include <iostream>
-#include <filesystem>
-
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <imgui.h>
 
+#include <imgui.h>
 #include <imgui_internal.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
+
 #include <nlohmann/json.hpp>
 
-#include "object.h"
 #include "camera.h"
 #include "shader.h"
-#include "texture.h"
-#include "config.h"
+#include "application.h"
 
 using json = nlohmann::json;
 using ojson = nlohmann::ordered_json;
@@ -49,7 +43,6 @@ namespace Runtime {
     bool fullscreen = false;
     bool vsync = false;
     float mouseSensitivity = 0.05f;
-    fs::path font = getResource("fonts/OpenSans.ttf");
     float fontSize = 16.f;
 
     void loadSettings(const fs::path &file) {
@@ -77,7 +70,6 @@ namespace Runtime {
         if (s.contains("fullscreen")) fullscreen = s["fullscreen"];
         if (s.contains("vsync")) vsync = s["vsync"];
         if (s.contains("mouseSensitivity")) mouseSensitivity = s["mouseSensitivity"];
-        if (s.contains("font")) font = fs::absolute(fs::path(s["font"]));
         if (s.contains("fontSize")) fontSize = s["fontSize"];
     }
 
@@ -95,7 +87,6 @@ namespace Runtime {
                 {"fullscreen",       fullscreen},
                 {"vsync",            vsync},
                 {"mouseSensitivity", mouseSensitivity},
-                {"font",             font.string()},
                 {"fontSize",         fontSize},
         };
 
@@ -185,8 +176,6 @@ namespace Game {
     }
 };
 
-// Application
-
 GLFWwindow *window = nullptr;
 float aspect = (float) Runtime::width / (float) Runtime::height;
 float lastX = (float) Runtime::width / 2.f;
@@ -208,48 +197,48 @@ const glm::vec4 MENU_COLOR{0.f, 0.f, 0.f, 1.f};
 // --- Vertex Data ---
 
 const float VERTEX_DATA[180] = {
-        // Cube vertices: pos.x, pos.y, pos.z, tex.u, tex.v
-        -0.5f, -0.5f, -0.5f, 0.f, 0.f,
-        0.5f, -0.5f, -0.5f, 1.f, 0.f,
-        0.5f, 0.5f, -0.5f, 1.f, 1.f,
-        0.5f, 0.5f, -0.5f, 1.f, 1.f,
-        -0.5f, 0.5f, -0.5f, 0.f, 1.f,
-        -0.5f, -0.5f, -0.5f, 0.f, 0.f,
+    // Cube vertices: pos.x, pos.y, pos.z, tex.u, tex.v
+    -0.5f, -0.5f, -0.5f, 0.f, 0.f,
+    0.5f, -0.5f, -0.5f, 1.f, 0.f,
+    0.5f, 0.5f, -0.5f, 1.f, 1.f,
+    0.5f, 0.5f, -0.5f, 1.f, 1.f,
+    -0.5f, 0.5f, -0.5f, 0.f, 1.f,
+    -0.5f, -0.5f, -0.5f, 0.f, 0.f,
 
-        -0.5f, -0.5f, 0.5f, 0.f, 0.f,
-        0.5f, -0.5f, 0.5f, 1.f, 0.f,
-        0.5f, 0.5f, 0.5f, 1.f, 1.f,
-        0.5f, 0.5f, 0.5f, 1.f, 1.f,
-        -0.5f, 0.5f, 0.5f, 0.f, 1.f,
-        -0.5f, -0.5f, 0.5f, 0.f, 0.f,
+    -0.5f, -0.5f, 0.5f, 0.f, 0.f,
+    0.5f, -0.5f, 0.5f, 1.f, 0.f,
+    0.5f, 0.5f, 0.5f, 1.f, 1.f,
+    0.5f, 0.5f, 0.5f, 1.f, 1.f,
+    -0.5f, 0.5f, 0.5f, 0.f, 1.f,
+    -0.5f, -0.5f, 0.5f, 0.f, 0.f,
 
-        -0.5f, 0.5f, 0.5f, 1.f, 0.f,
-        -0.5f, 0.5f, -0.5f, 1.f, 1.f,
-        -0.5f, -0.5f, -0.5f, 0.f, 1.f,
-        -0.5f, -0.5f, -0.5f, 0.f, 1.f,
-        -0.5f, -0.5f, 0.5f, 0.f, 0.f,
-        -0.5f, 0.5f, 0.5f, 1.f, 0.f,
+    -0.5f, 0.5f, 0.5f, 1.f, 0.f,
+    -0.5f, 0.5f, -0.5f, 1.f, 1.f,
+    -0.5f, -0.5f, -0.5f, 0.f, 1.f,
+    -0.5f, -0.5f, -0.5f, 0.f, 1.f,
+    -0.5f, -0.5f, 0.5f, 0.f, 0.f,
+    -0.5f, 0.5f, 0.5f, 1.f, 0.f,
 
-        0.5f, 0.5f, 0.5f, 1.f, 0.f,
-        0.5f, 0.5f, -0.5f, 1.f, 1.f,
-        0.5f, -0.5f, -0.5f, 0.f, 1.f,
-        0.5f, -0.5f, -0.5f, 0.f, 1.f,
-        0.5f, -0.5f, 0.5f, 0.f, 0.f,
-        0.5f, 0.5f, 0.5f, 1.f, 0.f,
+    0.5f, 0.5f, 0.5f, 1.f, 0.f,
+    0.5f, 0.5f, -0.5f, 1.f, 1.f,
+    0.5f, -0.5f, -0.5f, 0.f, 1.f,
+    0.5f, -0.5f, -0.5f, 0.f, 1.f,
+    0.5f, -0.5f, 0.5f, 0.f, 0.f,
+    0.5f, 0.5f, 0.5f, 1.f, 0.f,
 
-        -0.5f, -0.5f, -0.5f, 0.f, 1.f,
-        0.5f, -0.5f, -0.5f, 1.f, 1.f,
-        0.5f, -0.5f, 0.5f, 1.f, 0.f,
-        0.5f, -0.5f, 0.5f, 1.f, 0.f,
-        -0.5f, -0.5f, 0.5f, 0.f, 0.f,
-        -0.5f, -0.5f, -0.5f, 0.f, 1.f,
+    -0.5f, -0.5f, -0.5f, 0.f, 1.f,
+    0.5f, -0.5f, -0.5f, 1.f, 1.f,
+    0.5f, -0.5f, 0.5f, 1.f, 0.f,
+    0.5f, -0.5f, 0.5f, 1.f, 0.f,
+    -0.5f, -0.5f, 0.5f, 0.f, 0.f,
+    -0.5f, -0.5f, -0.5f, 0.f, 1.f,
 
-        -0.5f, 0.5f, -0.5f, 0.f, 1.f,
-        0.5f, 0.5f, -0.5f, 1.f, 1.f,
-        0.5f, 0.5f, 0.5f, 1.f, 0.f,
-        0.5f, 0.5f, 0.5f, 1.f, 0.f,
-        -0.5f, 0.5f, 0.5f, 0.f, 0.f,
-        -0.5f, 0.5f, -0.5f, 0.f, 1.f
+    -0.5f, 0.5f, -0.5f, 0.f, 1.f,
+    0.5f, 0.5f, -0.5f, 1.f, 1.f,
+    0.5f, 0.5f, 0.5f, 1.f, 0.f,
+    0.5f, 0.5f, 0.5f, 1.f, 0.f,
+    -0.5f, 0.5f, 0.5f, 0.f, 0.f,
+    -0.5f, 0.5f, -0.5f, 0.f, 1.f
 };
 
 struct Vertex {
@@ -257,8 +246,17 @@ struct Vertex {
     glm::vec2 texCoords;
 }; // TODO: change later to include normals etc.
 
+fs::path getResource(const std::string &relative, bool mute) {
+    fs::path path = std::string(RESOURCE_PATH) + "/" + relative;
+    if (!exists(path) && !mute) {
+        std::cerr << "ERROR: file " << path << " is missing" << std::endl;
+    }
+    return path;
+}
 
-int main() {
+// Application
+
+int Application::run() {
     Texture wood_floor{getResource("textures/wood_floor.jpg", true)};
     Texture checkered_pavement{getResource("textures/checkered_pavement.jpg")};
     Texture fabric{getResource("textures/fabric.jpg")};
@@ -375,8 +373,8 @@ int main() {
 }
 
 // Initializes GLFW, GLAD, and ImGui
-void init() {
-    Runtime::loadSettings(getResource("data.json"));
+void Application::init() {
+    Runtime::loadSettings(getResource("data.json", true));
 
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -435,14 +433,15 @@ void init() {
 
     ImGuiIO &io = ImGui::GetIO();
     ImGui::StyleColorsDark(); // sets the dark theme
-    io.Fonts->AddFontFromFileTTF(Runtime::font.c_str(), Runtime::fontSize);
+
+    // io.Fonts->AddFontFromFileTTF(font, Runtime::fontSize); // TODO: Fix font loading.
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 }
 
 // Shuts down ImGui and GLFW
-void terminate() {
+void Application::terminate() {
     float scaleX, scaleY;
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -470,11 +469,11 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    // TODO: Save current state to a file.
-    if (key == GLFW_KEY_S && action == GLFW_PRESS && mods == OS_CTRL_MOD) Game::saveState("");
-
-    // TODO: Load game state from a file.
-    if (key == GLFW_KEY_L && action == GLFW_PRESS && mods == OS_CTRL_MOD) Game::loadState("");
+    // // TODO: Save current state to a file.
+    // if (key == GLFW_KEY_S && action == GLFW_PRESS && mods == OS_CTRL_MOD) Game::saveState("");
+    //
+    // // TODO: Load game state from a file.
+    // if (key == GLFW_KEY_L && action == GLFW_PRESS && mods == OS_CTRL_MOD) Game::loadState("");
 
     if (Game::mode == Game::Menu) return;
 

@@ -1,5 +1,11 @@
 #pragma once
 
+#include <filesystem>
+
+#include "object.h"
+
+#include <GLFW/glfw3.h>
+
 // ---  Constants ---
 
 #define WINDOW_TITLE "Escape Room"
@@ -10,11 +16,24 @@
 #define OS_CTRL_MOD GLFW_MOD_SUPER
 #else
 #define OS_CTRL_MOD GLFW_MOD_CTRL
+#define OS_FONT "C:/Windows/Fonts/segoeui.ttf"
 #endif
+
+namespace fs = std::filesystem;
 
 // --- Forward Declarations ---
 
-static inline fs::path getResource(const std::string &relative, bool mute = false);
+class Application
+{
+    static void init();
+
+    static void terminate();
+
+public:
+    static int run();
+};
+
+static fs::path getResource(const std::string &relative, bool mute = false);
 
 static void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 
@@ -35,15 +54,3 @@ void genBuffers();
 void drawObject(const Object &obj, bool picking = false);
 
 void drawDebugMenu();
-
-void init();
-
-void terminate();
-
-static inline fs::path getResource(const std::string &relative, bool mute) {
-    fs::path path = std::string(RESOURCE_PATH) + "/" + relative;
-    if (!exists(path) && !mute) {
-        std::cerr << "ERROR: file " << path << " is missing" << std::endl;
-    }
-    return path;
-}

@@ -5,11 +5,7 @@
 
 #include <glad/glad.h>
 
-// TODO: Move STB_IMAGE_IMPLEMENTATION on a separate .cpp file.
-#ifndef STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-#endif
 
 namespace fs = std::filesystem;
 
