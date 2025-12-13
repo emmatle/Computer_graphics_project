@@ -125,18 +125,17 @@ bool Renderer::loadTextures(std::vector<Object> &objs) {
     for (const auto &entry: std::filesystem::directory_iterator(texDir)) {
         if (std::filesystem::is_regular_file(entry)) {
             const auto &texPath = entry.path();
-            Texture tex{texPath, texPath.filename()};
+            Texture tex{texPath, texPath.filename().string()};
 
             // TODO: free properly loaded textures in case of error.
             if (!tex.load()) return false;
             // Assign the texture to the object
             for (auto &obj: objs) {
-                if (obj.texture == texPath.filename()) {
+                if (obj.texture == texPath.filename().string()) {
                     obj.tex = tex;
                 }
             }
             textures.push_back(tex);
-
         }
     }
     return true;
