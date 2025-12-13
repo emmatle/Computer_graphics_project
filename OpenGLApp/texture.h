@@ -7,23 +7,17 @@
 
 #include <stb_image.h>
 
-namespace fs = std::filesystem;
-
 /**
  * @brief Utility class for loading, managing, and binding OpenGL 2D textures.
  */
 class Texture {
 public:
     unsigned int id = 0;
-    fs::path path;
+    std::filesystem::path path;
     std::string type; // e.g. "texture_diffuse", "texture_specular"
 
-    Texture(fs::path path = "", std::string type = "")
+    Texture(std::filesystem::path path = "", std::string type = "")
             : path(std::move(path)), type(std::move(type)) {}
-
-    ~Texture() {
-        if (id != 0) glDeleteTextures(1, &id);
-    }
 
     /**
      * @brief Loads image, generates texture object, and sets parameters.
@@ -31,7 +25,7 @@ public:
     bool load() {
         if (id != 0) return true; // Already loaded
 
-        if (!fs::exists(path)) {
+        if (!exists(path)) {
             std::cerr << "ERROR: failed to load texture " << path << std::endl;
             return false;
         }
@@ -61,7 +55,8 @@ public:
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             // Upload the image data to the GPU and generate Mipmaps
-            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(format), width, height, 0, format, GL_UNSIGNED_BYTE,
+                         data);
             glGenerateMipmap(GL_TEXTURE_2D);
 
             // Free the CPU-side image memory as it's now on the GPU
@@ -73,12 +68,19 @@ public:
         }
     }
 
+    void free() {
+        if (id != 0) {
+            glDeleteTextures(1, &id);
+            id = 0;
+        }
+    }
+
     /**
      * @brief Activates the specific texture unit and binds this texture.
      */
     void use(unsigned int unit = 0) const {
         if (unit >= 16) {
-            std::cerr << "WARNING: texture unit " << unit << " might be out of range." << std::endl;
+            std::cerr << "WARNING: texture unit " << unit << " might be out of range" << std::endl;
         }
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(GL_TEXTURE_2D, id);

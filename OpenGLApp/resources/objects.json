@@ -1,0 +1,92 @@
+{
+  "objects": [
+    {
+      "id": 0,
+      "name": "Ground",
+      "texture": "wood_floor.jpg",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [8.0, 0.0, 8.0]
+    },
+    {
+      "id": 1,
+      "name": "Prop_1",
+      "texture": "checkered_pavement.jpg",
+      "position": [0.0, 1.0, 0.0],
+      "rotation": [0.0, 45.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 2,
+      "name": "Prop_2",
+      "texture": "lava.jpg",
+      "position": [2.0, 5.0, -2.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 3,
+      "name": "Prop_3",
+      "texture": "snow.jpg",
+      "position": [-1.5, 2.5, -2.5],
+      "rotation": [30.0, 60.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 4,
+      "name": "Prop_4",
+      "texture": "fabric.jpg",
+      "position": [-3.8, 3.2, -12.3],
+      "rotation": [290.0, 20.0, 130.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 5,
+      "name": "Prop_5",
+      "texture": "checkered_pavement.jpg",
+      "position": [2.4, 6.4, 3.5],
+      "rotation": [5.0, 40.0, 36.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 6,
+      "name": "Prop_6",
+      "texture": "lava.jpg",
+      "position": [-1.7, 3.0, -7.5],
+      "rotation": [23.0, 42.0, 56.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 7,
+      "name": "Prop_7",
+      "texture": "checkered_pavement.jpg",
+      "position": [1.3, 2.6, 4.5],
+      "rotation": [250.0, 0.0, 80.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 8,
+      "name": "Prop_8",
+      "texture": "snow.jpg",
+      "position": [0.6, 2.0, -2.5],
+      "rotation": [70.0, 190.0, 50.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 9,
+      "name": "Prop_9",
+      "texture": "checkered_pavement.jpg",
+      "position": [1.5, 6.2, 1.5],
+      "rotation": [44.0, 33.0, 22.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 10,
+      "name": "Prop_10",
+      "texture": "fabric.jpg",
+      "position": [-1.3, 1.0, -2.4],
+      "rotation": [6.0, 100.0, 160.0],
+      "scale": [1.0, 1.0, 1.0]
+    }
+  ]
+}

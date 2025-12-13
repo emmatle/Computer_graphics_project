@@ -9,23 +9,20 @@ uniform mat4 model = mat4(1.0f);
 uniform mat4 view = mat4(1.0f);
 uniform mat4 projection = mat4(1.0f);
 
-out vec2 TexCoord;
-
 void main() {
 	gl_Position = projection * view * model * vec4(aPos, 1.0f);
-	TexCoord = aTexCoord;
 }
 
 #endif
 
 #ifdef FRAGMENT_SHADER
 
-uniform int objectID;
+uniform int id;
 
 out int FragColor; // must be an integer to write to the GL_R32I texture
 
 void main() {
-    FragColor = objectID;
+    FragColor = id;
 }
 
 #endif

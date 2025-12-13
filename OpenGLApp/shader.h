@@ -8,23 +8,20 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
-namespace fs = std::filesystem;
-
 /**
  * @brief Utility class for loading, compiling, and managing GLSL shaders.
  */
 class Shader {
 public:
     std::string source;
-    unsigned int id = 0;
-    fs::path path;
+    unsigned int id;
+    std::filesystem::path path;
 
-    Shader(fs::path path = "") : path(std::move(path)) {}
+    Shader(std::filesystem::path path = "") : id(0), path(std::move(path)) {}
 
-    ~Shader() {
-        if (id != 0) glDeleteProgram(id);
-    }
-
+    /**
+    * @brief Compiles the shaders with custom defines and checks errors.
+    */
     bool compile(const std::string &defines = "") {
         if (id != 0) return true; // Already compiled
         if (path.empty()) {
@@ -78,6 +75,13 @@ public:
         return success;
     }
 
+    void free() {
+        if (id != 0) {
+            glDeleteProgram(id);
+            id = 0;
+        }
+    }
+
     /**
      * @brief Activates the shader program.
      */
@@ -98,82 +102,129 @@ public:
     }
 
     void set(const char *name, int v0, int v1) const {
+        static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
         glUniform2i(uniformId, v0, v1);
     }
 
     void set(const char *name, int v0, int v1, int v2) const {
+        static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
         glUniform3i(uniformId, v0, v1, v2);
     }
 
     void set(const char *name, int v0, int v1, int v2, int v3) const {
+        static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
         glUniform4i(uniformId, v0, v1, v2, v3);
     }
 
     // Float overloads
     void set(const char *name, float v0) const {
+        static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
         glUniform1f(uniformId, v0);
     }
 
     void set(const char *name, float v0, float v1) const {
+        static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
         glUniform2f(uniformId, v0, v1);
     }
 
     void set(const char *name, float v0, float v1, float v2) const {
+        static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
         glUniform3f(uniformId, v0, v1, v2);
     }
 
     void set(const char *name, float v0, float v1, float v2, float v3) const {
+        static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
         glUniform4f(uniformId, v0, v1, v2, v3);
     }
 
     // GLM Vector overloads
     void set(const char *name, const glm::vec1 &v0) const {
+        static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
         glUniform1fv(uniformId, 1, &v0[0]);
     }
 
     void set(const char *name, const glm::vec2 &v0) const {
+        static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
         glUniform2fv(uniformId, 1, &v0[0]);
     }
 
     void set(const char *name, const glm::vec3 &v0) const {
+        static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
         glUniform3fv(uniformId, 1, &v0[0]);
     }
 
     void set(const char *name, const glm::vec4 &v0) const {
+        static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
         glUniform4fv(uniformId, 1, &v0[0]);
     }
 
     // GLM Matrix overload
     void set(const char *name, const glm::mat4 &v0) const {
+        static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
         glUniformMatrix4fv(uniformId, 1, GL_FALSE, &v0[0][0]);
     }
 
 private:
-
     // Compiles a specific shader type
     unsigned int generate(const std::string &type, const std::string &defines = "") {
         unsigned int shader;
@@ -193,7 +244,7 @@ private:
         pre += source;
         const char *code = pre.c_str();
 
-        glShaderSource(shader, 1, &code, NULL);
+        glShaderSource(shader, 1, &code, nullptr);
         glCompileShader(shader);
         checkCompileErrors(shader, type);
 
@@ -201,19 +252,19 @@ private:
     }
 
     // Checks for shader compiling or program linking errors
-bool checkCompileErrors(unsigned int id, const std::string &type) {
+    bool checkCompileErrors(unsigned int id, const std::string &type) const {
         int success;
         char infoLog[1024];
         if (type == "program") {
             glGetProgramiv(id, GL_LINK_STATUS, &success);
             if (!success) {
-                glGetProgramInfoLog(id, 1024, NULL, infoLog);
+                glGetProgramInfoLog(id, 1024, nullptr, infoLog);
                 std::cerr << "ERROR: failed to link " << path << " shader program:\n" << infoLog;
             }
         } else {
             glGetShaderiv(id, GL_COMPILE_STATUS, &success);
             if (!success) {
-                glGetShaderInfoLog(id, 1024, NULL, infoLog);
+                glGetShaderInfoLog(id, 1024, nullptr, infoLog);
                 std::cerr << "ERROR: failed to compile " << path << " " << type << " shader:\n" << infoLog;
             }
         }

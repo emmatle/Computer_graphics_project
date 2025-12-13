@@ -8,7 +8,7 @@
 
 #include <glm/gtx/euler_angles.hpp> // Utilities for converting between Euler angles and other formats
 
-#include "texture.h" // Dependency for the object's texture component
+#include "texture.h"
 
 /**
  * @brief Base class for any rotatable, translatable, and scalable object in the 3D world.
@@ -20,7 +20,8 @@ public:
     constexpr static const glm::vec3 WRLD_RIGHT{1.0f, 0.0f, 0.0f};
     constexpr static const glm::vec3 WRLD_UP{0.0f, 1.0f, 0.0f};
 
-    int id = -1; // Unique identifier
+    int id = 0; // Unique identifier
+    std::string name;
 
     glm::vec3 position;
     glm::vec3 rotation;     // Euler angles in degrees (used for UI/serialization)
@@ -31,20 +32,26 @@ public:
     glm::vec3 right;
     glm::vec3 up;
 
-    std::string name;
-
-    Texture texture;
+    std::string texture;
+    Texture tex;
 
     Object(glm::vec3 pos = {}, glm::vec3 rot = {}, glm::vec3 scl = {1, 1, 1})
             : position(pos), rotation(rot), scale(scl) {
+        static int nObjects = 0;
+//        id = ++nObjects; // Assign unique ID
+        update();        // Initialize front/right/up vectors
+    }
+
+    Object(std::string name, glm::vec3 pos = {}, glm::vec3 rot = {}, glm::vec3 scl = {1, 1, 1})
+            : name(std::move(name)), position(pos), rotation(rot), scale(scl) {
         static int nObjects = 0;
         id = ++nObjects; // Assign unique ID
         update();        // Initialize front/right/up vectors
     }
 
     // Move the object by a normalized direction vector and an amount
-    virtual void move(const glm::vec3 &dir, float amount) {
-        position += glm::normalize(dir) * amount;
+    void move(const glm::vec3 &dir, float amount, bool walk = false) {
+        position += glm::normalize(walk ? glm::vec3{dir.x, 0.f, dir.z} : dir) * amount;
     }
 
     // Set rotation directly

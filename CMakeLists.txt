@@ -16,7 +16,7 @@ if (APPLE)
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 
-    if(ARCHITECTURE STREQUAL "arm64")
+    if (ARCHITECTURE STREQUAL "arm64")
         message(STATUS "Detected Apple Silicon (arm64) — using /opt/homebrew paths")
         include_directories(
                 /opt/homebrew/include
@@ -29,7 +29,7 @@ if (APPLE)
                 /opt/homebrew/opt/assimp/lib
                 /opt/homebrew/opt/glfw/lib
         )
-    else()
+    else ()
         message(STATUS "Detected Intel macOS (x86_64) — using /usr/local paths")
         include_directories(
                 /usr/local/include
@@ -42,8 +42,8 @@ if (APPLE)
                 /usr/local/opt/assimp/lib
                 /usr/local/opt/glfw/lib
         )
-    endif()
-endif()
+    endif ()
+endif ()
 
 # === Collect all source files ===
 file(GLOB_RECURSE APP_SOURCES
@@ -100,7 +100,7 @@ if (WIN32)
             SndFile::sndfile
             OpenAL::OpenAL
     )
-elseif(APPLE)
+elseif (APPLE)
     message(STATUS "Link directories on Apple")
     find_package(OpenGL REQUIRED)
     find_package(Freetype REQUIRED)
@@ -117,7 +117,7 @@ elseif(APPLE)
             "-framework IOKit"
             "-framework CoreVideo"
     )
-elseif(UNIX AND NOT APPLE)
+elseif (UNIX AND NOT APPLE)
     message(STATUS "Link directories on Linux")
     find_package(OpenGL REQUIRED)
     find_package(Freetype REQUIRED)
@@ -135,27 +135,27 @@ elseif(UNIX AND NOT APPLE)
             ${OPENAL_LIBRARIES}
             dl pthread
     )
-endif()
+endif ()
 
 # === Create a macOS .app bundle and assign the app icon ===
-if(APPLE)
+if (APPLE)
     message(STATUS "Create a macOS .app bundle")
     set_target_properties(${APP_NAME} PROPERTIES
-    MACOSX_BUNDLE TRUE
-    MACOSX_BUNDLE_ICON_FILE AppIcon.icns)
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_ICON_FILE AppIcon.icns)
 endif ()
 
 # === Create the absolute path for the resource folder as C++ macro ===
-if(APPLE)
+if (APPLE)
     message(STATUS " Create the absolute path for the resource on APPLE")
     target_compile_definitions(${APP_NAME} PRIVATE RESOURCE_PATH="../Resources")
-elseif(WIN32 OR (UNIX AND NOT APPLE))
+else ()
     message(STATUS " Create the absolute path for the resource on Windows/Linux")
     target_compile_definitions(${APP_NAME} PRIVATE RESOURCE_PATH="resources")
-endif()
+endif ()
 
 # === Post-build actions ===
-if(APPLE)
+if (APPLE)
     message(STATUS "Post-build actions on Apple")
     add_custom_command(TARGET ${APP_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -165,14 +165,14 @@ if(APPLE)
             ${CMAKE_SOURCE_DIR}/OpenGLApp/resources/Icon/Icon.icns
             ${CMAKE_CURRENT_BINARY_DIR}/${APP_NAME}.app/Contents/Resources/AppIcon.icns
     )
-elseif(WIN32 OR (UNIX AND NOT APPLE))
+elseif (WIN32 OR (UNIX AND NOT APPLE))
     message(STATUS "Post-build actions on Windows/Linux")
     add_custom_command(TARGET ${APP_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/OpenGLApp/resources
             ${CMAKE_CURRENT_BINARY_DIR}/resources
     )
-endif()
+endif ()
 
 # === Build summary ===
 message(STATUS "---- BUILD CONFIGURATION ----")
