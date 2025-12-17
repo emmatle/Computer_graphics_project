@@ -44,16 +44,9 @@ public:
     Object inspectedObj;
     Object *selectedObj = nullptr;
 
-    float aspect;
     float playerSpeed = 2.5f;
     float mouseSensitivity = 0.05f;
     bool mouseDrag = false;
-    bool debug = true;
-
-    Game(float aspect = 16.f / 9.f, bool debug = false) : aspect(aspect), debug(debug) {
-        player.aspectRatio = aspect;
-        fixed.aspectRatio = aspect;
-    }
 
     static Object objFromJson(nlohmann::json j, int &id, std::string &name, std::string &texture) {
         glm::vec3 pos{};
@@ -86,7 +79,7 @@ public:
         }
 
         if (!j.contains("objects")) return false;
-        const json &s = j["objects"];
+        json &s = j["objects"];
 
         for (const auto &entry: s) {
             int id = 0;
@@ -107,7 +100,7 @@ public:
         player.position.y = 1.6f;
     }
 
-    void update(float deltaTime) {
+    void update() {
         if (mode == Explore) {
             // Calculate the amount of the movement considering sprint (SHIFT)
             float velocity = playerSpeed * deltaTime;
@@ -129,12 +122,6 @@ public:
     }
 
     // --- Callbacks ---
-
-    // TODO: remove aspect from Camera.
-    void onResize(float aspect) {
-        player.aspectRatio = aspect;
-        fixed.aspectRatio = aspect;
-    }
 
     void onKey(int key, int action, int mods) {
         if (key == GLFW_KEY_TAB && action == GLFW_PRESS) debug = !debug; // toggle debug UI

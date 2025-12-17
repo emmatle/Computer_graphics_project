@@ -17,6 +17,14 @@
 
 #include <GLFW/glfw3.h>
 
+// --- Global variables ---
+
+float deltaTime = 0.f; // Used for game synchronization
+int fbWidth = 1920; // Framebuffer width
+int fbHeight = 1080; // Framebuffer height
+float aspect = 16.f / 9.f; // Aspect Ratio
+bool debug = true; // Enables debug menu and flying camera
+
 // Helper function for retrieving correct path for game assets
 std::filesystem::path getResource(const std::string &relative, bool mute = false) {
     std::filesystem::path file = std::string(RESOURCE_PATH) + "/" + relative;
@@ -35,27 +43,21 @@ public:
     static std::string title;
     static int width;
     static int height;
-    static int fbWidth;
-    static int fbHeight;
-    static float aspect;
 
     static bool fullscreen;
     static bool vsync;
     static float mouseSensitivity;
     static float fontSize;
 
-    static float currentTime;
-    static float deltaTime;
-    static float lastTime;
-
     void run();
 
 private:
     static Game game;
     static Renderer renderer;
+    static float currentTime;
+    static float lastTime;
     static float mouseX;
     static float mouseY;
-    static bool debug;
     static bool gameFocus;
     static bool firstMouse;
 

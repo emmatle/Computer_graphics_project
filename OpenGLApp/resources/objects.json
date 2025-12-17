@@ -19,7 +19,7 @@
     {
       "id": 2,
       "name": "Prop_2",
-      "texture": "lava.jpg",
+      "texture": "snow.jpg",
       "position": [2.0, 5.0, -2.0],
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0]
@@ -27,18 +27,18 @@
     {
       "id": 3,
       "name": "Prop_3",
-      "texture": "snow.jpg",
+      "texture": "Portal_1",
       "position": [-1.5, 2.5, -2.5],
       "rotation": [30.0, 60.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
+      "scale": [1.333, 1.0, 1.0]
     },
     {
       "id": 4,
       "name": "Prop_4",
-      "texture": "fabric.jpg",
+      "texture": "Portal_2",
       "position": [-3.8, 3.2, -12.3],
       "rotation": [290.0, 20.0, 130.0],
-      "scale": [1.0, 1.0, 1.0]
+      "scale": [1.0, 1.333, 1.0]
     },
     {
       "id": 5,

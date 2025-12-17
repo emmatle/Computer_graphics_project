@@ -6,17 +6,15 @@
 class Camera : public Object {
     static constexpr float MAX_FOV = 90.f;
     static constexpr float MAX_PITCH = 89.f; // Prevent flipping (pitch clamp)
+    static constexpr float MIN_CLIPPING = 0.1f;
 
 public:
     float fov;
-    float aspectRatio;
-    float nearPlane;
-    float farPlane;
     bool costrain; // Flag to enable pitching limits/constraints
 
     Camera(glm::vec3 pos = {}, glm::vec3 rot = {}, float fov = 45.f,
-           bool costrain = false, float aspect = 1.f, float near = 0.1f, float far = 100.f)
-            : fov(fov), nearPlane(near), farPlane(far), costrain(costrain), aspectRatio(aspect) {
+           bool costrain = false, float near = 0.1f, float far = 100.f)
+            : fov(fov), costrain(costrain) {
         position = pos;
         rotation = rot;
         scale = {1.f, 1.f, 1.f};
@@ -52,15 +50,15 @@ public:
     }
 
     // Returns the Projection Matrix (Perspective or Orthographic)
-    glm::mat4 getProjectionMatrix(float aspect = 0.f, float maxDistance = 0.f, bool perspective = true) const {
-        if (perspective)
+    glm::mat4 getProjectionMatrix(float asp, float maxDist = 100.f, bool persp = true) const {
+        if (persp)
             // Creates a perspective matrix (for 3D rendering)
-            return glm::perspective(glm::radians(fov), aspect > 0.f ? aspect : aspectRatio, nearPlane,
-                                    maxDistance > 0.f ? maxDistance : farPlane);
+            return glm::perspective(glm::radians(fov), asp, MIN_CLIPPING,
+                                    maxDist);
 
         // Creates an orthographic matrix (for 2D rendering or special effects)
-        return glm::ortho(-aspectRatio, aspectRatio, -1.f, 1.f, nearPlane,
-                          maxDistance > 0.f ? maxDistance : farPlane);
+        return glm::ortho(-asp, asp, -1.f, 1.f, MIN_CLIPPING,
+                          maxDist);
     }
 
     // Override update to apply constraints specific to a Camera

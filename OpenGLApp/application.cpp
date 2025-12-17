@@ -11,31 +11,26 @@
 
 #include "application.h"
 
-Game Application::game{aspect, debug};
+Game Application::game;
 Renderer Application::renderer;
 
 GLFWwindow *Application::window = nullptr;
 std::string Application::title = "Escape Room";
 int Application::width = 1024;
 int Application::height = 768;
-int Application::fbWidth = 1024;
-int Application::fbHeight = 768;
-float Application::aspect = 4.f /3.f;
 
-bool Application::fullscreen = true; // Overrides width and height if true
+bool Application::fullscreen = false; // Overrides width and height if true
 bool Application::vsync = false;
 float Application::mouseSensitivity = 0.1f;
 float Application::fontSize = 16.f;
 
+float Application::currentTime = 0.f;
+float Application::lastTime = 0.f;
+
 float Application::mouseX = static_cast<float>(Application::width) / 2.f;
 float Application::mouseY = static_cast<float>(Application::height) / 2.f;
-bool Application::debug = true;
 bool Application::gameFocus = true;
 bool Application::firstMouse = true;
-
-float Application::currentTime = 0.f;
-float Application::deltaTime = 0.f;
-float Application::lastTime = 0.f;
 
 // Initializes GLFW, GLAD, and ImGui
 void Application::init() {
@@ -79,7 +74,6 @@ void Application::init() {
     // Updates the Framebuffer size and the aspect ratio
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     aspect = static_cast<float>(width) / static_cast<float>(height);
-    game.onResize(aspect);
 
     // Enable vsync
     if (vsync) glfwSwapInterval(1);
@@ -105,7 +99,7 @@ void Application::init() {
     // Set custom font
     std::string fontstr = getResource("fonts/OpenSans.ttf").string();
     const char *font = fontstr.c_str();
-    ImGui::GetIO().Fonts->AddFontFromFileTTF(font, fontSize); // TODO: fix Windows font loading.
+    ImGui::GetIO().Fonts->AddFontFromFileTTF(font, fontSize);
 }
 
 /* TODO: abstract rendering and game logic from application class:
@@ -114,12 +108,6 @@ void Application::init() {
  */
 void Application::run() {
     init();
-
-//    glEnable(GL_DEPTH_TEST);
-
-    // Updates the viewport
-
-//    glViewport(0, 0, fbWidth, fbHeight);
 
     renderer.genBuffers(fbWidth, fbHeight);
 
@@ -137,7 +125,7 @@ void Application::run() {
         lastTime = currentTime;
 
         glfwPollEvents();
-        game.update(deltaTime);
+        game.update();
 
         // Begin new ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -148,14 +136,16 @@ void Application::run() {
 
         // Scene rendering
         if (game.mode == Game::Explore) {
+            renderer.updatePortal(renderer.portals[0], game.objects, game.player);
+            renderer.updatePortal(renderer.portals[1], game.objects, game.fixed);
             Renderer::clear(Game::BG_COLOR);
 
-            for (const auto &obj: game.objects) renderer.drawObject(obj, game.player);
+            renderer.renderScene(game.objects, game.player);
 
         } else if (game.mode == Game::Inspect) {
             Renderer::clear(Game::MENU_COLOR);
 
-            renderer.drawObject(game.inspectedObj, game.fixed);
+            renderer.renderScene({game.inspectedObj}, game.fixed);
         }
 
         // Render ImGui
@@ -376,7 +366,6 @@ void Application::windowSizeCallback(GLFWwindow *window, int width, int height) 
     Application::width = width;
     Application::height = height;
     aspect = static_cast<float>(width) / static_cast<float>(height);
-    game.onResize(aspect);
 }
 
 // Callback for framebuffer resizing

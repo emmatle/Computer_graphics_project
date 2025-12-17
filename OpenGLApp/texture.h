@@ -23,6 +23,7 @@ public:
      * @brief Loads image, generates texture object, and sets parameters.
      */
     bool load() {
+        static bool flipVertically = false;
         if (id != 0) return true; // Already loaded
 
         if (!exists(path)) {
@@ -32,7 +33,10 @@ public:
 
         // OpenGL expects the 0.0 coordinate on the Y-axis to be the bottom,
         // but images usually load with 0.0 at the top. This flips it to match.
-        stbi_set_flip_vertically_on_load(true);
+        if (!flipVertically) {
+            stbi_set_flip_vertically_on_load(true);
+            flipVertically = true;
+        }
 
         int width, height, nrChannels;
         unsigned char *data = stbi_load(path.string().c_str(), &width, &height, &nrChannels, 0);
