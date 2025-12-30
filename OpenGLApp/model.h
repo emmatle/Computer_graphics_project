@@ -148,13 +148,14 @@ private:
             auto diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE);
             textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-            auto specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
-            textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-
-            // Assimp maps normals to HEIGHT for some formats
-            auto normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT);
-
-            textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+            // TODO: Enable other maps.
+            // auto specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
+            // textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+            //
+            // // Assimp maps normals to HEIGHT for some formats
+            // auto normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT);
+            //
+            // textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
             meshes.emplace_back(vertices, indices, textures, name, type);
         }

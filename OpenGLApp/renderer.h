@@ -28,8 +28,8 @@ public:
                          {"Portal2", 512, 682}};
 
     Renderer() :
-            renderingShader(getResource("shaders/rendering.glsl")),
-            pickingShader(getResource("shaders/picking.glsl")) {}
+            renderingShader(getResource("shaders/Blinn-Phong.glsl")),
+            pickingShader(getResource("shaders/Picking.glsl")) {}
 
     void genBuffers(int width, int height);
 
@@ -115,6 +115,7 @@ void Renderer::drawScene(const std::vector<Object> &objects, const Camera &cam, 
     shader.use();
     shader.set("view", cam.getViewMatrix());
     shader.set("projection", cam.getProjectionMatrix(aspect));
+    shader.set("viewPos", cam.position);
 
     for (const auto &obj: objects) {
         if (picking) {

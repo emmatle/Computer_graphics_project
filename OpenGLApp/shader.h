@@ -232,16 +232,16 @@ public:
         std::string name;
         switch (tex.type) {
             case Texture::Diffuse:
-                name = "diffuse";
+                name = "diffuseMap";
                 break;
             case Texture::Specular:
-                name = "specular";
+                name = "specularMap";
                 break;
             case Texture::Normal:
-                name = "normal";
+                name = "normalMap";
                 break;
             case Texture::Displacement:
-                name = "displacement";
+                name = "displacementMap";
                 break;
         }
         int uniformId = glGetUniformLocation(id, (name).c_str());
