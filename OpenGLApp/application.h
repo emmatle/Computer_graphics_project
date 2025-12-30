@@ -26,10 +26,10 @@ float aspect = 16.f / 9.f; // Aspect Ratio
 bool debug = true; // Enables debug menu and flying camera
 
 // Helper function for retrieving correct path for game assets
-std::filesystem::path getResource(const std::string &relative, bool mute = false) {
-    std::filesystem::path file = std::string(RESOURCE_PATH) + "/" + relative;
+std::filesystem::path getResource(const std::filesystem::path &relative, bool mute = false) {
+    std::filesystem::path file = std::filesystem::path(RESOURCE_PATH) / relative;
     if (!mute && !exists(file)) {
-        std::cerr << "ERROR: file " << file << "not found" << std::endl;
+        std::cerr << "ERROR: file " << file << " not found" << std::endl;
     }
     return file;
 }

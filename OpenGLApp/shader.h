@@ -8,6 +8,8 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
+#include "texture.h"
+
 /**
  * @brief Utility class for loading, compiling, and managing GLSL shaders.
  */
@@ -95,13 +97,13 @@ public:
     // --------------------------------------------------------------
 
     // Integer overloads
-    void set(const char *name, int v0) const {
+    void setInt(const char *name, int v0) const {
         int uniformId = glGetUniformLocation(id, name);
-        if (uniformId == -1) std::cerr << "ERROR: invalid uniform name: " << name << std::endl;
+        if (uniformId == -1) std::cerr << "WARNING: invalid uniform name: \"" << name << "\"" << std::endl;
         glUniform1i(uniformId, v0);
     }
 
-    void set(const char *name, int v0, int v1) const {
+    void setInt(const char *name, int v0, int v1) const {
         static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
         if (!silenceWarning && uniformId == -1) {
@@ -111,7 +113,7 @@ public:
         glUniform2i(uniformId, v0, v1);
     }
 
-    void set(const char *name, int v0, int v1, int v2) const {
+    void setInt(const char *name, int v0, int v1, int v2) const {
         static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
         if (!silenceWarning && uniformId == -1) {
@@ -121,7 +123,7 @@ public:
         glUniform3i(uniformId, v0, v1, v2);
     }
 
-    void set(const char *name, int v0, int v1, int v2, int v3) const {
+    void setInt(const char *name, int v0, int v1, int v2, int v3) const {
         static bool silenceWarning = false;
         int uniformId = glGetUniformLocation(id, name);
         if (!silenceWarning && uniformId == -1) {
@@ -222,6 +224,32 @@ public:
             silenceWarning = true;
         }
         glUniformMatrix4fv(uniformId, 1, GL_FALSE, &v0[0][0]);
+    }
+
+    // Texture overload
+    void set(const Texture &tex) const {
+        static bool silenceWarning = false;
+        std::string name;
+        switch (tex.type) {
+            case Texture::Diffuse:
+                name = "diffuse";
+                break;
+            case Texture::Specular:
+                name = "specular";
+                break;
+            case Texture::Normal:
+                name = "normal";
+                break;
+            case Texture::Displacement:
+                name = "displacement";
+                break;
+        }
+        int uniformId = glGetUniformLocation(id, (name).c_str());
+        if (!silenceWarning && uniformId == -1) {
+            std::cerr << "WARNING: invalid uniform name: \"" << name << "\"" << std::endl;
+            silenceWarning = true;
+        }
+        glUniform1ui(uniformId, tex.id);
     }
 
 private:

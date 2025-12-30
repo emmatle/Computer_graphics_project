@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <filesystem>
+#include <algorithm>
 
 #include <glad/glad.h>
 
@@ -13,21 +14,31 @@
 class Texture {
 public:
     unsigned int id = 0;
-    std::filesystem::path path;
-    std::string type; // e.g. "texture_diffuse", "texture_specular"
 
-    Texture(std::filesystem::path path = "", std::string type = "")
-            : path(std::move(path)), type(std::move(type)) {}
+    enum type {
+        Diffuse,
+        Specular,
+        Normal,
+        Displacement
+    } type;
+
+    std::filesystem::path path;
+
+    Texture(std::filesystem::path path = "")
+            : path(path) {
+        assignType(path.string());
+    }
 
     /**
      * @brief Loads image, generates texture object, and sets parameters.
      */
     bool load() {
+        std::filesystem::path fullPath = getResource(path, true);
         static bool flipVertically = false;
         if (id != 0) return true; // Already loaded
 
-        if (!exists(path)) {
-            std::cerr << "ERROR: failed to load texture " << path << std::endl;
+        if (!exists(fullPath)) {
+            std::cerr << "ERROR: failed to load texture " << fullPath << std::endl;
             return false;
         }
 
@@ -39,7 +50,7 @@ public:
         }
 
         int width, height, nrChannels;
-        unsigned char *data = stbi_load(path.string().c_str(), &width, &height, &nrChannels, 0);
+        unsigned char *data = stbi_load(fullPath.string().c_str(), &width, &height, &nrChannels, 0);
 
         if (data) {
             GLenum format = 0;
@@ -67,7 +78,7 @@ public:
             stbi_image_free(data);
             return true;
         } else {
-            std::cerr << "ERROR: failed to read texture file: " << path << std::endl;
+            std::cerr << "ERROR: failed to read texture file: " << fullPath << std::endl;
             return false;
         }
     }
@@ -88,5 +99,31 @@ public:
         }
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(GL_TEXTURE_2D, id);
+    }
+
+private:
+    /**
+     * @brief Helper to categorize texture based on common naming conventions.
+     */
+    void assignType(std::string filename) {
+        // Convert to lowercase for easier matching
+        std::transform(filename.begin(), filename.end(), filename.begin(),
+                       [](unsigned char c) { return std::tolower(c); });
+
+        type = Diffuse; // Default fallback ("diffuse", "albedo", "color")
+
+        if (filename.find("specular") != std::string::npos ||
+            filename.find("metallic") != std::string::npos ||
+            filename.find("roughness") != std::string::npos) {
+            type = Specular;
+        }
+        if (filename.find("normal") != std::string::npos ||
+            filename.find("bump") != std::string::npos) {
+            type = Normal;
+        }
+        if (filename.find("displacement") != std::string::npos ||
+            filename.find("height") != std::string::npos) {
+            type = Displacement;
+        }
     }
 };

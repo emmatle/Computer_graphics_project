@@ -6,7 +6,7 @@
 class Camera : public Object {
     static constexpr float MAX_FOV = 90.f;
     static constexpr float MAX_PITCH = 89.f; // Prevent flipping (pitch clamp)
-    static constexpr float MIN_CLIPPING = 0.1f;
+    static constexpr float MIN_CLIPPING = 0.01f;
 
 public:
     float fov;

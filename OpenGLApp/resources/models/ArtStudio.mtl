@@ -1,0 +1,68 @@
+# Blender 5.0.1 MTL File: 'ArtStudio.blend'
+# www.blender.org
+
+newmtl Floor
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/WoodFloor054_2K-JPG_Color.jpg
+map_Ns textures/WoodFloor054_2K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/WoodFloor054_2K-JPG_NormalGL.jpg
+
+newmtl Glass
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Metal
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Metal052A_2K-JPG_Color.jpg
+map_Ns textures/Metal052A_2K-JPG_Roughness.jpg
+map_refl textures/Metal052A_2K-JPG_Metalness.jpg
+map_Bump -bm 1.000000 textures/Metal052A_2K-JPG_NormalGL.jpg
+
+newmtl Slab
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Marble021_2K-JPG_Color.jpg
+map_Ns textures/Marble021_2K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Marble021_2K-JPG_NormalGL.jpg
+
+newmtl Walls
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Plaster001_2K-JPG_Color.jpg
+map_Ns textures/Plaster001_2K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Plaster001_2K-JPG_NormalGL.jpg
+
+newmtl Wood
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Wood092_2K-JPG_Color.jpg
+map_Ns textures/Wood092_2K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Wood092_2K-JPG_NormalGL.jpg

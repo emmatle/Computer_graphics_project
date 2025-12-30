@@ -116,7 +116,7 @@ void Application::run() {
 
     if (!renderer.compileShaders()) exit(EXIT_FAILURE);
 
-    if (!renderer.loadTextures(game.objects)) exit(EXIT_FAILURE);
+    if (!renderer.loadModels(game.objects)) exit(EXIT_FAILURE);
 
     // Main Loop
     while (!glfwWindowShouldClose(window)) {
@@ -140,12 +140,12 @@ void Application::run() {
             renderer.updatePortal(renderer.portals[1], game.objects, game.fixed);
             Renderer::clear(Game::BG_COLOR);
 
-            renderer.renderScene(game.objects, game.player);
+            renderer.drawScene(game.objects, game.player);
 
         } else if (game.mode == Game::Inspect) {
             Renderer::clear(Game::MENU_COLOR);
 
-            renderer.renderScene({game.inspectedObj}, game.fixed);
+            renderer.drawScene({game.inspectedObj}, game.fixed);
         }
 
         // Render ImGui
@@ -155,7 +155,7 @@ void Application::run() {
         glfwSwapBuffers(window);
     }
 
-    renderer.cleanup();
+    renderer.free(game.objects);
 
     terminate();
 }

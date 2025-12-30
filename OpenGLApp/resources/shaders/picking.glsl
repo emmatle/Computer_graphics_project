@@ -3,7 +3,8 @@
 #ifdef VERTEX_SHADER
 
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoord;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTexCoords;
 
 uniform mat4 model = mat4(1.0f);
 uniform mat4 view = mat4(1.0f);
@@ -17,9 +18,9 @@ void main() {
 
 #ifdef FRAGMENT_SHADER
 
-uniform int id;
+out int FragColor; // Must be an integer to write to the GL_R32I texture
 
-out int FragColor; // must be an integer to write to the GL_R32I texture
+uniform int id = 0;
 
 void main() {
     FragColor = id;

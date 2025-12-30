@@ -1,21 +1,23 @@
 #include "object.h"
 #include <glad/glad.h>
 
-#include <utility>
-
 class Portal {
 public:
     int width;
     int height;
+    float aspect;
 
     unsigned int sceneFBO = 0;
     unsigned int sceneDepthRBO = 0;
-
     unsigned int sceneColor;
 
     std::string name;
 
-    Portal(std::string name, int width, int height) : name(std::move(name)), width(width), height(height) {}
+    Portal(std::string name, int width, int height) :
+            name(std::move(name)),
+            width(width),
+            height(height),
+            aspect(static_cast<float>(width) / static_cast<float>(height)) {}
 
     void gen() {
         // Create scene FBO

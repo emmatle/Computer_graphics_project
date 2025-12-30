@@ -37,7 +37,7 @@ public:
 
     std::vector<Object> objects;
 
-    Camera player{{-0.2f, 1.6f, 2.1f}, {-17.0f, 0.0f, 0.0f}, 45.0f, true};
+    Camera player{{0.3f, 1.75f, -0.5f}, {-12.0f, 64.0f, 0.0f}, 45.0f, true};
     Camera fixed{{0.0f, 0.0f, 3.0f}};
     Camera *current = nullptr;
 
@@ -48,17 +48,18 @@ public:
     float mouseSensitivity = 0.05f;
     bool mouseDrag = false;
 
-    static Object objFromJson(nlohmann::json j, int &id, std::string &name, std::string &texture) {
+    static Object objFromJson(nlohmann::json j) {
+        int id = 0;
         glm::vec3 pos{};
         glm::vec3 rot{};
         glm::vec3 scl{1.f};
+        std::string model;
         if (j.contains("id")) id = j["id"]; // Id is optional
-        if (j.contains("name")) name = j["name"]; // Name is optional
         if (j.contains("position")) pos = {j["position"][0], j["position"][1], j["position"][2]};
         if (j.contains("rotation")) rot = {j["rotation"][0], j["rotation"][1], j["rotation"][2]};
         if (j.contains("scale")) scl = {j["scale"][0], j["scale"][1], j["scale"][2]};
-        if (j.contains("texture")) texture = j["texture"]; // Texture is optional
-        return {pos, rot, scl};
+        if (j.contains("model")) model = j["model"]; // Texture is optional
+        return {pos, rot, scl, model, id};
     }
 
     bool loadObjects() {
@@ -82,12 +83,7 @@ public:
         json &s = j["objects"];
 
         for (const auto &entry: s) {
-            int id = 0;
-            std::string name, texture;
-            Object obj = objFromJson(entry, id, name, texture);
-            if (id != 0) obj.id = id;
-            if (!name.empty()) obj.name = name;
-            if (!texture.empty()) obj.texture = texture;
+            Object obj = objFromJson(entry);
             objects.push_back(std::move(obj));
         }
         return true;
@@ -95,9 +91,10 @@ public:
 
     // TODO: add real collision detection.
     void checkCollision() {
-        player.position.x = glm::clamp(player.position.x, -4.0f, 4.0f);
-        player.position.z = glm::clamp(player.position.z, -4.0f, 4.0f);
-        player.position.y = 1.6f;
+        for (auto obj : objects) {
+            obj.checkCollision(player);
+        }
+        // player.position.y = 1.75f; // Costrain the height
     }
 
     void update() {
@@ -119,6 +116,8 @@ public:
             if (input.a) inspectedObj.rotate(fixed.up, -amount, true);
             if (input.d) inspectedObj.rotate(fixed.up, amount, true);
         }
+
+        if (!debug) checkCollision();
     }
 
     // --- Callbacks ---
