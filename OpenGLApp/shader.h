@@ -227,18 +227,18 @@ public:
     }
 
     // Texture overload
-    void set(const Texture &tex) const {
+    void set(const Texture &tex, const int unit) const {
         static bool silenceWarning = false;
         std::string name;
         switch (tex.type) {
             case Texture::Diffuse:
                 name = "diffuseMap";
                 break;
-            case Texture::Specular:
-                name = "specularMap";
-                break;
             case Texture::Normal:
                 name = "normalMap";
+                break;
+            case Texture::Roughness:
+                name = "roughnessMap";
                 break;
             case Texture::Displacement:
                 name = "displacementMap";
@@ -249,7 +249,7 @@ public:
             std::cerr << "WARNING: invalid uniform name: \"" << name << "\"" << std::endl;
             silenceWarning = true;
         }
-        glUniform1ui(uniformId, tex.id);
+        glUniform1i(uniformId, unit);
     }
 
 private:

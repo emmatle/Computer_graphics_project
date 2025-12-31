@@ -17,15 +17,15 @@ public:
 
     enum type {
         Diffuse,
-        Specular,
         Normal,
+        Roughness,
         Displacement
     } type;
 
     std::filesystem::path path;
 
     Texture(std::filesystem::path path = "")
-            : path(path) {
+        : path(path) {
         assignType(path.string());
     }
 
@@ -112,17 +112,16 @@ private:
 
         type = Diffuse; // Default fallback ("diffuse", "albedo", "color")
 
-        if (filename.find("specular") != std::string::npos ||
-            filename.find("metallic") != std::string::npos ||
-            filename.find("roughness") != std::string::npos) {
-            type = Specular;
-        }
         if (filename.find("normal") != std::string::npos ||
+            filename.find("norm") != std::string::npos ||
             filename.find("bump") != std::string::npos) {
             type = Normal;
-        }
-        if (filename.find("displacement") != std::string::npos ||
-            filename.find("height") != std::string::npos) {
+        } else if (filename.find("roughness") != std::string::npos ||
+                   filename.find("rough") != std::string::npos) {
+            type = Roughness;
+            std::cout << "Using roughness texture" << std::endl;
+        } else if (filename.find("displacement") != std::string::npos ||
+                   filename.find("height") != std::string::npos) {
             type = Displacement;
         }
     }

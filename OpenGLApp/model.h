@@ -87,25 +87,27 @@ private:
         // Process vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
             Vertex vertex;
-            vertex.Position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
+            vertex.position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
 
-            if (min.x > vertex.Position.x) min.x = vertex.Position.x;
-            if (min.y > vertex.Position.y) min.y = vertex.Position.y;
-            if (min.z > vertex.Position.z) min.z = vertex.Position.z;
+            if (min.x > vertex.position.x) min.x = vertex.position.x;
+            if (min.y > vertex.position.y) min.y = vertex.position.y;
+            if (min.z > vertex.position.z) min.z = vertex.position.z;
 
-            if (max.x < vertex.Position.x) max.x = vertex.Position.x;
-            if (max.y < vertex.Position.y) max.y = vertex.Position.y;
-            if (max.z < vertex.Position.z) max.z = vertex.Position.z;
+            if (max.x < vertex.position.x) max.x = vertex.position.x;
+            if (max.y < vertex.position.y) max.y = vertex.position.y;
+            if (max.z < vertex.position.z) max.z = vertex.position.z;
 
             if (mesh->HasNormals())
-                vertex.Normal = {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
+                vertex.normal = {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
 
             if (mesh->mTextureCoords[0]) {
-                vertex.TexCoords = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
-                vertex.Tangent = {mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z};
-                vertex.Bitangent = {mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z};
-            } else {
-                vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+                vertex.texCoords = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
+                vertex.tangent = {mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z};
+                vertex.bitangent = {mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z};
+            } else { // Fallback values
+                vertex.texCoords = glm::vec2(0.0f, 0.0f);
+                vertex.tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+                vertex.bitangent = glm::vec3(0.0f, 1.0f, 0.0f);
             }
             vertices.push_back(vertex);
         }
@@ -149,13 +151,13 @@ private:
             textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
             // TODO: Enable other maps.
-            // auto specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
-            // textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-            //
-            // // Assimp maps normals to HEIGHT for some formats
-            // auto normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT);
-            //
-            // textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+            auto roughMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
+            textures.insert(textures.end(), roughMaps.begin(), roughMaps.end());
+
+            // Assimp maps normals to HEIGHT for some formats
+            auto normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT);
+
+            textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
             meshes.emplace_back(vertices, indices, textures, name, type);
         }
