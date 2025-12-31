@@ -57,10 +57,12 @@ uniform vec3 viewPos;
 uniform sampler2D diffuseMap;
 uniform sampler2D normalMap;
 uniform sampler2D roughnessMap;
+uniform sampler2D metalnessMap;
 
 uniform bool hasDiffuse = false;
 uniform bool hasNormal = false;
 uniform bool hasRoughness = false;
+uniform bool hasMetalness = false;
 
 void main() {
     vec3 N = normalize(Normal);
@@ -71,9 +73,17 @@ void main() {
     vec3 V = normalize(viewPos - FragPos);
     vec3 H = normalize(L + V);
 
-    vec3 color = hasDiffuse ? texture(diffuseMap, TexCoords).rgb : vec3(1.0, 1.0, 1.0);
+    vec3 baseColor = hasDiffuse ? texture(diffuseMap, TexCoords).rgb : vec3(1.0);
 
     vec3 normal = hasNormal ? texture(normalMap, TexCoords).rgb : vec3(0.5, 0.5, 1.0);
+
+    float metalness = hasMetalness ? texture(metalnessMap, TexCoords).r : 0.0;
+
+    // For metals, diffuse should be black (0.0). For non-metals, use baseColor.
+    vec3 diffuseColor = mix(baseColor, vec3(0.0), metalness);
+
+    // For metals, specular is tinted by the baseColor. For non-metals, it's white.
+    vec3 specularColor = mix(vec3(1.0), baseColor, metalness);
 
     normal = normal * 2.0 - 1.0; // Map normal [0, 1] -> [-1, 1]
     mat3 TBN = mat3(T, B, N);
@@ -85,11 +95,11 @@ void main() {
     float roughness = texture(roughnessMap, TexCoords).r;
     float shininess = hasRoughness ? mix(256.0, 1.0, roughness) : 8.0; // Map roughness [0, 1] -> shininess (high, low)
 
-    vec3 ambient = k_a * I_a;
-    vec3 diffuse = k_d * I_d * NdotL;
-    vec3 specular = k_s * I_s * pow(NdotH, shininess);
+    vec3 ambient = k_a * I_a * diffuseColor;
+    vec3 diffuse = k_d * I_d * NdotL * diffuseColor;
+    vec3 specular = k_s * I_s * pow(NdotH, shininess) * specularColor;
 
-    FragColor = vec4((ambient + diffuse) * color + specular, 1.0);
+    FragColor = vec4(ambient + diffuse + specular, 1.0);
 }
 
 #endif

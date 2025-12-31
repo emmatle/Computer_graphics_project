@@ -61,6 +61,7 @@ public:
         bool hasDiffuse = false;
         bool hasNormal = false;
         bool hasRoughness = false;
+        bool hasMetalness = false;
 
         if (useTextures) {
             if (textures.empty()) {
@@ -73,12 +74,14 @@ public:
                 if (textures[i].type == Texture::Diffuse) hasDiffuse = true;
                 if (textures[i].type == Texture::Normal) hasNormal = true;
                 if (textures[i].type == Texture::Roughness) hasRoughness = true;
+                if (textures[i].type == Texture::Metalness) hasMetalness = true;
                 textures[i].use(i);
                 shader.set(textures[i], i);
             }
             shader.set("hasDiffuse", hasDiffuse);
             shader.set("hasNormal", hasNormal);
             shader.set("hasRoughness", hasRoughness);
+            shader.set("hasMetalness", hasMetalness);
         }
 
 

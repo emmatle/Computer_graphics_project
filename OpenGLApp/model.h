@@ -150,14 +150,14 @@ private:
             auto diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE);
             textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-            // TODO: Enable other maps.
-            auto roughMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
-            textures.insert(textures.end(), roughMaps.begin(), roughMaps.end());
-
-            // Assimp maps normals to HEIGHT for some formats
             auto normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT);
-
             textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+
+            auto roughnessMaps = loadMaterialTextures(material, aiTextureType_SHININESS);
+            textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+
+            auto metalnessMaps = loadMaterialTextures(material, aiTextureType_REFLECTION);
+            textures.insert(textures.end(), metalnessMaps.begin(), metalnessMaps.end());
 
             meshes.emplace_back(vertices, indices, textures, name, type);
         }

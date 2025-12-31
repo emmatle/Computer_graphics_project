@@ -240,8 +240,8 @@ public:
             case Texture::Roughness:
                 name = "roughnessMap";
                 break;
-            case Texture::Displacement:
-                name = "displacementMap";
+            case Texture::Metalness:
+                name = "metalnessMap";
                 break;
         }
         int uniformId = glGetUniformLocation(id, (name).c_str());

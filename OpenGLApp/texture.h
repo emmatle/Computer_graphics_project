@@ -19,7 +19,7 @@ public:
         Diffuse,
         Normal,
         Roughness,
-        Displacement
+        Metalness
     } type;
 
     std::filesystem::path path;
@@ -119,10 +119,9 @@ private:
         } else if (filename.find("roughness") != std::string::npos ||
                    filename.find("rough") != std::string::npos) {
             type = Roughness;
-            std::cout << "Using roughness texture" << std::endl;
-        } else if (filename.find("displacement") != std::string::npos ||
-                   filename.find("height") != std::string::npos) {
-            type = Displacement;
+        } else if (filename.find("metalness") != std::string::npos ||
+                   filename.find("metal") != std::string::npos) {
+            type = Metalness;
         }
     }
 };

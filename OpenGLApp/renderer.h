@@ -115,13 +115,13 @@ void Renderer::drawScene(const std::vector<Object> &objects, const Camera &cam, 
     shader.use();
     shader.set("view", cam.getViewMatrix());
     shader.set("projection", cam.getProjectionMatrix(aspect));
-    shader.set("viewPos", cam.position);
 
     for (const auto &obj: objects) {
         if (picking) {
             shader.setInt("id", obj.id);
             obj.draw(shader, false); // Skip textures setting when drawing IDs
         } else {
+            shader.set("viewPos", cam.position);
             obj.draw(shader);
         }
     }
