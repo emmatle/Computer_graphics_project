@@ -6,13 +6,11 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoords;
 layout (location = 3) in vec3 aTangent;
-layout (location = 4) in vec3 aBitangent;
 
 out vec3 FragPos;
 out vec3 Normal;
 out vec2 TexCoords;
-out vec3 Tangent;
-out vec3 Bitangent;
+out mat3 TBN;
 
 uniform mat4 model = mat4(1.0);
 uniform mat4 view = mat4(1.0);
@@ -23,11 +21,15 @@ void main() {
 
     mat3 normalMatrix = mat3(transpose(inverse(model)));
 
-    Normal = normalMatrix * aNormal;
-    TexCoords = aTexCoords;
-    Tangent = normalMatrix * aTangent;
-    Bitangent = normalMatrix * aBitangent;
+    vec3 N = normalize(normalMatrix * aNormal);
+    vec3 T = normalize(normalMatrix * aTangent);
+    T = normalize(T - dot(T, N) * N); // Gram-Schmidt orthogonalization
+    vec3 B = cross(N, T);
 
+    TBN = mat3(T, B, N);
+
+    Normal = N;
+    TexCoords = aTexCoords;
     gl_Position = projection * view * vec4(FragPos, 1.0);
 }
 
@@ -35,69 +37,94 @@ void main() {
 
 #ifdef FRAGMENT_SHADER
 
+#define MAX_LIGHTS 8
+
 in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
-in vec3 Tangent;
-in vec3 Bitangent;
+in mat3 TBN;
 
 out vec4 FragColor;
 
-uniform float k_a = 0.05; // Ambient light reflection coefficient
-uniform vec3 I_a = vec3(1.0); // Ambient light color
+// --- Material uniforms ---
 
-uniform float k_d = 0.8; // Diffuse light reflection coefficient
-uniform vec3 I_d = vec3(1.0); // Diffuse light color
-uniform vec3 lightPos = vec3(-0.3, 2.0, -0.3); // Diffuse light position // TODO: update on lights.
-
-uniform float k_s = 0.5; // Specular coefficient
-uniform vec3 I_s = vec3(1.0); // Specular light color
-uniform vec3 viewPos;
+uniform vec3 ambientColor = vec3(1.0);
+uniform float k_a = 0.05;
+uniform float k_d = 0.8;
+uniform float k_s = 0.5;
+uniform float shininess = 32.0;
 
 uniform sampler2D diffuseMap;
+uniform sampler2D ambientOcclusionMap;
 uniform sampler2D normalMap;
 uniform sampler2D roughnessMap;
 uniform sampler2D metalnessMap;
+uniform bool hasDiffuseMap = false;
+uniform bool hasAmbientOcclusionMap = false;
+uniform bool hasNormalMap = false;
+uniform bool hasRoughnessMap = false;
+uniform bool hasMetalnessMap = false;
 
-uniform bool hasDiffuse = false;
-uniform bool hasNormal = false;
-uniform bool hasRoughness = false;
-uniform bool hasMetalness = false;
+// --- Light uniforms ---
+
+struct Light {
+    vec3 position;
+    vec3 color;
+    float constant;
+    float linear;
+    float quadratic;
+};
+
+uniform Light lights[MAX_LIGHTS];
+uniform int nLights;
+uniform vec3 viewPos;
 
 void main() {
-    vec3 N = normalize(Normal);
-    vec3 T = normalize(Tangent);
-    T = normalize(T - dot(T, N) * N);
-    vec3 B = cross(N, T);
-    vec3 L = normalize(lightPos - FragPos);
     vec3 V = normalize(viewPos - FragPos);
-    vec3 H = normalize(L + V);
 
-    vec3 baseColor = hasDiffuse ? texture(diffuseMap, TexCoords).rgb : vec3(1.0);
+    vec3 baseColor = hasDiffuseMap ? texture(diffuseMap, TexCoords).rgb : vec3(1.0);
+    vec3 ambientColor = hasAmbientOcclusionMap ? vec3(texture(ambientOcclusionMap, TexCoords).r) : vec3(1.0f, 1.0f, 1.0f);
+    vec3 normal = hasNormalMap ? texture(normalMap, TexCoords).rgb : vec3(0.5, 0.5, 1.0);
+    float roughness = hasRoughnessMap ? texture(roughnessMap, TexCoords).r : 0.125;
+    float metalness = hasMetalnessMap ? texture(metalnessMap, TexCoords).r : 0.0;
 
-    vec3 normal = hasNormal ? texture(normalMap, TexCoords).rgb : vec3(0.5, 0.5, 1.0);
+    // Map normals [0, 1] -> [-1, 1]
+    normal = normalize(normal * 2.0 - 1.0);
+    vec3 N = hasNormalMap ? normalize(TBN * normal) : normalize(Normal);
 
-    float metalness = hasMetalness ? texture(metalnessMap, TexCoords).r : 0.0;
-
-    // For metals, diffuse should be black (0.0). For non-metals, use baseColor.
+    // Metals have no diffuse, their color is in the specular reflection
     vec3 diffuseColor = mix(baseColor, vec3(0.0), metalness);
-
-    // For metals, specular is tinted by the baseColor. For non-metals, it's white.
     vec3 specularColor = mix(vec3(1.0), baseColor, metalness);
 
-    normal = normal * 2.0 - 1.0; // Map normal [0, 1] -> [-1, 1]
-    mat3 TBN = mat3(T, B, N);
-    N = normalize(TBN * normal);
+    // Map roughness to shininess exponent
+    float exponent = hasRoughnessMap ? mix(256.0, 2.0, roughness) : shininess;
 
-    float NdotL = max(dot(N, L), 0.0);
-    float NdotH = max(dot(N, H), 0.0);
+    // Lighting Loop
+    vec3 totalDiffuse = vec3(0.0);
+    vec3 totalSpecular = vec3(0.0);
 
-    float roughness = texture(roughnessMap, TexCoords).r;
-    float shininess = hasRoughness ? mix(256.0, 1.0, roughness) : 8.0; // Map roughness [0, 1] -> shininess (high, low)
+    for(int i = 0; i < nLights; i++) {
+        vec3 L = normalize(lights[i].position - FragPos);
+        vec3 H = normalize(L + V);
 
-    vec3 ambient = k_a * I_a * diffuseColor;
-    vec3 diffuse = k_d * I_d * NdotL * diffuseColor;
-    vec3 specular = k_s * I_s * pow(NdotH, shininess) * specularColor;
+        // Attenuation
+        float distance = length(lights[i].position - FragPos);
+        float attenuation = 1.0 / (lights[i].constant +
+                                   lights[i].linear * distance +
+                                   lights[i].quadratic * (distance * distance));
+
+        // Diffuse
+        float diff = max(dot(N, L), 0.0);
+        totalDiffuse += diff * lights[i].color * attenuation;
+
+        // Specular
+        float spec = pow(max(dot(N, H), 0.0), exponent);
+        totalSpecular += spec * lights[i].color * attenuation;
+    }
+
+    vec3 ambient = k_a * baseColor * ambientColor; // Basic global ambient
+    vec3 diffuse = k_d * totalDiffuse * diffuseColor;
+    vec3 specular = k_s * totalSpecular * specularColor;
 
     FragColor = vec4(ambient + diffuse + specular, 1.0);
 }

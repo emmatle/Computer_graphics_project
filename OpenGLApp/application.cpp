@@ -1,15 +1,17 @@
-#include <iostream>
-#include <fstream>
+#include "application.h"
+#include "game.h"
+#include "renderer.h"
+#include "utils.h"
 
 #include <glad/glad.h>
-#include <glm/glm.hpp>
-
+#include <GLFW/glfw3.h>
+#include <iostream>
+#include <fstream>
+#include <filesystem>
 #include <imgui.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
 #include <nlohmann/json.hpp>
-
-#include "application.h"
 
 Game Application::game;
 Renderer Application::renderer;
@@ -97,8 +99,8 @@ void Application::init() {
     ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
 
     // Set custom font
-    std::string fontstr = getResource("fonts/OpenSans.ttf").string();
-    const char *font = fontstr.c_str();
+    std::string fontPath = getResourcePath("fonts/OpenSans.ttf");
+    const char *font = fontPath.c_str();
     ImGui::GetIO().Fonts->AddFontFromFileTTF(font, fontSize);
 }
 
@@ -145,7 +147,7 @@ void Application::run() {
         } else if (game.mode == Game::Inspect) {
             Renderer::clear(Game::MENU_COLOR);
 
-            renderer.drawScene({game.inspectedObj}, game.fixed);
+            renderer.drawObject(game.inspectedObj, game.fixed);
         }
 
         // Render ImGui
@@ -155,7 +157,7 @@ void Application::run() {
         glfwSwapBuffers(window);
     }
 
-    renderer.free(game.objects);
+    renderer.free();
 
     terminate();
 }
@@ -174,7 +176,7 @@ void Application::terminate() {
 
 // TODO: implement settings and change path.
 void Application::loadSettings() {
-    std::filesystem::path file = getResource("data.json", true);
+    std::filesystem::path file = getResourcePath("data.json", true);
     return;
 
     using json = nlohmann::json;
@@ -207,7 +209,7 @@ void Application::loadSettings() {
 
 // TODO: implement settings and change path.
 void Application::storeSettings() {
-    std::filesystem::path file = getResource("data.json", true);
+    std::filesystem::path file = getResourcePath("data.json", true);
     return;
     using ojson = nlohmann::ordered_json;
 
@@ -237,7 +239,7 @@ void Application::storeSettings() {
 
 // TODO: implement multiples save states.
 void Application::loadState(int slot) {
-    std::filesystem::path file = getResource("data.json", true);
+    std::filesystem::path file = getResourcePath("data.json", true);
     return;
 
     using json = nlohmann::json;
@@ -272,7 +274,7 @@ void Application::loadState(int slot) {
 
 // TODO: implement multiples save states.
 void Application::saveState(int slot) {
-    std::filesystem::path file = getResource("data.json", true);
+    std::filesystem::path file = getResourcePath("data.json", true);
     return;
 
     using ojson = nlohmann::ordered_json;
@@ -435,7 +437,7 @@ void Application::mouseButtonCallback(GLFWwindow *window, int button, int action
 
     int id = 0;
     if (game.mode == Game::Explore && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-        id = renderer.readObjectFromCursor(game.objects, game.player, fbWidth, fbHeight);
+        id = renderer.readObjFromCursor(game.objects, game.player, fbWidth, fbHeight);
     }
     game.onMouseButton(button, action, id);
 }

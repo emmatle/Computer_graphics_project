@@ -2,6 +2,7 @@
   "objects": [
     {
       "id": 0,
+      "name": "Background",
       "model": "models/Background.obj",
       "position": [0.0, 0.0, 0.0],
       "rotation": [0.0, 250.0, 0.0],
@@ -9,6 +10,7 @@
     },
     {
       "id": 0,
+      "name": "Room",
       "model": "models/ArtStudio.obj",
       "position": [0.0, 0.0, 0.0],
       "rotation": [0.0, 0.0, 0.0],
@@ -16,6 +18,7 @@
     },
     {
       "id": 1,
+      "name": "Chair",
       "model": "models/Chair.obj",
       "position": [-2.0, 0.0, -2.3],
       "rotation": [0.0, 40.0, 0.0],

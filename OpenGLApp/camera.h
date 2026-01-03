@@ -1,4 +1,11 @@
+#pragma once
+
 #include "object.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL // Required for some extended GLM functionality
+#include <glm/gtx/euler_angles.hpp> // Utilities for converting between Euler angles and other formats
 
 /**
  * @brief Represents a perspective camera, extending Object with view/projection logic.

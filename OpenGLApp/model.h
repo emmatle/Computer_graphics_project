@@ -1,63 +1,53 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-//#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/string_cast.hpp>
+#include "mesh.h"
+#include "utils.h"
 
+#include <vector>
+#include <glm/glm.hpp>
 #include <assimp/Importer.hpp>
-#include <utility>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "mesh.h"
-#include "shader.h"
-#include "texture.h"
-
 class Model {
-    struct Bound {
-        glm::vec3 min;
-        glm::vec3 max;
-    };
+    IAssetManager *assetManager;
 
 public:
     std::vector<Mesh> meshes;
-    std::vector<Bound> bounds; // Used for detecting collisions
-    std::vector<Texture> loadedTextures; // Stores loaded textures to prevent duplicates
-    std::filesystem::path path;
+    std::vector<AABB> collisions;
+    std::string path;
 
-    Model(std::filesystem::path path = "") : path(std::move(path)) {
+    Model(IAssetManager *am, const std::string &path = "")
+        : assetManager(am), path(getResourcePath(path)) {
     }
 
     // Loads a model using ASSIMP
     bool load() {
-        std::filesystem::path fullPath = getResource(path, true);
-        if (!exists(fullPath)) {
-            std::cerr << "ERROR: failed to load model " << fullPath << std::endl;
+        if (path.empty()) {
+            std::cerr << "ERROR: unspecified model path" << std::endl;
             return false;
         }
 
         Assimp::Importer importer;
-        const aiScene *scene = importer.ReadFile(fullPath.string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
+        const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals |
+                                                       aiProcess_CalcTangentSpace);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-            std::cerr << "ERROR: ASSIMP:\n" << importer.GetErrorString() << std::endl;
+            std::cerr << "ERROR: ASSIMP: " << importer.GetErrorString() << std::endl;
             return false;
         }
 
         processNode(scene->mRootNode, scene);
-
         return true;
     }
 
     // Free GPU resources
     void free() {
         for (auto &mesh: meshes) mesh.free();
-        for (auto &tex: loadedTextures) tex.free();
     }
 
     // Draws the model by iterating through all its meshes
-    void draw(const Shader &shader, bool useTextures = true) const {
+    void draw(Shader &shader, bool useTextures = true) const {
         for (auto &mesh: meshes) mesh.draw(shader, useTextures);
     }
 
@@ -68,25 +58,21 @@ private:
             aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
             processMesh(mesh, scene);
         }
-        for (unsigned int i = 0; i < node->mNumChildren; i++) {
-            processNode(node->mChildren[i], scene);
-        }
+
+        for (unsigned int i = 0; i < node->mNumChildren; i++) processNode(node->mChildren[i], scene);
     }
 
     void processMesh(aiMesh *mesh, const aiScene *scene) {
-        std::string name = mesh->mName.C_Str();
-
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
-        std::vector<Texture> textures;
 
-        // Used for bounding volumes
+        // Used for bounding boxes
         glm::vec3 min(std::numeric_limits<float>::max());
         glm::vec3 max(-std::numeric_limits<float>::max());
 
         // Process vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-            Vertex vertex;
+            Vertex vertex = {};
             vertex.position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
 
             if (min.x > vertex.position.x) min.x = vertex.position.x;
@@ -103,11 +89,10 @@ private:
             if (mesh->mTextureCoords[0]) {
                 vertex.texCoords = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
                 vertex.tangent = {mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z};
-                vertex.bitangent = {mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z};
-            } else { // Fallback values
+            } else {
+                // Fallback values
                 vertex.texCoords = glm::vec2(0.0f, 0.0f);
                 vertex.tangent = glm::vec3(1.0f, 0.0f, 0.0f);
-                vertex.bitangent = glm::vec3(0.0f, 1.0f, 0.0f);
             }
             vertices.push_back(vertex);
         }
@@ -124,13 +109,12 @@ private:
         Mesh::Type type = Mesh::Default;
 
         // Convert to lowercase for easier matching
-        std::string nameLow = name;
-        std::transform(name.begin(), name.end(), nameLow.begin(),
-                       [](unsigned char c) { return std::tolower(c); });
+        std::string name = mesh->mName.C_Str();
+        std::string nameLow = toLower(name);
 
         // TODO: Assign the proper portal texture and light material.
         if (nameLow.find("collision") != std::string::npos) {
-            bounds.push_back({min, max});
+            collisions.emplace_back(AABB{min, max});
         } else if ((pos = nameLow.find("volume")) != std::string::npos ||
                    (pos = nameLow.find("glass")) != std::string::npos) {
             // TODO: implement separate shaders, for now just ignore the mesh.
@@ -147,48 +131,32 @@ private:
             // Process material textures
             aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 
-            auto diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE);
-            textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-
-            auto normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT);
-            textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-
-            auto roughnessMaps = loadMaterialTextures(material, aiTextureType_SHININESS);
-            textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
-
-            auto metalnessMaps = loadMaterialTextures(material, aiTextureType_REFLECTION);
-            textures.insert(textures.end(), metalnessMaps.begin(), metalnessMaps.end());
-
-            meshes.emplace_back(vertices, indices, textures, name, type);
+            Mesh newMesh(vertices, indices, name, type);
+            loadMaterialTextures(material, newMesh);
+            meshes.emplace_back(std::move(newMesh));
         }
     }
 
-    std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type) {
-        std::vector<Texture> textures;
-        for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
-            aiString str;
-            mat->GetTexture(type, i, &str);
+    void loadMaterialTextures(aiMaterial *mat, Mesh &mesh) {
+        aiTextureType types[] = {
+            aiTextureType_DIFFUSE,
+            aiTextureType_SPECULAR,
+            aiTextureType_AMBIENT,
+            aiTextureType_HEIGHT, // Often used for Normals
+            aiTextureType_NORMALS,
+            aiTextureType_SHININESS, // Roughness
+            aiTextureType_REFLECTION // Metalness
+        };
 
-            std::filesystem::path path(str.C_Str());
+        for (const auto type: types) {
+            for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
+                aiString name;
+                mat->GetTexture(type, i, &name);
 
-            // Check if texture was loaded before
-            bool skip = false;
-            for (unsigned int j = 0; j < loadedTextures.size(); j++) {
-                if (loadedTextures[j].path == path) {
-                    textures.push_back(loadedTextures[j]);
-                    skip = true;
-                    break;
-                }
-            }
+                Texture *tex = assetManager->getTexture(name.C_Str());
 
-            if (!skip) {
-                // Use the Texture class for loading
-                Texture texture(path);
-                texture.load();
-                textures.push_back(texture);
-                loadedTextures.push_back(texture);
+                if (tex) mesh.textures[tex->type] = tex;
             }
         }
-        return textures;
     }
 };

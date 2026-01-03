@@ -1,41 +1,10 @@
 #pragma once
 
-#ifdef __APPLE__
-#define GL_SILENCE_DEPRECATION // macOS 10.14 - OpenGL API deprecated.
-#endif
+#include <string>
 
-#ifndef RESOURCE_PATH // Already defined in the CMakeLists.txt, but kept as fallback
-#ifdef ___APPLE__
-#define RESOURCE_PATH "../Resources"
-#else
-#define RESOURCE_PATH "resources"
-#endif
-#endif
-
-#include <iostream>
-#include <filesystem>
-
-#include <GLFW/glfw3.h>
-
-// --- Global variables ---
-
-float deltaTime = 0.f; // Used for game synchronization
-int fbWidth = 1920; // Framebuffer width
-int fbHeight = 1080; // Framebuffer height
-float aspect = 16.f / 9.f; // Aspect Ratio
-bool debug = true; // Enables debug menu and flying camera
-
-// Helper function for retrieving correct path for game assets
-std::filesystem::path getResource(const std::filesystem::path &relative, bool mute = false) {
-    std::filesystem::path file = std::filesystem::path(RESOURCE_PATH) / relative;
-    if (!mute && !exists(file)) {
-        std::cerr << "ERROR: file " << file << " not found" << std::endl;
-    }
-    return file;
-}
-
-#include "game.h"
-#include "renderer.h"
+class Game;
+class Renderer;
+struct GLFWwindow;
 
 class Application {
 public:

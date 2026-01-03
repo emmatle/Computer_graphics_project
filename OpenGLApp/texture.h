@@ -1,11 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <filesystem>
-#include <algorithm>
-
 #include <glad/glad.h>
-
 #include <stb_image.h>
 
 /**
@@ -13,34 +9,35 @@
  */
 class Texture {
 public:
+    static constexpr int N_TYPES = 5;
+
     unsigned int id = 0;
 
-    enum type {
+    enum Type {
         Diffuse,
+        Ambient,
         Normal,
         Roughness,
         Metalness
     } type;
 
-    std::filesystem::path path;
+    std::string path;
 
-    Texture(std::filesystem::path path = "")
-        : path(path) {
-        assignType(path.string());
+    Texture(const std::string &path = "") : path(getResourcePath(path)) {
+        if (!path.empty()) assignType();
     }
 
     /**
      * @brief Loads image, generates texture object, and sets parameters.
      */
     bool load() {
-        std::filesystem::path fullPath = getResource(path, true);
         static bool flipVertically = false;
-        if (id != 0) return true; // Already loaded
-
-        if (!exists(fullPath)) {
-            std::cerr << "ERROR: failed to load texture " << fullPath << std::endl;
+        if (path.empty()) {
+            std::cerr << "ERROR: unspecified texture path" << std::endl;
             return false;
         }
+
+        if (id != 0) return true; // Already loaded
 
         // OpenGL expects the 0.0 coordinate on the Y-axis to be the bottom,
         // but images usually load with 0.0 at the top. This flips it to match.
@@ -50,7 +47,7 @@ public:
         }
 
         int width, height, nrChannels;
-        unsigned char *data = stbi_load(fullPath.string().c_str(), &width, &height, &nrChannels, 0);
+        unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
 
         if (data) {
             GLenum format = 0;
@@ -78,7 +75,7 @@ public:
             stbi_image_free(data);
             return true;
         } else {
-            std::cerr << "ERROR: failed to read texture file: " << fullPath << std::endl;
+            std::cerr << "ERROR: failed to read texture file: " << path << std::endl;
             return false;
         }
     }
@@ -105,16 +102,19 @@ private:
     /**
      * @brief Helper to categorize texture based on common naming conventions.
      */
-    void assignType(std::string filename) {
+    void assignType() {
         // Convert to lowercase for easier matching
-        std::transform(filename.begin(), filename.end(), filename.begin(),
-                       [](unsigned char c) { return std::tolower(c); });
+        std::string filename = toLower(path);
 
         type = Diffuse; // Default fallback ("diffuse", "albedo", "color")
 
-        if (filename.find("normal") != std::string::npos ||
-            filename.find("norm") != std::string::npos ||
-            filename.find("bump") != std::string::npos) {
+        if (filename.find("ambientocclusion") != std::string::npos ||
+            filename.find("ambient") != std::string::npos ||
+            filename.find("_ao") != std::string::npos) {
+            type = Ambient;
+        } else if (filename.find("normal") != std::string::npos ||
+                   filename.find("norm") != std::string::npos ||
+                   filename.find("bump") != std::string::npos) {
             type = Normal;
         } else if (filename.find("roughness") != std::string::npos ||
                    filename.find("rough") != std::string::npos) {
