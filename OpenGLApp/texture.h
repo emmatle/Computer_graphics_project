@@ -32,10 +32,6 @@ public:
      */
     bool load() {
         static bool flipVertically = false;
-        if (path.empty()) {
-            std::cerr << "ERROR: unspecified texture path" << std::endl;
-            return false;
-        }
 
         if (id != 0) return true; // Already loaded
 
@@ -75,7 +71,7 @@ public:
             stbi_image_free(data);
             return true;
         } else {
-            std::cerr << "ERROR: failed to read texture file: " << path << std::endl;
+            std::cerr << "ERROR: failed to read texture " << path << std::endl;
             return false;
         }
     }
@@ -104,7 +100,7 @@ private:
      */
     void assignType() {
         // Convert to lowercase for easier matching
-        std::string filename = toLower(path);
+        std::string filename = StringToLower(path);
 
         type = Diffuse; // Default fallback ("diffuse", "albedo", "color")
 

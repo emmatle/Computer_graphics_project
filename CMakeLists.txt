@@ -68,7 +68,9 @@ elseif (WIN32)
     )
 elseif (UNIX AND NOT APPLE)
     message(STATUS "Create executable on Linux")
-    add_executable(${APP_NAME} ${APP_SOURCES} OpenGLApp)
+    add_executable(${APP_NAME} ${APP_SOURCES} OpenGLApp
+            OpenGLApp/text_renderer.cpp
+            OpenGLApp/text_renderer.h)
 endif ()
 
 # 🔧 Include directories assegnati correttamente al target

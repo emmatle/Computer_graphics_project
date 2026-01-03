@@ -40,6 +40,7 @@ public:
     Object *selectedObj = nullptr;
 
     float playerSpeed = 2.5f;
+    int playerScore = 0;
     float mouseSensitivity = 0.05f;
     bool mouseDrag = false;
 
@@ -48,6 +49,10 @@ public:
     void checkCollision();
 
     void update();
+
+    Object *getObject(const std::string &name);
+
+    Object *getObject(int id);
 
     // --- Callbacks ---
 

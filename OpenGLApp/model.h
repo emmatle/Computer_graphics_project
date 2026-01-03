@@ -1,7 +1,7 @@
 #pragma once
 
-#include "mesh.h"
 #include "utils.h"
+#include "mesh.h"
 
 #include <vector>
 #include <glm/glm.hpp>
@@ -23,11 +23,6 @@ public:
 
     // Loads a model using ASSIMP
     bool load() {
-        if (path.empty()) {
-            std::cerr << "ERROR: unspecified model path" << std::endl;
-            return false;
-        }
-
         Assimp::Importer importer;
         const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals |
                                                        aiProcess_CalcTangentSpace);
@@ -110,7 +105,7 @@ private:
 
         // Convert to lowercase for easier matching
         std::string name = mesh->mName.C_Str();
-        std::string nameLow = toLower(name);
+        std::string nameLow = StringToLower(name);
 
         // TODO: Assign the proper portal texture and light material.
         if (nameLow.find("collision") != std::string::npos) {

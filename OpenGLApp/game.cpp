@@ -72,11 +72,30 @@
         if (!debug) checkCollision();
     }
 
+Object *Game::getObject(const std::string &name) {
+        for (auto &obj: objects) {
+            if (obj.get()->name == name) return obj.get();
+        }
+        return nullptr;
+    }
+
+Object *Game::getObject(int id) {
+        if (id < 1) return nullptr;
+        for (auto &obj: objects) {
+            if (obj.get()->id == id) return obj.get();
+        }
+        return nullptr;
+    }
+
     // --- Callbacks ---
 
     void Game::onKey(int key, int action, int mods) {
         if (key == GLFW_KEY_TAB && action == GLFW_PRESS) debug = !debug; // toggle debug UI
         if (key == GLFW_KEY_E && action == GLFW_PRESS) Game::mode = Game::Explore;
+        if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+            playerScore++;
+            std::cout << "Score: " << playerScore << std::endl;
+        }
     }
 
     void Game::onMouseButton(int button, int action, int objectId) {

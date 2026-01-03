@@ -26,7 +26,7 @@ inline float aspect = 16.f / 9.f; // Aspect Ratio
 inline bool debug = true; // Enables debug menu and flying camera
 
 // Convert string to lowercase for case unsensitive comparison
-inline std::string toLower(std::string str) {
+inline std::string StringToLower(std::string str) {
     std::transform(str.begin(), str.end(), str.begin(),
                    [](unsigned char c) { return std::tolower(c); });
     return str;

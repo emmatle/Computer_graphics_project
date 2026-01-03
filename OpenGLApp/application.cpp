@@ -1,6 +1,7 @@
 #include "application.h"
 #include "game.h"
 #include "renderer.h"
+#include "text_renderer.h"
 #include "utils.h"
 
 #include <glad/glad.h>
@@ -29,8 +30,8 @@ float Application::fontSize = 16.f;
 float Application::currentTime = 0.f;
 float Application::lastTime = 0.f;
 
-float Application::mouseX = static_cast<float>(Application::width) / 2.f;
-float Application::mouseY = static_cast<float>(Application::height) / 2.f;
+float Application::mouseX = static_cast<float>(width) / 2.f;
+float Application::mouseY = static_cast<float>(height) / 2.f;
 bool Application::gameFocus = true;
 bool Application::firstMouse = true;
 
@@ -113,6 +114,8 @@ void Application::run() {
 
     renderer.genBuffers(fbWidth, fbHeight);
 
+    if (!initTextRenderer("fonts/Antonio-Bold.ttf")) exit(EXIT_FAILURE);
+
     // TODO: free up allocated resources before exiting.
     if (!game.loadObjects()) exit(EXIT_FAILURE);
 
@@ -144,6 +147,50 @@ void Application::run() {
 
             renderer.drawScene(game.objects, game.player);
 
+            renderText(
+                "Score: " + std::to_string(game.playerScore),
+                25.0f,
+                static_cast<float>(fbHeight) - 40.0f,
+                0.8f,
+                glm::vec3(1.0f, 1.0f, 0.0f)
+            );
+
+            Object *reference = game.getObject("Chair");
+
+            if (reference) {
+                // Slight offset above the chair to avoid z-fighting
+                glm::vec3 offset(0.0f, reference->scale.y + 0.05f, 0.0f);
+                glm::vec3 textPos = reference->position + offset;
+
+                //we want the text to be visible when looking at the object from different angle ??
+                // Compute "forward" vector of the text (towards the camera)
+                glm::vec3 toCamera = glm::normalize(game.player.position - textPos);
+                glm::vec3 textForward = glm::vec3(0.0f, 0.0f, 1.0f); // assuming text initially faces -Z
+
+
+                float facing = glm::dot(textForward, toCamera);
+
+                // Only render text if camera is facing it (threshold 0.2~0.3)
+                if (facing > 0.2f) {
+                    // Compute axes so text faces the camera nicely
+                    glm::vec3 up(0.0f, 1.0f, 0.0f);
+                    glm::vec3 right = glm::normalize(glm::cross(up, toCamera));
+                    up = glm::cross(toCamera, right);
+
+                    float scale = 0.002f; // adjust size
+
+                    renderText3D(
+                        "PAINTING GAME",
+                        textPos,
+                        right,
+                        up,
+                        scale,
+                        game.player.getViewMatrix(),
+                        game.player.getProjectionMatrix(aspect),
+                        glm::vec3(0.0f, 0.0f, 0.0f)
+                    );
+                }
+            }
         } else if (game.mode == Game::Inspect) {
             Renderer::clear(Game::MENU_COLOR);
 
@@ -158,6 +205,8 @@ void Application::run() {
     }
 
     renderer.free();
+
+    freeTextRenderer();
 
     terminate();
 }
@@ -221,12 +270,12 @@ void Application::storeSettings() {
 
     ojson j;
     j["settings"] = ojson{
-            {"width",            width},
-            {"height",           height},
-            {"fullscreen",       fullscreen},
-            {"vsync",            vsync},
-            {"mouseSensitivity", mouseSensitivity},
-            {"fontSize",         fontSize},
+        {"width", width},
+        {"height", height},
+        {"fullscreen", fullscreen},
+        {"vsync", vsync},
+        {"mouseSensitivity", mouseSensitivity},
+        {"fontSize", fontSize},
     };
 
     try {
@@ -290,9 +339,11 @@ void Application::saveState(int slot) {
 
     std::string save = "save_" + std::to_string(slot);
     j[save] = ojson{
-            {"player", {game.player.position.x, game.player.position.y, game.player.position.z},
-                    {game.player.rotation.x, game.player.rotation.y, game.player.rotation.z}},
-            {"mode",   modes[game.mode]}
+        {
+            "player", {game.player.position.x, game.player.position.y, game.player.position.z},
+            {game.player.rotation.x, game.player.rotation.y, game.player.rotation.z}
+        },
+        {"mode", modes[game.mode]}
     };
 
     try {
@@ -319,8 +370,8 @@ void Application::drawDebugMenu() {
     ImGui::BulletText("ESC: Quit Application");
     ImGui::BulletText("TAB: Toggle Debug Menu");
     ImGui::BulletText("F: Toggle Window Focus");
-//    ImGui::BulletText("Ctrl+0-9: Save Slot 0-9"); // TODO
-//    ImGui::BulletText("ALT+0-9: Load Slot 0-9"); // TODO
+    // ImGui::BulletText("Ctrl+0-9: Save Slot 0-9"); // TODO
+    // ImGui::BulletText("ALT+0-9: Load Slot 0-9"); // TODO
 
     ImGui::BulletText("W/A/S/D: Move/Inspect");
     ImGui::BulletText("Mouse Movement: Look Around");
@@ -457,7 +508,6 @@ void Application::cursorPosCallback(GLFWwindow *, double xpos, double ypos) {
     mouseY = (float) ypos;
 
     if (gameFocus) game.onMouseMovement(xDelta, yDelta);
-
 }
 
 // Callback for mouse scroll
