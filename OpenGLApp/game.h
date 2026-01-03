@@ -18,6 +18,10 @@ class Game {
     static constexpr float SPRINT = 2.0f;
     static constexpr float INSPECT_ROT_SPEED = 80.f;
 public:
+
+    //dynamic text delivrable 3 variable (simulation of winning a minigame, increasing player score)
+    int playerScore = 0;
+
     static constexpr glm::vec4 BG_COLOR{0.2, 0.3f, 0.4f, 1.f};
     static constexpr glm::vec4 MENU_COLOR{0.f, 0.f, 0.f, 1.f};
 
@@ -125,6 +129,12 @@ public:
     void onKey(int key, int action, int mods) {
         if (key == GLFW_KEY_TAB && action == GLFW_PRESS) debug = !debug; // toggle debug UI
         if (key == GLFW_KEY_E && action == GLFW_PRESS) Game::mode = Game::Explore;
+
+        //for delivrable 3 simulation : a win of a minigame = pressing the key P
+        if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+            playerScore++;
+            std::cout << "Score: " << playerScore << std::endl;
+        }
     }
 
 // TODO: update depending on gameplay mechanics.

@@ -11,6 +11,8 @@
 
 #include "application.h"
 
+#include "text_renderer.h"
+
 Game Application::game;
 Renderer Application::renderer;
 
@@ -111,6 +113,13 @@ void Application::run() {
 
     renderer.genBuffers(fbWidth, fbHeight);
 
+    //for the delivrable 3 for rendering text
+    if (!InitTextRenderer(fbWidth, fbHeight)) {
+        std::cerr << "Failed to initialize text renderer" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+
     // TODO: free up allocated resources before exiting.
     if (!game.loadObjects()) exit(EXIT_FAILURE);
 
@@ -141,6 +150,69 @@ void Application::run() {
             Renderer::clear(Game::BG_COLOR);
 
             renderer.drawScene(game.objects, game.player);
+
+            // ---------- 2D dynamic TEXT ----------delivrable 3
+            RenderText(
+                "Score: " + std::to_string(game.playerScore),
+                25.0f,
+                fbHeight - 40.0f,
+                0.6f,
+                glm::vec3(1.0f, 1.0f, 0.0f)
+            );
+
+            // ===================== 3D PAINTING TEXT =====================
+            // put a text in the 3D world near a specific object of our scene (exemple here the chair):
+
+            Object* reference = nullptr;
+            for (auto& obj : game.objects) {
+                if (obj.name == "Chair.obj") {
+                    reference = &obj;
+                    break;
+                }
+            }
+
+            if (reference) {
+                // Slight offset above the chair to avoid z-fighting
+                glm::vec3 offset(0.0f, reference->scale.y + 0.05f, 0.0f);
+                glm::vec3 textPos = reference->position + offset;
+
+                //we want the text to be visible when looking at the object from different angle ??
+                // Compute "forward" vector of the text (towards the camera)
+                glm::vec3 toCamera = glm::normalize(game.player.position - textPos);
+                glm::vec3 textForward = glm::vec3(0.0f, 0.0f, 1.0f); // assuming text initially faces -Z
+
+
+                float facing = glm::dot(textForward, toCamera);
+
+                // Only render text if camera is facing it (threshold 0.2~0.3)
+                if (facing > 0.2f) {
+                    // Compute axes so text faces the camera nicely
+                    glm::vec3 up(0.0f, 1.0f, 0.0f);
+                    glm::vec3 right = glm::normalize(glm::cross(up, toCamera));
+                    up = glm::cross(toCamera, right);
+
+                    float scale = 0.002f; // adjust size
+
+                    RenderText3D(
+                        "PAINTING GAME",
+                        textPos,
+                        right,
+                        up,
+                        scale,
+                        game.player.getViewMatrix(),
+                        game.player.getProjectionMatrix(aspect),
+                        glm::vec3(0.0f, 0.0f, 0.0f)
+                    );
+                }
+            }
+
+
+
+
+
+
+
+
 
         } else if (game.mode == Game::Inspect) {
             Renderer::clear(Game::MENU_COLOR);
