@@ -147,6 +147,15 @@ void Application::run() {
 
             renderer.drawScene(game.objects, game.player);
 
+            // Crosshair
+            renderText(
+                ".",
+                static_cast<float>(fbWidth) / 2.0f,
+                static_cast<float>(fbHeight) / 2.0f,
+                1.0f,
+                glm::vec3(0.8f, 0.8f, 0.8f)
+            );
+
             renderText(
                 "Score: " + std::to_string(game.playerScore),
                 25.0f,

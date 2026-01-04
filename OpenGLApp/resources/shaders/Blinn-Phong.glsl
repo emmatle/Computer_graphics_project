@@ -48,9 +48,9 @@ out vec4 FragColor;
 
 // --- Material uniforms ---
 
-uniform vec3 ambientColor = vec3(1.0);
-uniform float k_a = 0.05;
-uniform float k_d = 0.8;
+uniform vec3 ambientLight = vec3(1.0, 0.82, 0.62); // 4000K white;
+uniform float k_a = 0.1;
+uniform float k_d = 1;
 uniform float k_s = 0.5;
 uniform float shininess = 32.0;
 
@@ -83,7 +83,7 @@ void main() {
     vec3 V = normalize(viewPos - FragPos);
 
     vec3 baseColor = hasDiffuseMap ? texture(diffuseMap, TexCoords).rgb : vec3(1.0);
-    vec3 ambientColor = hasAmbientOcclusionMap ? vec3(texture(ambientOcclusionMap, TexCoords).r) : vec3(1.0f, 1.0f, 1.0f);
+    vec3 ambientColor = hasAmbientOcclusionMap ? vec3(texture(ambientOcclusionMap, TexCoords).r) * ambientLight : ambientLight;
     vec3 normal = hasNormalMap ? texture(normalMap, TexCoords).rgb : vec3(0.5, 0.5, 1.0);
     float roughness = hasRoughnessMap ? texture(roughnessMap, TexCoords).r : 0.125;
     float metalness = hasMetalnessMap ? texture(metalnessMap, TexCoords).r : 0.0;
