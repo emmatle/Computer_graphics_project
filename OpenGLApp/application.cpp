@@ -6,6 +6,7 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <SFML/Audio.hpp>
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -35,9 +36,15 @@ float Application::mouseY = static_cast<float>(height) / 2.f;
 bool Application::gameFocus = true;
 bool Application::firstMouse = true;
 
+sf::Music backgroundMusic(getResourcePath("sounds/BackgroundMusic.mp3"));
+
 // Initializes GLFW, GLAD, and ImGui
 void Application::init() {
     loadSettings();
+
+    backgroundMusic.setVolume(30.0f);
+    backgroundMusic.setLooping(true);
+    backgroundMusic.play();
 
     if (!glfwInit()) {
         std::cerr << "ERROR: ailed to initialize GLFW" << std::endl;
@@ -486,6 +493,15 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
         if (key == GLFW_KEY_LEFT_SHIFT) {
             if (action == GLFW_PRESS) game.input.shift = true;
             if (action == GLFW_RELEASE) game.input.shift = false;
+        }
+        if (key == GLFW_KEY_K && action == GLFW_PRESS) {
+            backgroundMusic.play();
+            auto status = backgroundMusic.getStatus();
+            if (status == sf::Sound::Status::Playing) {
+                backgroundMusic.pause();
+            } else if (backgroundMusic.getStatus() == sf::Sound::Status::Paused) {
+                backgroundMusic.play();
+            }
         }
 
         game.onKey(key, action, mods);

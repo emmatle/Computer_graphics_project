@@ -58,7 +58,7 @@ public:
 
     void onKey(int key, int action, int mods);
 
-    void onMouseButton(int button, int action, int objectId);
+    void onMouseButton(int button, int action, int objectID);
 
     void onMouseMovement(float xdelta, float ydelta);
 

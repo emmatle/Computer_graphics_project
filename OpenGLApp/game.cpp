@@ -59,6 +59,9 @@
             if (input.s) player.move(-player.front, velocity, !debug);
             if (input.a) player.move(-player.right, velocity, !debug);
             if (input.d) player.move(player.right, velocity, !debug);
+
+            static Object *ref = getObject("Book");
+            if (ref) ref->rotate(Object::WRLD_UP, 80.0f * deltaTime);
         } else if (mode == Inspect) {
             // Object rotation in Inspect mode
             float amount = INSPECT_ROT_SPEED * deltaTime;
@@ -94,11 +97,10 @@ Object *Game::getObject(int id) {
         if (key == GLFW_KEY_E && action == GLFW_PRESS) Game::mode = Game::Explore;
         if (key == GLFW_KEY_P && action == GLFW_PRESS) {
             playerScore++;
-            std::cout << "Score: " << playerScore << std::endl;
         }
     }
 
-    void Game::onMouseButton(int button, int action, int objectId) {
+    void Game::onMouseButton(int button, int action, int objectID) {
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
             if (action == GLFW_PRESS) mouseDrag = true;
             else if (action == GLFW_RELEASE) mouseDrag = false;
@@ -106,21 +108,15 @@ Object *Game::getObject(int id) {
 
         if (mode == Explore) {
             if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-                if (objectId == 0) return; // Backgound is selected
+                if (objectID == 0) return; // Backgound is selected
 
-                for (auto &obj: objects) {
-                    if (objectId == obj->id) {
-                        selectedObj = obj.get();
-                        inspectedObj = *obj;
+                selectedObj = getObject(objectID);
+                if (!selectedObj) return;
+                inspectedObj = *selectedObj;
+                inspectedObj.position = {};
+                inspectedObj.setRotation();
 
-                        // Reset object rotation for inspection
-                        inspectedObj.position = {};
-                        inspectedObj.setRotation();
-
-                        mode = Inspect;
-                        break;
-                    }
-                }
+                mode = Inspect;
             }
         } else if (mode == Inspect) {
             if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) mode = Explore;
