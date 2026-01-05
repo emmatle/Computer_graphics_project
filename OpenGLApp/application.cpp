@@ -495,7 +495,6 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
             if (action == GLFW_RELEASE) game.input.shift = false;
         }
         if (key == GLFW_KEY_K && action == GLFW_PRESS) {
-            backgroundMusic.play();
             auto status = backgroundMusic.getStatus();
             if (status == sf::Sound::Status::Playing) {
                 backgroundMusic.pause();

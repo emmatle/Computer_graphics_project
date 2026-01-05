@@ -94,6 +94,7 @@ private:
         if (nameLow.find("button") != std::string::npos) type = Mesh::Button;
         else if (nameLow.find("light") != std::string::npos) type = Mesh::Light;
         else if (nameLow.find("portal") != std::string::npos) type = Mesh::Portal;
+        else if (nameLow.find("glass") != std::string::npos) return; // Skip glass for now
 
         // Assign correct preloaded material pointer
         Material *matPtr = (mesh->mMaterialIndex < materials.size()) ? &materials[mesh->mMaterialIndex] : nullptr;

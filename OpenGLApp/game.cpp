@@ -1,5 +1,3 @@
-#pragma once
-
 #include "game.h"
 #include "utils.h"
 
@@ -9,7 +7,6 @@
 #include <filesystem>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <nlohmann/json.hpp>
 
 /**

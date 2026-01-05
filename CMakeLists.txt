@@ -57,7 +57,7 @@ target_link_libraries(${APP_NAME} PRIVATE
         glfw
         assimp::assimp
         OpenGL::GL
-        freetype
+        Freetype::Freetype
         SFML::Audio
 )
 if (UNIX)
