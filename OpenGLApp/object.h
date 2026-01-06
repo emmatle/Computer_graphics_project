@@ -2,72 +2,77 @@
 
 #include "utils.h"
 
+#include <string>
+#include <vector>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <nlohmann/json_fwd.hpp>
 
 class Model;
-class Shader;
 
-/**
- * @brief Base class for game objects.
- */
 class Object {
-    // IAssetManager *assetManager;
+    glm::vec3 _position;
+    glm::vec3 _rotation; // Euler angles cache
+    glm::vec3 _scale;
+    glm::quat orientation; // Used for preventing gimbal lock
+
+    glm::vec3 _front;
+    glm::vec3 _right;
+    glm::vec3 _up;
+
+    // Model and inverse model matrices cache
+    mutable glm::mat4 modelMatrix;
+    mutable glm::mat4 inverseModelMatrix;
+    mutable bool modelDirty = true;
+    mutable bool inverseDirty = true;
+
+    // Updates front/right/up and the rotation Euler cache
+    void update(bool safe = true);
+
 public:
-    // Constant definitions for the world's axis-aligned direction vectors
-    constexpr static glm::vec3 WRLD_FRONT{0.f, 0.f, -1.f};
-    constexpr static glm::vec3 WRLD_RIGHT{1.f, 0.f, 0.f};
-    constexpr static glm::vec3 WRLD_UP{0.f, 1.f, 0.f};
+    const glm::vec3 &position = _position;
+    const glm::vec3 &rotation = _rotation;
+    const glm::vec3 &scale = _scale;
 
-    int id; // Unique identifier (0 for the background)
+    const glm::vec3 &front = _front;
+    const glm::vec3 &right = _right;
+    const glm::vec3 &up = _up;
+
+    int id;
     std::string name;
-
-    glm::vec3 position;
-    glm::vec3 rotation; // Euler angles in degrees (used for UI/serialization)
-    glm::vec3 scale;
-
-    // Local coordinate system vectors (derived from rotation)
-    glm::vec3 front;
-    glm::vec3 right;
-    glm::vec3 up;
-
     Model *model;
     std::string modelPath;
     std::vector<AABB> collisions;
 
-    Object(glm::vec3 pos = {}, glm::vec3 rot = {}, glm::vec3 scl = {1.f, 1.f, 1.f}, std::string path = "",
-           int id = 0, std::string name = "");
+    // World Constants
+    constexpr static glm::vec3 WRLD_FRONT{0.f, 0.f, -1.f};
+    constexpr static glm::vec3 WRLD_RIGHT{1.f, 0.f, 0.f};
+    constexpr static glm::vec3 WRLD_UP{0.f, 1.f, 0.f};
+
+    Object(const glm::vec3 &pos = {}, const glm::vec3 &rot = {}, const glm::vec3 &scl = {1.f, 1.f, 1.f},
+           std::string path = "", int id = 0, std::string name = "");
 
     Object(nlohmann::json j);
 
-    // Move the object by a normalized direction vector and an amount
+    Object(const Object &other);
+
+    // Copy Assignment Operator
+    Object &operator=(const Object &other);
+
+    // Setters
+    void setPosition(const glm::vec3 &pos = {});
+
+    void setRotation(const glm::vec3 &radians = {}, bool safe = false);
+
+    void setScale(const glm::vec3 &scl = {1.f, 1.f, 1.f});
+
     void move(const glm::vec3 &dir, float amount, bool walk = false);
 
-    // Set rotation directly
-    void setRotation(const glm::vec3 &rot = {}, bool safe = false);
+    void rotate(const glm::vec3 &axis, float radians, bool safe = false);
 
-    // Rotate along an arbitrary axis
-    void rotate(const glm::vec3 &axis, float degrees, bool safe = false);
+    const glm::mat4 &getModelMatrix() const;
 
-    // Local rotations based on the current UP, RIGHT, and FRONT vectors
-    virtual void yaw(float degrees, bool safe = false);
+    const glm::mat4 &getInverseModelMatrix() const;
 
-    virtual void pitch(float degrees, bool safe = false);
-
-    virtual void roll(float degrees, bool safe = false);
-
-    // Returns rotation matrix (Euler fallback)
-    // NOTE: This uses T-X-Y-Z order rotation, which is prone to gimbal lock
-    glm::mat4 getRotationMatrix() const;
-
-    // Generates the final Model Matrix (Translation * Rotation * Scale)
-    glm::mat4 getModelMatrix() const;
-
-    // Recalculates the front/right/up vectors from the stored Euler angles
-    virtual void update();
-
-    void checkCollision(Object &other);
-
-private:
-    static glm::vec3 resolveCollision(glm::vec3 pos, glm::vec3 min, glm::vec3 max);
+    bool checkCollision(Object &other, bool pushOut = false);
 };

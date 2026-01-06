@@ -1,92 +1,96 @@
 #pragma once
 
+#include "utils.h"
 #include "object.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#define GLM_ENABLE_EXPERIMENTAL // Required for some extended GLM functionality
-#include <glm/gtx/euler_angles.hpp> // Utilities for converting between Euler angles and other formats
 
-/**
- * @brief Represents a perspective camera, extending Object with view/projection logic.
- */
 class Camera : public Object {
-    static constexpr float MAX_FOV = 90.f;
-    static constexpr float MAX_PITCH = 89.f; // Prevent flipping (pitch clamp)
+    float _fov;
+    float _aspect;
+
+    mutable glm::mat4 projectionMatrix;
+    mutable bool projectionDirty = true;
+    mutable float lastDistance;
+    mutable bool lastMode;
+
+    // Standard math constants in Radians
+    static constexpr float MAX_FOV = 120.f;
+    static constexpr float MAX_PITCH = 89.f;
     static constexpr float MIN_CLIPPING = 0.01f;
+    static constexpr float MAX_CLIPPING = 40.f;
 
 public:
-    float fov;
-    bool costrain; // Flag to enable pitching limits/constraints
+    const float &fov = _fov;
+    const float &aspect = _aspect;
+    bool costrain;
 
-    Camera(glm::vec3 pos = {}, glm::vec3 rot = {}, float fov = 45.f,
-           bool costrain = false, float near = 0.1f, float far = 100.f)
-            : fov(fov), costrain(costrain) {
-        position = pos;
-        rotation = rot;
-        scale = {1.f, 1.f, 1.f};
-        update();
+    Camera(glm::vec3 pos = {}, glm::vec3 rot = {}, float fov = glm::radians(45.f),
+           float asp = 1.f, bool costrain = true)
+        : Object(pos, rot), _fov(fov), _aspect(asp), costrain(costrain) {
     }
 
-    // Override local rotation functions to use Euler accumulation directly
-    void yaw(float degrees) {
-        rotation.y += degrees;
-        update();
+    void setScale(const glm::vec3 &scl) = delete;
+
+    void setFov(float radians) {
+        _fov = radians;
+        projectionDirty = true;
     }
 
-    void pitch(float degrees) {
-        rotation.x += degrees;
-        update();
+    void setAspect(float asp) {
+        _aspect = asp;
+        projectionDirty = true;
     }
 
-    void roll(float degrees) {
-        rotation.z += degrees;
-        update();
+    void yaw(float radians) {
+        // Use WRLD_UP (0,1,0) and safe=false (Euler Mode) to prevent roll
+        rotate(WRLD_UP, radians, false);
     }
 
-    // Adjusts the field of view (zoom)
-    void zoom(float amount) {
-        fov += amount;
-        if (fov < 1.f) fov = 1.f;
-        if (costrain && fov > MAX_FOV) fov = MAX_FOV;
+    void pitch(float radians) {
+        if (costrain) {
+            // Use the base class Euler cache (_rotation.x is Pitch)
+            float pitch = rotation.x + radians;
+            if (pitch > glm::radians(MAX_PITCH) && pitch < glm::radians(180.f)) {
+                pitch = glm::radians(MAX_PITCH);
+            }
+            if (pitch < glm::radians(360.f - MAX_PITCH) && pitch >= glm::radians(180.f)) {
+                pitch = glm::radians(360.f - MAX_PITCH);
+            }
+
+            // Rotate around WRLD_RIGHT (1,0,0) in Euler Mode
+            setRotation({pitch, rotation.y, rotation.z}, false);
+        } else {
+            rotate(WRLD_RIGHT, radians, false);
+        }
     }
 
-    // Returns the View Matrix (inverse transformation of the camera's model matrix)
-    glm::mat4 getViewMatrix() const {
-        return glm::lookAt(position, position + front, up);
+    void roll(float radians) {
+        rotate(WRLD_FRONT, radians, false);
     }
 
-    // Returns the Projection Matrix (Perspective or Orthographic)
-    glm::mat4 getProjectionMatrix(float asp, float maxDist = 100.f, bool persp = true) const {
-        if (persp)
-            // Creates a perspective matrix (for 3D rendering)
-            return glm::perspective(glm::radians(fov), asp, MIN_CLIPPING,
-                                    maxDist);
-
-        // Creates an orthographic matrix (for 2D rendering or special effects)
-        return glm::ortho(-asp, asp, -1.f, 1.f, MIN_CLIPPING,
-                          maxDist);
+    void zoom(float radians) {
+        _fov += radians;
+        if (_fov < glm::radians(1.f)) _fov = glm::radians(1.f);
+        if (costrain && fov > glm::radians(MAX_FOV)) _fov = glm::radians(MAX_FOV);
+        projectionDirty = true;
     }
 
-    // Override update to apply constraints specific to a Camera
-    void update() override {
-        if (!costrain) return Object::update();
+    // Object inverse matrix wrapper
+    const glm::mat4 &getViewMatrix() const {
+        return getInverseModelMatrix();
+    }
 
-        // Clamp pitch to prevent the camera from flipping over
-        if (rotation.x > MAX_PITCH) rotation.x = MAX_PITCH;
-        if (rotation.x < -MAX_PITCH) rotation.x = -MAX_PITCH;
-
-        // Calculate the rotation quaternion from the constrained Euler angles
-        glm::quat orientation = glm::quat(glm::radians(rotation));
-
-        // Calculate the local axes from the orientation
-        front = glm::normalize(orientation * WRLD_FRONT);
-        right = glm::normalize(glm::cross(front, WRLD_UP)); // Calculate right vector
-        up = glm::normalize(
-                glm::cross(right, front));     // Recalculate up vector (Gram-Schmidt process for orthogonal axes)
-
-        // Normalize Yaw angle
-        if (rotation.y >= 360.f) rotation.y -= 360.f;
-        if (rotation.y < 0.f) rotation.y += 360.f;
+    const glm::mat4 &getProjectionMatrix(float distance = MAX_CLIPPING, bool persp = true) const {
+        if (projectionDirty || distance != lastDistance || persp != lastMode) {
+            if (persp)
+                projectionMatrix = glm::perspective(_fov, _aspect, MIN_CLIPPING, distance);
+            else projectionMatrix = glm::ortho(-_aspect, _aspect, -1.f, 1.f, MIN_CLIPPING, distance);
+            lastDistance = distance;
+            lastMode = persp;
+            projectionDirty = false;
+        }
+        return projectionMatrix;
     }
 };

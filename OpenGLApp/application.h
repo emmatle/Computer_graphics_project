@@ -29,6 +29,7 @@ private:
     static float mouseY;
     static bool gameFocus;
     static bool firstMouse;
+    static float fps;
 
     void init();
 

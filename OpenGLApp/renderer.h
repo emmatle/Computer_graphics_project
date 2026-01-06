@@ -18,16 +18,14 @@
  */
 class Renderer : public IAssetManager {
     static constexpr int N_LIGHTS = 1;
-public:
+
     unsigned int pickingFBO = 0;
     unsigned int pickingDepthRBO = 0;
-
+    unsigned int pickingTexture; // FBO Attachment
+public:
     // Shader objects
     Shader renderingShader;
     Shader pickingShader;
-
-    // FBO attachments
-    Texture pickingColor;
 
     std::unordered_map<std::string, std::unique_ptr<Texture> > textures;
     std::unordered_map<std::string, std::unique_ptr<Model> > models;
@@ -75,7 +73,7 @@ public:
         return it->second.get();
     }
 
-    void genBuffers(int width, int height);
+    void genBuffers();
 
     bool compileShaders();
 
@@ -91,28 +89,29 @@ public:
 
     void updatePortal(const Portal &portal, const std::vector<std::unique_ptr<Object> > &objs, const Camera &cam);
 
-    int readObjFromCursor(const std::vector<std::unique_ptr<Object> > &objs, const Camera &cam, int width,
-                          int height) const;
+    void onResize(int width, int height) const;
+
+    int readObjFromCursor(const std::vector<std::unique_ptr<Object> > &objs, const Camera &cam) const;
 };
 
 // TODO: framebuffer size should change on window resize.
-void Renderer::genBuffers(int width, int height) {
+void Renderer::genBuffers() {
     // Create picking FBO
     glGenFramebuffers(1, &pickingFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, pickingFBO);
 
     // Create and Configure ID Texture (Color Attachment 0)
-    glGenTextures(1, &pickingColor.id);
-    glBindTexture(GL_TEXTURE_2D, pickingColor.id);
+    glGenTextures(1, &pickingTexture);
+    glBindTexture(GL_TEXTURE_2D, pickingTexture);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, fbWidth, fbHeight, 0, GL_RED_INTEGER, GL_INT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pickingColor.id, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pickingTexture, 0);
 
     glGenRenderbuffers(1, &pickingDepthRBO);
     glBindRenderbuffer(GL_RENDERBUFFER, pickingDepthRBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, fbWidth, fbHeight);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, pickingDepthRBO);
 
     // Check FBO status
@@ -150,10 +149,11 @@ void Renderer::free() {
         glDeleteFramebuffers(1, &pickingFBO);
     if (pickingDepthRBO)
         glDeleteRenderbuffers(1, &pickingDepthRBO);
+    if (pickingTexture)
+        glDeleteTextures(1, &pickingTexture);
 
     renderingShader.free();
     pickingShader.free();
-    pickingColor.free();
 
     for (auto &p: portals) p.free();
 
@@ -173,7 +173,7 @@ void Renderer::drawScene(const std::vector<std::unique_ptr<Object> > &objs, cons
 
     shader.use();
     shader.set("view", cam.getViewMatrix());
-    shader.set("projection", cam.getProjectionMatrix(aspect));
+    shader.set("projection", cam.getProjectionMatrix());
 
     if (!picking) {
         for (int i = 0; i < N_LIGHTS; i++) {
@@ -201,7 +201,7 @@ void Renderer::drawObject(const Object &obj, const Camera &cam, bool picking) co
 
     shader.use();
     shader.set("view", cam.getViewMatrix());
-    shader.set("projection", cam.getProjectionMatrix(aspect));
+    shader.set("projection", cam.getProjectionMatrix());
 
     if (!picking) {
         for (int i = 0; i < N_LIGHTS; i++) {
@@ -245,33 +245,35 @@ void Renderer::updatePortal(const Portal &portal, const std::vector<std::unique_
     glViewport(0, 0, fbWidth, fbHeight);
 }
 
-/* TODO: code can be optimized by:
- *  - simplifying the algorithm when the cursor position is the center of the screen
- *  - reducing the picking framebuffer and viewport resolution
- *  - using a map instead of vector for storing objects
- *  - coloring with object pointers instead of integer values
- */
-int Renderer::readObjFromCursor(const std::vector<std::unique_ptr<Object> > &objs, const Camera &cam, int width,
-                                int height) const {
-    // 1. Bind Picking FBO
+int Renderer::readObjFromCursor(const std::vector<std::unique_ptr<Object> > &objs, const Camera &cam) const {
     glBindFramebuffer(GL_FRAMEBUFFER, pickingFBO);
-    glViewport(0, 0, width, height);
 
-    // 2. Clear FBO
+    glEnable(GL_SCISSOR_TEST);
+    // Scissor coordinates are (x, y, width, height) from bottom-left
+    glScissor(fbWidth / 2, fbHeight / 2, 1, 1);
+
+    // Draw only that 1x1 pixel area
     int clearValue = 0;
     glClearBufferiv(GL_COLOR, 0, &clearValue);
     glClear(GL_DEPTH_BUFFER_BIT);
-
     drawScene(objs, cam, true);
 
-    // --- Read pixel (center of screen) ---
-    int pickedId = 0;
+    // Read the pixel
+    int pickedID = 0;
     glReadBuffer(GL_COLOR_ATTACHMENT0);
-    glReadPixels(width / 2, height / 2, 1, 1, GL_RED_INTEGER, GL_INT, &pickedId);
-    glReadBuffer(GL_BACK); // Restore default read buffer
+    glReadPixels(fbWidth / 2, fbHeight / 2, 1, 1, GL_RED_INTEGER, GL_INT, &pickedID);
+
+    // Cleanup: Disable Scissor so standard rendering isn't clipped!
+    glDisable(GL_SCISSOR_TEST);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, width, height);
+    return pickedID;
+}
 
-    return pickedId;
+void Renderer::onResize(int width, int height) const {
+    glBindTexture(GL_TEXTURE_2D, pickingTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, NULL);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, pickingDepthRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 }

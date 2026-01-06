@@ -1,179 +1,183 @@
 #include "object.h"
-
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
 #include <nlohmann/json.hpp>
 
-Object::Object(glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, std::string path, int id, std::string name) : position(pos),
-    rotation(rot),
-    scale(scl),
-    modelPath( std::move(path)),
-    id(id),
-    name(std::move(name)) {
-    update(); // Initialize front/right/up vectors
+Object::Object(const glm::vec3 &pos, const glm::vec3 &rot, const glm::vec3 &scl, std::string path, int id,
+               std::string name)
+    : _position(pos), _rotation(rot), _scale(scl), orientation(glm::quat(rot)), id(id),
+      name(std::move(name)), model(nullptr), modelPath(std::move(path)) {
+    update();
 }
 
 Object::Object(nlohmann::json j) : Object() {
-    if (j.contains("id")) id = j["id"]; // ID is optional
-    if (j.contains("name")) name = j["name"]; // Name is optional
-    if (j.contains("position")) position = {j["position"][0], j["position"][1], j["position"][2]};
-    if (j.contains("rotation")) rotation = {j["rotation"][0], j["rotation"][1], j["rotation"][2]};
-    if (j.contains("scale")) scale = {j["scale"][0], j["scale"][1], j["scale"][2]};
-    if (j.contains("model")) modelPath = j["model"]; // Model is optional
+    if (j.contains("id")) id = j["id"];
+    if (j.contains("name")) name = j["name"];
+    if (j.contains("position")) _position = {j["position"][0], j["position"][1], j["position"][2]};
+    if (j.contains("rotation")) {
+        glm::vec3 degrees = {j["rotation"][0], j["rotation"][1], j["rotation"][2]};
+        _rotation = glm::radians(degrees);
+        orientation = glm::quat(_rotation);
+    }
+    if (j.contains("scale")) _scale = {j["scale"][0], j["scale"][1], j["scale"][2]};
+    if (j.contains("model")) modelPath = j["model"];
+
+    update();
 }
 
-// Move the object by a normalized direction vector and an amount
-void Object::move(const glm::vec3 &dir, float amount, bool walk) {
-    position += glm::normalize(walk ? glm::vec3{dir.x, 0.f, dir.z} : dir) * amount;
+Object::Object(const Object &other)
+    : Object(other.position, other.rotation, other.scale, other.modelPath, other.id, other.name) {
+    model = other.model;
 }
 
-// Set rotation directly
-void Object::setRotation(const glm::vec3 &rot, bool safe) {
-    if (!safe) {
-        rotation = rot;
-        update(); // Recompute local axes using Euler angles
-        return;
+// Copy assignment operator
+Object &Object::operator=(const Object &other) {
+    if (this == &other) return *this;
+
+    // Copy data values
+    _position = other._position;
+    _rotation = other._rotation;
+    _scale = other._scale;
+    orientation = other.orientation;
+    id = other.id;
+    name = other.name + "_copy";
+    modelPath = other.modelPath;
+    collisions = other.collisions;
+    model = other.model;
+
+    // Reset flags so the new copy calculates its own matrices
+    modelDirty = true;
+    inverseDirty = true;
+    update();
+
+    return *this;
+}
+
+void Object::update(bool safe) {
+    _front = glm::normalize(orientation * WRLD_FRONT);
+    _right = glm::normalize(orientation * WRLD_RIGHT);
+    _up = glm::normalize(orientation * WRLD_UP);
+
+    if (safe) {
+        _rotation = glm::eulerAngles(orientation);
     }
 
-    // Use Quaternion for safe rotation (avoids gimbal lock)
-    glm::quat q = glm::quat(glm::radians(rot));
-
-    // Calculate the local axes using quaternion rotation
-    front = glm::normalize(q * WRLD_FRONT);
-    right = glm::normalize(q * WRLD_RIGHT);
-    up = glm::normalize(q * WRLD_UP);
-
-    // Convert the quaternion back to Euler angles for storage/UI
-    rotation = glm::degrees(glm::eulerAngles(q));
-}
-
-// Rotate along an arbitrary axis
-void Object::rotate(const glm::vec3 &axis, float degrees, bool safe) {
-    if (!safe) {
-        rotation += glm::normalize(axis) * degrees;
-        update(); // Simple Euler angle accumulation (risks gimbal lock)
-        return;
-    }
-
-    // Use Quaternions for safe accumulation
-    glm::quat q = glm::quat(glm::radians(rotation));
-    glm::quat dq = glm::angleAxis(glm::radians(degrees), glm::normalize(axis));
-    q = glm::normalize(dq * q); // New rotation is (delta rotation * current rotation)
-
-    // Recalculate local axes
-    front = glm::normalize(q * WRLD_FRONT);
-    right = glm::normalize(q * WRLD_RIGHT);
-    up = glm::normalize(q * WRLD_UP);
-
-    // Update stored Euler angles
-    rotation = glm::degrees(glm::eulerAngles(q));
-}
-
-// Local rotations based on the current UP, RIGHT, and FRONT vectors
-void Object::yaw(float degrees, bool safe) {
-    rotate(up, degrees, safe); // Rotation around the local up axis
-}
-
-void Object::pitch(float degrees, bool safe) {
-    rotate(right, degrees, safe); // Rotation around the local right axis
-}
-
-void Object::roll(float degrees, bool safe) {
-    rotate(front, degrees, safe); // Rotation around the local front axis
-}
-
-// Returns rotation matrix (Euler fallback)
-// NOTE: This uses T-X-Y-Z order rotation, which is prone to gimbal lock
-glm::mat4 Object::getRotationMatrix() const {
-    glm::mat4 rot(1.f);
-    // Apply YAW (Y-axis), then PITCH (X-axis), then ROLL (Z-axis)
-    rot = glm::rotate(rot, glm::radians(rotation.y), glm::vec3(0.f, 1.f, 0.f));
-    rot = glm::rotate(rot, glm::radians(rotation.x), glm::vec3(1.f, 0.f, 0.f));
-    rot = glm::rotate(rot, glm::radians(rotation.z), glm::vec3(0.f, 0.f, 1.f));
-    return rot;
-}
-
-// Generates the final Model Matrix (Translation * Rotation * Scale)
-glm::mat4 Object::getModelMatrix() const {
-    glm::mat4 model(1.f);
-    model = glm::translate(model, position);
-
-    // Create a rotation matrix directly from the front/right/up vectors
-    // This is safe even if rotation was handled by quaternions.
-    glm::mat4 rot(1.f);
-    rot[0] = glm::vec4(right, 0.f);
-    rot[1] = glm::vec4(up, 0.f);
-    rot[2] = glm::vec4(-front, 0.f); // In OpenGL, -Z is the forward view direction
-
-    model *= rot;
-
-    model = glm::scale(model, scale);
-    return model;
-}
-
-// Recalculates the front/right/up vectors from the stored Euler angles
-void Object::update() {
-    // Compute axes from Euler angles using a Quaternion intermediate
-    glm::quat q = glm::quat(glm::radians(rotation));
-
-    front = glm::normalize(q * WRLD_FRONT);
-    right = glm::normalize(q * WRLD_RIGHT);
-    up = glm::normalize(q * WRLD_UP);
-
-    // Normalize angles to the range [0, 360)
+    constexpr float TWO_PI = glm::two_pi<float>();
     for (int i = 0; i < 3; i++) {
-        while (rotation[i] >= 360.f) rotation[i] -= 360.f;
-        while (rotation[i] < 0.f) rotation[i] += 360.f;
+        _rotation[i] = fmod(_rotation[i], TWO_PI);
+        if (_rotation[i] < 0) _rotation[i] += TWO_PI;
     }
 }
 
-void Object::checkCollision(Object &other) {
-    // 1. Get the World-to-Local matrix
-    glm::mat4 modelMatrix = getModelMatrix();
-    glm::mat4 worldToLocal = glm::inverse(modelMatrix);
+void Object::setPosition(const glm::vec3 &pos) {
+    _position = pos;
+    modelDirty = true;
+    inverseDirty = true;
+}
 
-    // 2. Move player into the box's local space
-    glm::vec4 localPos4 = worldToLocal * glm::vec4(other.position, 1.0f);
-    glm::vec3 localPos = glm::vec3(localPos4);
+void Object::setRotation(const glm::vec3 &radians, bool safe) {
+    if (safe) {
+        // Build from quaternion, then sync _rotation (update)
+        orientation = glm::quat(radians);
+    } else {
+        // Euler fallback
+        _rotation = radians;
+        orientation = glm::quat(_rotation);
+    }
 
-    for (auto &AABB: collisions) {
-        // 3. Resolve collision in Local Space
-        glm::vec3 correctedLocalPos = resolveCollision(localPos, AABB.min, AABB.max);
+    update(safe);
+    modelDirty = true;
+    inverseDirty = true;
+}
 
-        // 4. If the position changed, move back to World Space
-        if (correctedLocalPos != localPos) {
-            glm::vec4 worldPos4 = modelMatrix * glm::vec4(correctedLocalPos, 1.0f);
-            other.position = glm::vec3(worldPos4);
+void Object::setScale(const glm::vec3 &scl) {
+    _scale = scl;
+    modelDirty = true;
+    inverseDirty = true;
+}
 
-            // Re-update localPos for next bound check in this object
-            localPos = correctedLocalPos;
+void Object::move(const glm::vec3 &dir, float amount, bool walk) {
+    glm::vec3 moveDir = walk ? glm::vec3{dir.x, 0.f, dir.z} : dir;
+    setPosition(_position + glm::normalize(moveDir) * amount);
+}
+
+void Object::rotate(const glm::vec3 &axis, float radians, bool safe) {
+    if (safe) {
+        // Quaternion multiplication (avoids gimbal lock), then sync _rotation (update)
+        glm::quat delta = glm::angleAxis(radians, glm::normalize(axis));
+        orientation = glm::normalize(delta * orientation);
+    } else {
+        // Euler fallback
+        _rotation += glm::normalize(axis) * radians;
+        orientation = glm::quat(_rotation);
+    }
+
+    update(safe);
+    modelDirty = true;
+    inverseDirty = true;
+}
+
+const glm::mat4 &Object::getModelMatrix() const {
+    if (modelDirty) {
+        modelMatrix = glm::translate(glm::mat4(1.f), _position);
+
+        // Construct rotation matrix from orientation vectors
+        glm::mat4 rot(1.f);
+        rot[0] = glm::vec4(_right, 0.f);
+        rot[1] = glm::vec4(_up, 0.f);
+        rot[2] = glm::vec4(-_front, 0.f);
+
+        modelMatrix *= rot;
+        modelMatrix = glm::scale(modelMatrix, _scale);
+        modelDirty = false;
+    }
+    return modelMatrix;
+}
+
+const glm::mat4 &Object::getInverseModelMatrix() const {
+    if (inverseDirty) {
+        if (_scale == glm::vec3(1.f)) {
+            inverseModelMatrix = glm::lookAt(_position, _position + _front, _up);
+        } else {
+            inverseModelMatrix = glm::inverse(getModelMatrix());
+        }
+        inverseDirty = false;
+    }
+    return inverseModelMatrix;
+}
+
+bool Object::checkCollision(Object &other, bool pushOut) {
+    if (collisions.empty()) return false;
+
+    bool collide = false;
+    // Transform from world space to local
+    glm::vec3 localPos = glm::vec3(getInverseModelMatrix() * glm::vec4(other.position, 1.0f));
+
+    for (const auto &box: collisions) {
+        // Resolve collision in local space
+        if (localPos.x > box.min.x && localPos.x < box.max.x &&
+            localPos.y > box.min.y && localPos.y < box.max.y &&
+            localPos.z > box.min.z && localPos.z < box.max.z) {
+            if (!pushOut) return true;
+            collide = true;
+
+            // Simple AABB response (push out on shortest axis)
+            float d[] = {
+                localPos.x - box.min.x, box.max.x - localPos.x,
+                localPos.y - box.min.y, box.max.y - localPos.y,
+                localPos.z - box.min.z, box.max.z - localPos.z
+            };
+            float minD = *std::min_element(std::begin(d), std::end(d));
+
+            if (minD == d[0]) localPos.x = box.min.x;
+            else if (minD == d[1]) localPos.x = box.max.x;
+            else if (minD == d[2]) localPos.y = box.min.y;
+            else if (minD == d[3]) localPos.y = box.max.y;
+            else if (minD == d[4]) localPos.z = box.min.z;
+            else if (minD == d[5]) localPos.z = box.max.z;
+
+            // Transform back to world space
+            other.setPosition(glm::vec3(getModelMatrix() * glm::vec4(localPos, 1.0f)));
         }
     }
-}
-
-glm::vec3 Object::resolveCollision(glm::vec3 pos, glm::vec3 min, glm::vec3 max) {
-    // Check if player is inside the box (AABB check)
-    if (pos.x > min.x && pos.x < max.x &&
-        pos.y > min.y && pos.y < max.y && // Added Y check for stability
-        pos.z > min.z && pos.z < max.z) {
-        // Calculate penetration depth for each face
-        float distLeft = pos.x - min.x;
-        float distRight = max.x - pos.x;
-        float distBottom = pos.y - min.y;
-        float distTop = max.y - pos.y;
-        float distFront = pos.z - min.z;
-        float distBack = max.z - pos.z;
-
-        // Find the smallest distance (the "path of least resistance")
-        float minDist = std::min({distLeft, distRight, distBottom, distTop, distFront, distBack});
-
-        // Push out only on the axis of smallest penetration
-        if (minDist == distLeft) pos.x = min.x;
-        else if (minDist == distRight) pos.x = max.x;
-        else if (minDist == distBottom) pos.y = min.y;
-        else if (minDist == distTop) pos.y = max.y;
-        else if (minDist == distFront) pos.z = min.z;
-        else if (minDist == distBack) pos.z = max.z;
-    }
-    return pos;
+    return collide;
 }
