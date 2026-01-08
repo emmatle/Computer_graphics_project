@@ -1,11 +1,107 @@
 #pragma once
 
 #include "utils.h"
-#include "mesh.h"
+#include "texture.h"
+#include "shader.h"
 #include <vector>
+#include <glad/glad.h>
+#include <glm/glm.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+
+struct Vertex {
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec2 texCoords;
+    glm::vec3 tangent;
+};
+
+struct Material {
+    std::string name;
+    int illum = 2;
+    Texture *textures[Texture::N_TYPES] = {};
+
+    void apply(const Shader &shader) const {
+        const char *samplers[] = {"diffuseMap", "ambientOcclusionMap", "normalMap", "roughnessMap", "metalnessMap"};
+        const char *flags[] = {
+            "hasDiffuseMap", "hasAmbientOcclusionMap", "hasNormalMap", "hasRoughnessMap", "hasMetalnessMap"
+        };
+        shader.setInt("illum", illum);
+
+        for (int unit = 0; unit < Texture::N_TYPES; unit++) {
+            if (textures[unit]) {
+                textures[unit]->use(unit);
+                shader.setInt(samplers[unit], unit);
+                shader.setInt(flags[unit], true);
+            } else {
+                shader.setInt(flags[unit], false);
+            }
+        }
+    }
+};
+
+class Mesh {
+    unsigned int VAO;
+    unsigned int VBO;
+    unsigned int EBO;
+
+public:
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+
+    // AABB
+    glm::vec3 min, max;
+
+    Material *material;
+    std::string name;
+
+    Mesh(std::vector<Vertex> v, std::vector<unsigned int> i, Material *mat, std::string n = "",
+         const glm::vec3 &min = glm::vec3(FLT_MAX), const glm::vec3 &max = glm::vec3(-FLT_MAX))
+        : vertices(std::move(v)), indices(std::move(i)), material(mat), name(std::move(n)), min(min), max(max) {
+        init();
+    }
+
+    void free() const {
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+    }
+
+    void draw(Shader &shader, bool useMaterial = true) const {
+        if (useMaterial && material) material->apply(shader);
+
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+        glActiveTexture(GL_TEXTURE0);
+    }
+
+private:
+    void init() {
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) 0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, normal));
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, texCoords));
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, tangent));
+        glBindVertexArray(0);
+    }
+};
+
 
 class Model {
     IAssetManager *assetManager;
@@ -16,13 +112,22 @@ public:
     std::vector<AABB> collisions;
     std::string path;
 
-    Model(IAssetManager *am, const std::string &p = "") : assetManager(am), path(getResourcePath(p)) {
+    Model(IAssetManager *am, const std::string &path = "") : assetManager(am), path(path) {
     }
 
     bool load() {
+        if (!assetManager) {
+            std::cerr << "ERROR: assetManager is nullptr" << std::endl;
+            return false;
+        }
+        if (path.empty()) {
+            std::cerr << "ERROR: model path is empty" << std::endl;
+        }
+        std::string fullPath = getResourcePath(path);
+
         Assimp::Importer importer;
         const aiScene *scene = importer.ReadFile(
-            path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
+            fullPath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             std::cerr << "ERROR: ASSIMP: " << importer.GetErrorString() << std::endl;
@@ -33,6 +138,14 @@ public:
         for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
             Material mat;
             mat.name = scene->mMaterials[i]->GetName().C_Str();
+            int shadingModel = 2; // Defaults to Blinn-Phong
+            if (scene->mMaterials[i]->Get(AI_MATKEY_SHADING_MODEL, shadingModel) == AI_SUCCESS) {
+                if (shadingModel == aiShadingMode_NoShading) {
+                    mat.illum = 0;
+                } else if (shadingModel == aiShadingMode_Flat) {
+                    mat.illum = 1;
+                }
+            }
             loadMaterialTextures(scene->mMaterials[i], mat);
             materials.push_back(mat);
         }
@@ -44,8 +157,8 @@ public:
 
     void free() { for (auto &mesh: meshes) mesh.free(); }
 
-    void draw(Shader &shader, bool useTextures = true) const {
-        for (const auto &mesh: meshes) mesh.draw(shader, useTextures);
+    void draw(Shader &shader, bool useMaterial = true) const {
+        for (const auto &mesh: meshes) mesh.draw(shader, useMaterial);
     }
 
 private:
@@ -82,23 +195,19 @@ private:
         }
 
         std::string name = mesh->mName.C_Str();
-        std::string nameLow = StringToLower(name);
-        Mesh::Type type = Mesh::Default;
+        std::string nameLow = stringToLower(name);
 
         if (nameLow.find("collision") != std::string::npos) {
-            collisions.emplace_back(AABB{min, max});
+            collisions.emplace_back(AABB{min, max}); // Don't create the mesh
             return;
         }
 
         // TODO: Handle the different cases.
-        if (nameLow.find("button") != std::string::npos) type = Mesh::Button;
-        else if (nameLow.find("light") != std::string::npos) type = Mesh::Light;
-        else if (nameLow.find("portal") != std::string::npos) type = Mesh::Portal;
-        else if (nameLow.find("glass") != std::string::npos) return; // Skip glass for now
+        if (nameLow.find("glass") != std::string::npos) return; // Skip glass for now
 
         // Assign correct preloaded material pointer
         Material *matPtr = (mesh->mMaterialIndex < materials.size()) ? &materials[mesh->mMaterialIndex] : nullptr;
-        meshes.emplace_back(vertices, indices, matPtr, name, type);
+        meshes.emplace_back(vertices, indices, matPtr, name);
     }
 
     void loadMaterialTextures(aiMaterial *mat, Material &material) {

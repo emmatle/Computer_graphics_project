@@ -48,6 +48,8 @@ out vec4 FragColor;
 
 // --- Material uniforms ---
 
+// Illumination model: 0 Base color, 1 Ambient + Diffuse (Lambert), 2 Ambient + Diffuse+ Specular (Blinn-Phong)
+uniform int illum = 2;
 uniform vec3 ambientLight = vec3(1.0, 0.82, 0.62); // 4000K white;
 uniform float k_a = 0.1;
 uniform float k_d = 1;
@@ -76,7 +78,7 @@ struct Light {
 };
 
 uniform Light lights[MAX_LIGHTS];
-uniform int nLights;
+uniform int numLights;
 uniform vec3 viewPos;
 
 void main() {
@@ -87,6 +89,11 @@ void main() {
     vec3 normal = hasNormalMap ? texture(normalMap, TexCoords).rgb : vec3(0.5, 0.5, 1.0);
     float roughness = hasRoughnessMap ? texture(roughnessMap, TexCoords).r : 0.125;
     float metalness = hasMetalnessMap ? texture(metalnessMap, TexCoords).r : 0.0;
+
+    if (illum == 0) {
+        FragColor = vec4(baseColor, 1.0);
+        return;
+    }
 
     // Map normals [0, 1] -> [-1, 1]
     normal = normalize(normal * 2.0 - 1.0);
@@ -103,7 +110,7 @@ void main() {
     vec3 totalDiffuse = vec3(0.0);
     vec3 totalSpecular = vec3(0.0);
 
-    for(int i = 0; i < nLights; i++) {
+    for(int i = 0; i < numLights; i++) {
         vec3 L = normalize(lights[i].position - FragPos);
         vec3 H = normalize(L + V);
 
@@ -117,6 +124,7 @@ void main() {
         float diff = max(dot(N, L), 0.0);
         totalDiffuse += diff * lights[i].color * attenuation;
 
+        if (illum < 2) continue;
         // Specular
         float spec = pow(max(dot(N, H), 0.0), exponent);
         totalSpecular += spec * lights[i].color * attenuation;

@@ -1,6 +1,23 @@
-#include "object.h"
+#include "scene.h"
+#include "shader.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <nlohmann/json.hpp>
+
+Light::Light(const glm::vec3 &pos, const glm::vec3 &color, float intensity, float constant, float linear,
+             float quadratic)
+    : position(pos), color(color), intensity(intensity), constant(constant), linear(linear), quadratic(quadratic),
+      parent(nullptr) {
+}
+
+void Light::apply(const Shader &shader, int index) const {
+    std::string base = "lights[" + std::to_string(index) + "]";
+    glm::vec3 pos = parent ? parent->getModelMatrix() * glm::vec4(position, 1.f) : position;
+    shader.set((base + ".position").c_str(), pos);
+    shader.set((base + ".color").c_str(), color * intensity);
+    shader.set((base + ".constant").c_str(), constant);
+    shader.set((base + ".linear").c_str(), linear);
+    shader.set((base + ".quadratic").c_str(), quadratic);
+}
 
 Object::Object(const glm::vec3 &pos, const glm::vec3 &rot, const glm::vec3 &scl, std::string path, int id,
                std::string name)
@@ -9,19 +26,8 @@ Object::Object(const glm::vec3 &pos, const glm::vec3 &rot, const glm::vec3 &scl,
     update();
 }
 
-Object::Object(nlohmann::json j) : Object() {
-    if (j.contains("id")) id = j["id"];
-    if (j.contains("name")) name = j["name"];
-    if (j.contains("position")) _position = {j["position"][0], j["position"][1], j["position"][2]};
-    if (j.contains("rotation")) {
-        glm::vec3 degrees = {j["rotation"][0], j["rotation"][1], j["rotation"][2]};
-        _rotation = glm::radians(degrees);
-        orientation = glm::quat(_rotation);
-    }
-    if (j.contains("scale")) _scale = {j["scale"][0], j["scale"][1], j["scale"][2]};
-    if (j.contains("model")) modelPath = j["model"];
-
-    update();
+Object::Object(const nlohmann::json& j) : Object() {
+    *this = j.get<Object>();
 }
 
 Object::Object(const Object &other)
@@ -39,10 +45,11 @@ Object &Object::operator=(const Object &other) {
     _scale = other._scale;
     orientation = other.orientation;
     id = other.id;
-    name = other.name + "_copy";
+    name = other.name; // TODO: Check if it's working correctly.
     modelPath = other.modelPath;
     collisions = other.collisions;
     model = other.model;
+    parent = other.parent;
 
     // Reset flags so the new copy calculates its own matrices
     modelDirty = true;
@@ -180,4 +187,69 @@ bool Object::checkCollision(Object &other, bool pushOut) {
         }
     }
     return collide;
+}
+
+Camera::Camera(glm::vec3 pos, glm::vec3 rot, float fov, float asp, bool costrain)
+    : Object(pos, rot), _fov(fov), _aspect(asp), costrain(costrain) {
+}
+
+void Camera::setFov(float radians) {
+    _fov = radians;
+    projectionDirty = true;
+}
+
+void Camera::setAspect(float asp) {
+    _aspect = asp;
+    projectionDirty = true;
+}
+
+void Camera::yaw(float radians) {
+    // Use WRLD_UP (0,1,0) and safe = false (Euler Mode) to prevent roll
+    rotate(WRLD_UP, radians, false);
+}
+
+void Camera::pitch(float radians) {
+    if (costrain) {
+        // Use the base class Euler cache (_rotation.x is pitch)
+        float pitch = rotation.x + radians;
+        if (pitch > glm::radians(MAX_PITCH) && pitch < glm::radians(180.f)) {
+            pitch = glm::radians(MAX_PITCH);
+        }
+        if (pitch < glm::radians(360.f - MAX_PITCH) && pitch >= glm::radians(180.f)) {
+            pitch = glm::radians(360.f - MAX_PITCH);
+        }
+
+        // Rotate around WRLD_RIGHT (1,0,0) in Euler Mode
+        setRotation({pitch, rotation.y, rotation.z}, false);
+    } else {
+        rotate(WRLD_RIGHT, radians, false);
+    }
+}
+
+void Camera::roll(float radians) {
+    rotate(WRLD_FRONT, radians, false);
+}
+
+void Camera::zoom(float radians) {
+    _fov += radians;
+    if (_fov < glm::radians(1.f)) _fov = glm::radians(1.f);
+    if (costrain && fov > glm::radians(MAX_FOV)) _fov = glm::radians(MAX_FOV);
+    projectionDirty = true;
+}
+
+// Object inverse matrix wrapper
+const glm::mat4 &Camera::getViewMatrix() const {
+    return getInverseModelMatrix();
+}
+
+const glm::mat4 &Camera::getProjectionMatrix(float distance, bool persp) const {
+    if (projectionDirty || distance != lastDistance || persp != lastMode) {
+        if (persp)
+            projectionMatrix = glm::perspective(_fov, _aspect, MIN_CLIPPING, distance);
+        else projectionMatrix = glm::ortho(-_aspect, _aspect, -1.f, 1.f, MIN_CLIPPING, distance);
+        lastDistance = distance;
+        lastMode = persp;
+        projectionDirty = false;
+    }
+    return projectionMatrix;
 }

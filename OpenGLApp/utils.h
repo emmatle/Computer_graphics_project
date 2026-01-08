@@ -3,7 +3,8 @@
 #include <iostream>
 #include <algorithm>
 #include <filesystem>
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
+#include <nlohmann/json.hpp>
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION // macOS 10.14 - OpenGL API deprecated.
@@ -25,8 +26,19 @@ inline int fbHeight = 1080; // Framebuffer height
 inline float aspect = 16.f / 9.f; // Aspect Ratio
 inline bool debug = true; // Enables debug menu and flying camera
 
+namespace glm {
+    inline void from_json(const nlohmann::json &j, vec3 &value) {
+        value.x = j.at(0);
+        value.y = j.at(1);
+        value.z = j.at(2);
+    }
+    inline void to_json(nlohmann::json &j, const vec3 &value) {
+        j = {value.x, value.y, value.z};
+    }
+}
+
 // Convert string to lowercase for case unsensitive comparison
-inline std::string StringToLower(std::string str) {
+inline std::string stringToLower(std::string str) {
     std::transform(str.begin(), str.end(), str.begin(),
                    [](unsigned char c) { return std::tolower(c); });
     return str;
@@ -46,7 +58,6 @@ inline std::string getResourcePath(const std::string &relative, bool silence = f
 
 class Texture;
 class Model;
-class Object;
 
 struct AABB {
     glm::vec3 min;

@@ -23,17 +23,24 @@ public:
 
     std::string path;
 
-    Texture(const std::string &path = "") : path(getResourcePath(path)) {
-        if (!path.empty()) assignType();
+    Texture(const std::string &path = "") : type(determineType(path)), path(path) {
     }
+
+    virtual ~Texture() = default;
 
     /**
      * @brief Loads image, generates texture object, and sets parameters.
      */
-    bool load() {
+    virtual bool load() {
         static bool flipVertically = false;
 
         if (id != 0) return true; // Already loaded
+
+        if (path.empty()) {
+            std::cerr << "ERROR: texture path is empty" << std::endl;
+            return false;
+        }
+        std::string fullPath = getResourcePath(path);
 
         // OpenGL expects the 0.0 coordinate on the Y-axis to be the bottom,
         // but images usually load with 0.0 at the top. This flips it to match.
@@ -43,7 +50,7 @@ public:
         }
 
         int width, height, nrChannels;
-        unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+        unsigned char *data = stbi_load(fullPath.c_str(), &width, &height, &nrChannels, 0);
 
         if (data) {
             GLenum format = 0;
@@ -70,13 +77,13 @@ public:
             // Free the CPU-side image memory as it's now on the GPU
             stbi_image_free(data);
             return true;
-        } else {
-            std::cerr << "ERROR: failed to read texture " << path << std::endl;
-            return false;
         }
+
+        std::cerr << "ERROR: failed to read texture " << path << std::endl;
+        return false;
     }
 
-    void free() {
+    virtual void free() {
         if (id != 0) {
             glDeleteTextures(1, &id);
             id = 0;
@@ -98,26 +105,88 @@ private:
     /**
      * @brief Helper to categorize texture based on common naming conventions.
      */
-    void assignType() {
+    Type determineType(const std::string &name) const {
         // Convert to lowercase for easier matching
-        std::string filename = StringToLower(path);
+        if (name.empty()) return Diffuse;
 
-        type = Diffuse; // Default fallback ("diffuse", "albedo", "color")
+        std::string filename = stringToLower(name);
 
         if (filename.find("ambientocclusion") != std::string::npos ||
             filename.find("ambient") != std::string::npos ||
             filename.find("_ao") != std::string::npos) {
-            type = Ambient;
-        } else if (filename.find("normal") != std::string::npos ||
-                   filename.find("norm") != std::string::npos ||
-                   filename.find("bump") != std::string::npos) {
-            type = Normal;
-        } else if (filename.find("roughness") != std::string::npos ||
-                   filename.find("rough") != std::string::npos) {
-            type = Roughness;
-        } else if (filename.find("metalness") != std::string::npos ||
-                   filename.find("metal") != std::string::npos) {
-            type = Metalness;
+            return Ambient;
+        }
+        if (filename.find("normal") != std::string::npos ||
+            filename.find("norm") != std::string::npos ||
+            filename.find("bump") != std::string::npos) {
+            return Normal;
+        }
+        if (filename.find("roughness") != std::string::npos ||
+            filename.find("rough") != std::string::npos) {
+            return Roughness;
+        }
+        if (filename.find("metalness") != std::string::npos ||
+            filename.find("metal") != std::string::npos) {
+            return Metalness;
+        }
+        return Diffuse; // Default fallback ("diffuse", "albedo", "color")
+    }
+};
+
+class DynamicTexture : public Texture {
+public:
+    unsigned int sceneFBO = 0;
+    unsigned int sceneDepthRBO = 0;
+    const int width;
+    const int height;
+    const float aspect;
+
+    DynamicTexture(const std::string &name, int width = 512, int height = 512)
+        : width(width),
+          height(height),
+          aspect(static_cast<float>(width) / static_cast<float>(height)) {
+        path = name;
+        type = Diffuse;
+    }
+
+    bool load() override {
+        // Create scene FBO
+        glGenFramebuffers(1, &sceneFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
+
+        // Create and Configure ID Texture (Color Attachment 0)
+        glGenTextures(1, &id);
+        glBindTexture(GL_TEXTURE_2D, id);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0);
+
+        glGenRenderbuffers(1, &sceneDepthRBO);
+        glBindRenderbuffer(GL_RENDERBUFFER, sceneDepthRBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sceneDepthRBO);
+
+        // Check FBO status
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            std::cerr << "ERROR: scene FBO is not complete" << std::endl;
+            return false;
+        }
+
+        // Unbind FBO
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        return true;
+    }
+
+    void free() override {
+        if (sceneFBO)
+            glDeleteBuffers(1, &sceneFBO);
+        if (sceneDepthRBO)
+            glDeleteRenderbuffers(1, &sceneDepthRBO);
+        if (id) {
+            glDeleteTextures(1, &id);
+            id = 0;
         }
     }
 };

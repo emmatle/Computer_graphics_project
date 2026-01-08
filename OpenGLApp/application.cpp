@@ -167,12 +167,15 @@ void Application::run() {
         if (debug) drawDebugMenu();
 
         // Scene rendering
-        if (game.mode == Game::Explore) {
-            renderer.updatePortal(renderer.portals[0], game.objects, game.player);
-            renderer.updatePortal(renderer.portals[1], game.objects, game.fixed);
+        if (game.state == Game::InGame) {
+            // static auto mirror = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Mirror"));
+            // static auto picture = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Picture"));
+            // if (mirror) renderer.updateTexture(*mirror, game.room);
+            // if (picture) renderer.updateTexture(*picture, game.room);
+
             Renderer::clear(Game::BG_COLOR);
 
-            renderer.drawScene(game.objects, game.player);
+            renderer.drawScene(game.room);
 
             // Crosshair
             renderText(
@@ -191,12 +194,12 @@ void Application::run() {
                 glm::vec3(1.0f, 1.0f, 0.0f)
             );
 
-            Object *reference = game.getObject("Chair");
+            static Object *chair = game.getObject("Chair");
 
-            if (reference) {
+            if (chair) {
                 // Slight offset above the chair to avoid z-fighting
-                glm::vec3 offset(0.0f, reference->scale.y + 0.05f, 0.0f);
-                glm::vec3 textPos = reference->position + offset;
+                glm::vec3 offset(0.0f, chair->scale.y + 0.05f, 0.0f);
+                glm::vec3 textPos = chair->position + offset;
 
                 //we want the text to be visible when looking at the object from different angle ??
                 // Compute "forward" vector of the text (towards the camera)
@@ -227,12 +230,10 @@ void Application::run() {
                     );
                 }
             }
-        } else if (game.mode == Game::Inspect) {
+        } else if (game.state == Game::Inventory) {
             Renderer::clear(Game::MENU_COLOR);
 
-            if (game.selectedObj) {
-                renderer.drawObject(game.inspectedObj, game.fixed);
-            }
+            renderer.drawScene(game.inventory);
         }
 
         // Render ImGui
@@ -353,9 +354,9 @@ void Application::loadState(int slot) {
     if (s.contains("player")) game.player.setPosition(glm::vec3{s["player"]["position"]});
     if (s.contains("mode")) {
         std::string name = s["mode"];
-        if (name == "Menu") game.mode = Game::Menu;
-        if (name == "Explore") game.mode = Game::Explore;
-        if (name == "Inspect") game.mode = Game::Inspect;
+        if (name == "Menu") game.state = Game::Menu;
+        if (name == "Explore") game.state = Game::InGame;
+        if (name == "Inspect") game.state = Game::Inventory;
     }
 }
 
@@ -381,7 +382,7 @@ void Application::saveState(int slot) {
             "player", {game.player.position.x, game.player.position.y, game.player.position.z},
             {game.player.rotation.x, game.player.rotation.y, game.player.rotation.z}
         },
-        {"mode", modes[game.mode]}
+        {"mode", modes[game.state]}
     };
 
     try {
@@ -394,10 +395,10 @@ void Application::saveState(int slot) {
 
 // Debug UI with camera and object controls
 void Application::drawDebugMenu() {
-    Camera &cam = game.mode == Game::Inspect ? game.fixed : game.player;
+    Camera &cam = game.state == Game::Inventory ? game.fixed : game.player;
     Object *obj = &game.inspectedObj;
 
-    if (game.mode == Game::Explore && game.selectedObj != nullptr) obj = game.selectedObj;
+    if (game.state == Game::InGame && game.selectedObj) obj = game.selectedObj.get();
 
     ImGui::SetNextWindowPos(ImVec2(40.0f, 40.0f), ImGuiCond_Once);
     ImGui::SetNextWindowSize(ImVec2(240.0f, 600.0f), ImGuiCond_Once);
@@ -447,9 +448,9 @@ void Application::drawDebugMenu() {
     ImGui::SeparatorText("Game Mode");
 
     const char *modes[] = {"Menu", "Explore", "Inspect"};
-    int modeIndex = game.mode;
+    int modeIndex = game.state;
     if (ImGui::Combo("##Game Mode", &modeIndex, modes, 3)) {
-        game.mode = static_cast<Game::Mode>(modeIndex); // TODO: implement a proper function for changing game mode
+        game.state = static_cast<Game::State>(modeIndex);
     }
 
     if (game.selectedObj) {
@@ -603,9 +604,9 @@ void Application::mouseButtonCallback(GLFWwindow *window, int button, int action
     }
 
     int id = 0;
-    if (game.mode == Game::Explore && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-        id = renderer.readObjFromCursor(game.objects, game.player);
-        game.selectObject(id);
+    if (game.state == Game::InGame && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+        id = renderer.readObjFromCursor(game.room);
+        game.inspectObject(id);
     }
 
     game.onMouseButton();
