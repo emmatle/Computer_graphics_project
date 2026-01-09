@@ -32,8 +32,10 @@ bool Game::loadObjects() {
         std::string sceneName = entry.value("scene", "room");
         if (sceneName == "room") {
             room.objs.push_back(obj.get());
-            mirror.objs.push_back(obj.get());
-        } // else if (sceneName == "inventory") {
+            portal1.objs.push_back(obj.get());
+        }
+
+        // else if (sceneName == "inventory") {
         //     auto copy = *obj; // Copy
         //     inventory.objs.push_back(obj.get());
         // } else if (sceneName == "picture") {
@@ -45,29 +47,13 @@ bool Game::loadObjects() {
         //     std::string name = entry["light"];
         //     lights[i].parent = obj.get();
         // }
-        if (entry.contains("type")) {
-            std::string name = entry["type"];
-            if (name == "Mirror") {
-                mirrorView.parent = obj.get();
-            } else if (name == "Picture") {
-                pictureView.parent = obj.get();
-            }
-        }
         objects.push_back(obj);
     }
     return true;
 }
 
-bool Game::checkCollision(bool pushOut) {
-    bool collide = false;
-    for (auto &obj: objects) {
-        collide |= obj->checkCollision(player, pushOut);
-        if (!pushOut && collide) return true;
-    }
-    return collide;
-}
-
 void Game::update() {
+    if (playerScore >= 3) state = Menu;
     if (state == InGame) {
         // Calculate the amount of the movement considering sprint (SHIFT)
         float velocity = playerSpeed * deltaTime;
@@ -78,12 +64,35 @@ void Game::update() {
         if (input.a) player.move(-player.right, velocity, !debug);
         if (input.d) player.move(player.right, velocity, !debug);
 
-        updateMirror(mirrorView);
-
         static auto ref = getObject("Book");
-        if (ref) ref->rotate(Object::WRLD_UP, INSPECT_ANGULAR_SPEED * deltaTime);
+        static std::vector brushes = {
+            getObject("Brush1"),
+            getObject("Brush2"),
+            getObject("Brush3")
+        };
 
-        if (!debug) checkCollision(true);
+        for (auto brush : brushes) {
+            brush->rotate(Object::WRLD_UP, INSPECT_ANGULAR_SPEED * deltaTime);
+        }
+
+        if (!debug) {
+            for (auto roomObjIt = room.objs.begin(); roomObjIt != room.objs.end();) {
+                bool erased = false;
+                for (auto brushIt = brushes.begin(); brushIt != brushes.end(); ++brushIt) {
+                    if ((*brushIt)->name == (*roomObjIt)->name && (*brushIt)->checkCollision(player)) {
+                        brushes.erase(brushIt);
+                        roomObjIt = room.objs.erase(roomObjIt);
+                        playerScore++; // TODO: Add sound effect.
+                        erased = true;
+                        break;
+                    }
+                }
+                if (!erased) {
+                    (*roomObjIt)->checkCollision(player, true);
+                    ++roomObjIt;
+                }
+            }
+        }
     } else if (state == Inventory) {
         // Object rotation in Inspect mode
         float amount = INSPECT_ANGULAR_SPEED * deltaTime;
@@ -122,29 +131,6 @@ void Game::inspectObject(int id) {
     state = Inventory;
 }
 
-void Game::updateMirror(Object &mirror) {
-    // Convert to the mirror's local space
-    glm::mat4 mirrorInv = mirror.getInverseModelMatrix();
-    glm::vec3 playerLocalPos = glm::vec3(mirrorInv * glm::vec4(player.position, 1.0f));
-
-    glm::vec3 reflectedLocalPos = playerLocalPos;
-    reflectedLocalPos.z = -playerLocalPos.z; // Flip depth
-    reflectedLocalPos.x = -playerLocalPos.x; // Flip horizontal (lateral inversion)
-
-    // Since parent is mirror object we just set the local coordinates
-    mirrorView.setPosition(reflectedLocalPos);
-
-    // The mirror camera should look at the "reflected" target.
-    // We can reflect the player's local front vector similarly.
-    glm::vec3 playerLocalFront = glm::normalize(glm::vec3(mirrorInv * glm::vec4(player.front, 0.0f)));
-    glm::vec3 reflectedLocalFront = playerLocalFront;
-    reflectedLocalFront.z = -playerLocalFront.z;
-    reflectedLocalFront.x = -playerLocalFront.x;
-
-    // Set rotation based on the reflected look direction
-    mirrorView.setRotation(reflectedLocalFront, true);
-}
-
 // --- Callbacks ---
 
 void Game::onKey() {
@@ -181,9 +167,11 @@ void Game::onMouseMovement(float xdelta, float ydelta) {
 }
 
 void Game::onMouseScroll(float yoffset) {
-    float amount = glm::radians(3.f * yoffset);
-    player.zoom(amount);
-    fixed.zoom(amount);
+    if (state == InGame || state == Inventory) {
+        float amount = glm::radians(3.f * yoffset);
+        player.zoom(amount);
+        fixed.zoom(amount);
+    }
 }
 
 void Game::onResize(int width, int height) {

@@ -166,6 +166,8 @@ void Application::run() {
 
         if (debug) drawDebugMenu();
 
+        float scale = static_cast<float>(fbWidth) / static_cast<float>(width);
+
         // Scene rendering
         if (game.state == Game::InGame) {
             // static auto mirror = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Mirror"));
@@ -182,15 +184,23 @@ void Application::run() {
                 ".",
                 static_cast<float>(fbWidth) / 2.0f,
                 static_cast<float>(fbHeight) / 2.0f,
-                1.0f,
+                scale,
                 glm::vec3(0.8f, 0.8f, 0.8f)
+            );
+
+            renderText(
+                "Collect all the brushes (" + std::to_string(game.playerScore) + "/3)",
+                25.0f,
+                60.0f,
+                scale,
+                glm::vec3(1.0f, 1.0f, 0.0f)
             );
 
             renderText(
                 "Score: " + std::to_string(game.playerScore),
                 25.0f,
                 static_cast<float>(fbHeight) - 40.0f,
-                0.8f,
+                scale,
                 glm::vec3(1.0f, 1.0f, 0.0f)
             );
 
@@ -234,6 +244,15 @@ void Application::run() {
             Renderer::clear(Game::MENU_COLOR);
 
             renderer.drawScene(game.inventory);
+        } else if (game.state == Game::Menu) {
+            Renderer::clear(Game::BG_COLOR);
+                renderText(
+                "Yippee, you are a star!",
+                static_cast<float>(fbWidth) / 2.0f - 200.0f,
+                static_cast<float>(fbHeight) / 2.0f,
+                scale,
+                glm::vec3(1.0f, 1.0f, 0.0f)
+            );
         }
 
         // Render ImGui

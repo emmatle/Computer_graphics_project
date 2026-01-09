@@ -26,7 +26,7 @@ Object::Object(const glm::vec3 &pos, const glm::vec3 &rot, const glm::vec3 &scl,
     update();
 }
 
-Object::Object(const nlohmann::json& j) : Object() {
+Object::Object(const nlohmann::json &j) : Object() {
     *this = j.get<Object>();
 }
 

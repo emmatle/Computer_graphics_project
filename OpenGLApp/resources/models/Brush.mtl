@@ -1,0 +1,26 @@
+# Blender 5.0.1 MTL File: 'Brush.blend'
+# www.blender.org
+
+newmtl Material.007
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/brush_Material.003_BaseColor.png
+map_Ns textures/brush_Material.003_Roughness.png
+map_refl  textures/brush_Material.003_Metallic.png
+map_Bump -bm 1.000000  textures/brush_Material.003_Normal.png
+
+newmtl Material.009
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd  textures/brush_Material.008_BaseColor.png
+map_Ns  textures/brush_Material.008_Roughness.png
+map_refl  textures/brush_Material.008_Metallic.png
+map_Bump -bm 1.000000  textures/brush_Material.008_Normal.png
