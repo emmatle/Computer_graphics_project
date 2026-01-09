@@ -32,25 +32,26 @@ public:
     }
 
     Texture *getTexture(const std::string &path) override {
-        std::string name;
+        std::string name = path;
         int width = 512;
         int height = 512;
         bool isDynamic = false;
-        if (!path.empty() && name[0] == '#') {
+        if (!name.empty() && name[0] == '#') {
             name = path.substr(1); // Skips the first character
             isDynamic = true;
             size_t pos1 = name.find('#');
             size_t pos2 = name.find_last_of('x');
 
+            if (name == "#Mirror") {
+               std::cout << "-> Texture" << std::endl;
+            }
             if (pos1 != std::string::npos && pos2 != std::string::npos &&
-                pos2 > pos1 + 1 || pos2 != name.length() - 1) {
+                pos2 > pos1 + 1 && pos2 != name.length() - 1) {
                 width = std::stoi(name.substr(pos1 + 1, pos2 - pos1 - 1));
                 height = std::stoi(name.substr(pos2 + 1));
-                std::cout << width << " " << height << std::endl;
             }
             name = name.substr(0, pos1);
-        } else {
-            name = path;
+            isDynamic = true;
         }
         auto [it, inserted] = textures.try_emplace(name, nullptr);
 

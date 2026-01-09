@@ -101,6 +101,8 @@ public:
 
     void rotate(const glm::vec3 &axis, float radians, bool safe = false);
 
+    virtual void onUpdate(void *arg = nullptr) {}
+
     const glm::mat4 &getModelMatrix() const;
 
     const glm::mat4 &getInverseModelMatrix() const;

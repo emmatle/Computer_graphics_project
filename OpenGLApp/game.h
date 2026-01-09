@@ -48,39 +48,39 @@ public:
     } input;
 
     std::vector<std::shared_ptr<Object> > objects;
+    std::vector<std::shared_ptr<Object> > collecables;
 
     Object inventoryObjs[10]; // TODO: Implement inventory.
     Object inspectedObj;
     std::shared_ptr<Object> selectedObj = nullptr;
 
-    Camera player{{0.3f, 1.75f, -0.5f}, {glm::radians(-12.0f), glm::radians(64.0f), 0.0f}};
+    // Camera player{{0.3f, 1.75f, -0.5f}, {glm::radians(-12.0f), glm::radians(64.0f), 0.0f}};
+    Camera player{{0.3f, 1.75f, -0.5f}};
     Camera fixed{{0.0f, 0.0f, 1.f}};
     Camera mirrorView;
     Camera pictureView;
 
-    Scene room = {{}, &player, {{{-1.0f, 2.0f, -1.0f}}}};
+    Scene room = {{}, &player, {{{-1.0f, 2.0f, -1.0f}, {1.0f, 0.82f, 0.62f}}}};
     Scene inventory = {
         {&inspectedObj}, &fixed, {
-            {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.835f, 0.671f}}, // Key light 4000K
-            {{1.0f, -1.0f, -2.0f}, {0.776f, 0.824, 1.f}} // Back light 8000K
+            {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.82f, 0.62f}}, // Key light 4000K
+            {{1.0f, -1.0f, -1.0f}, {0.78f, 0.82, 1.0f}} // Back light 8000K
         }
     };
-    Scene mirror = {{}, &mirrorView, {{{-1.0f, 2.0f, -1.0f}}}};
-    Scene picture = {
-        {}, &pictureView, {
-            {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.835f, 0.671f}}, // Key light 4000K
-            {{1.0f, -1.0f, -2.0f}, {0.776f, 0.824, 1.f}} // Back light 8000K
+    Scene portal1 = {{}, &player, {{{-1.0f, 2.0f, -1.0f}}}};
+    Scene portal2 = {
+        {}, &player, {
+            {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.82f, 0.62f}}, // Key light 4000K
+            {{1.0f, -1.0f, -2.0f}, {0.776f, 0.824, 1.0f}} // Back light 8000K
         }
     };
 
-    float playerSpeed = 2.5f;
+    float playerSpeed = 2.0f;
     int playerScore = 0;
     float mouseSensitivity = 0.05f;
     bool mouseDrag = false;
 
     bool loadObjects();
-
-    bool checkCollision(bool pushOut = false);
 
     void update();
 
@@ -89,8 +89,6 @@ public:
     Object *selectObject(int id);
 
     void inspectObject(int id);
-
-    void updateMirror(Object &mirror);
 
     // --- Callbacks ---
 
