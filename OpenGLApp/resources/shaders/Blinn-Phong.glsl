@@ -48,7 +48,7 @@ out vec4 FragColor;
 
 // --- Material uniforms ---
 
-// Illumination model: 0 Base color, 1 Ambient + Diffuse (Lambert), 2 Ambient + Diffuse+ Specular (Blinn-Phong)
+// Illumination model: 0 No shading (Base color), 1 Ambient + Diffuse (Lambert), 2 Ambient + Diffuse+ Specular (Blinn-Phong)
 uniform int illum = 2;
 uniform vec3 ambientLight = vec3(1.0, 0.82, 0.62); // 4000K white;
 uniform float k_a = 0.1;

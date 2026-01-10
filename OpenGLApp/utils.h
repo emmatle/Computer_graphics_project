@@ -23,6 +23,7 @@
 inline float deltaTime = 0.f; // Used for game synchronization
 inline int fbWidth = 1920; // Framebuffer width
 inline int fbHeight = 1080; // Framebuffer height
+inline float fbScale = 1.f; // Framebuffer scale
 inline float aspect = 16.f / 9.f; // Aspect Ratio
 inline bool debug = true; // Enables debug menu and flying camera
 

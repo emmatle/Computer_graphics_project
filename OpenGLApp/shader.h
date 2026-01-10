@@ -61,7 +61,7 @@ public:
     void set(const char *name, const glm::vec4 &v0) const;
 
     // GLM Matrix overload
-    void set(const char *name, const glm::mat4 &v0);
+    void set(const char *name, const glm::mat4 &v0) const;
 
 private:
     // Compiles a specific shader type

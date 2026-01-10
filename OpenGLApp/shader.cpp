@@ -148,7 +148,7 @@ void Shader::set(const char *name, const glm::vec4 &v0) const {
 }
 
 // GLM Matrix overload
-void Shader::set(const char *name, const glm::mat4 &v0) {
+void Shader::set(const char *name, const glm::mat4 &v0) const {
     int uniformId = getUniform(name);
     glUniformMatrix4fv(uniformId, 1, GL_FALSE, &v0[0][0]);
 }

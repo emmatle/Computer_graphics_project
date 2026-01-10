@@ -1,7 +1,6 @@
 #include "application.h"
 #include "game.h"
 #include "renderer.h"
-#include "text_renderer.h"
 #include "utils.h"
 
 #include <glad/glad.h>
@@ -64,7 +63,7 @@ void Application::init() {
     backgroundMusic.play();
 
     if (!glfwInit()) {
-        std::cerr << "ERROR: ailed to initialize GLFW" << std::endl;
+        std::cerr << "ERROR: failed to initialize GLFW" << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -101,6 +100,7 @@ void Application::init() {
     // Updates the Framebuffer size and the aspect ratio
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     aspect = static_cast<float>(width) / static_cast<float>(height);
+    fbScale = static_cast<float>(fbWidth) / static_cast<float>(width);
     framebufferSizeCallback(window, fbWidth, fbHeight);
 
     // Enable VSync
@@ -137,14 +137,14 @@ void Application::init() {
 void Application::run() {
     init();
 
-    renderer.genBuffers();
-
-    if (!initTextRenderer("fonts/Antonio-Bold.ttf")) exit(EXIT_FAILURE);
-
-    // TODO: free up allocated resources before exiting.
     if (!game.loadObjects()) exit(EXIT_FAILURE);
 
+    // TODO: free up allocated resources before exiting.
+    if (!renderer.genBuffers()) exit(EXIT_FAILURE);
+
     if (!renderer.compileShaders()) exit(EXIT_FAILURE);
+
+    if (!renderer.loadFont("fonts/Antonio-Bold.ttf")) exit(EXIT_FAILURE);
 
     if (!renderer.loadModels(game.objects)) exit(EXIT_FAILURE);
 
@@ -166,8 +166,6 @@ void Application::run() {
 
         if (debug) drawDebugMenu();
 
-        float scale = static_cast<float>(fbWidth) / static_cast<float>(width);
-
         // Scene rendering
         if (game.state == Game::InGame) {
             // static auto mirror = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Mirror"));
@@ -180,65 +178,44 @@ void Application::run() {
             renderer.drawScene(game.room);
 
             // Crosshair
-            renderText(
+            renderer.drawText(
                 ".",
                 static_cast<float>(fbWidth) / 2.0f,
                 static_cast<float>(fbHeight) / 2.0f,
-                scale,
-                glm::vec3(0.8f, 0.8f, 0.8f)
+                fbScale,
+                glm::vec3(0.8f, 0.8f, 0.8f),
+                Align::Center
             );
 
-            renderText(
+            renderer.drawText(
                 "Collect all the brushes (" + std::to_string(game.playerScore) + "/3)",
                 25.0f,
                 60.0f,
-                scale,
+                fbScale,
                 glm::vec3(1.0f, 1.0f, 0.0f)
             );
 
-            renderText(
+            renderer.drawText(
                 "Score: " + std::to_string(game.playerScore),
                 25.0f,
                 static_cast<float>(fbHeight) - 40.0f,
-                scale,
+                fbScale,
                 glm::vec3(1.0f, 1.0f, 0.0f)
             );
 
             static Object *chair = game.getObject("Chair");
 
             if (chair) {
-                // Slight offset above the chair to avoid z-fighting
-                glm::vec3 offset(0.0f, chair->scale.y + 0.05f, 0.0f);
-                glm::vec3 textPos = chair->position + offset;
+                glm::vec3 textPos = chair->position + chair->up *chair->scale.y;
 
-                //we want the text to be visible when looking at the object from different angle ??
-                // Compute "forward" vector of the text (towards the camera)
-                glm::vec3 toCamera = glm::normalize(game.player.position - textPos);
-                glm::vec3 textForward = glm::vec3(0.0f, 0.0f, 1.0f); // assuming text initially faces -Z
-
-
-                float facing = glm::dot(textForward, toCamera);
-
-                // Only render text if camera is facing it (threshold 0.2~0.3)
-                if (facing > 0.2f) {
-                    // Compute axes so text faces the camera nicely
-                    glm::vec3 up(0.0f, 1.0f, 0.0f);
-                    glm::vec3 right = glm::normalize(glm::cross(up, toCamera));
-                    up = glm::cross(toCamera, right);
-
-                    float scale = 0.002f; // adjust size
-
-                    renderText3D(
-                        "PAINTING GAME",
+                renderer.drawText3D(
+                        "This is a chair",
                         textPos,
-                        right,
-                        up,
-                        scale,
-                        game.player.getViewMatrix(),
-                        game.player.getProjectionMatrix(),
-                        glm::vec3(0.0f, 0.0f, 0.0f)
+                        game.player,
+                        fbScale,
+                        glm::vec3(1.0f, 1.0f, 0.0f),
+                        Align::Center
                     );
-                }
             }
         } else if (game.state == Game::Inventory) {
             Renderer::clear(Game::MENU_COLOR);
@@ -246,11 +223,11 @@ void Application::run() {
             renderer.drawScene(game.inventory);
         } else if (game.state == Game::Menu) {
             Renderer::clear(Game::BG_COLOR);
-                renderText(
+                renderer.drawText(
                 "Yippee, you are a star!",
                 static_cast<float>(fbWidth) / 2.0f - 200.0f,
                 static_cast<float>(fbHeight) / 2.0f,
-                scale,
+                fbScale,
                 glm::vec3(1.0f, 1.0f, 0.0f)
             );
         }
@@ -263,8 +240,6 @@ void Application::run() {
     }
 
     renderer.free();
-
-    freeTextRenderer();
 
     terminate();
 }
