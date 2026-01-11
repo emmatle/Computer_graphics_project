@@ -257,23 +257,25 @@ const glm::mat4 &Camera::getProjectionMatrix(float distance, bool persp) const {
 AnimatedObject::AnimatedObject(const glm::vec3 &pos, const glm::vec3 &rot, const glm::vec3 &scl,
                                std::string path, int id, std::string name) : Object(
     pos, rot, scl, std::move(path), id, std::move(name)) {
+    // Do not assume origin yet; initialize flag. originPosition will be computed on first onUpdate().
+    originInitialized = false;
 }
 
+// Start animating: set direction and sync animTime to current progress. Do NOT forcibly reset animProgress.
 void AnimatedObject::startAnimating(bool reverse) {
-    if (reverse) {
-        animSpeed = -std::abs(animSpeed);
-        animProgress = 1.f;
-    } else {
-        animSpeed = std::abs(animSpeed);
-        animProgress = 0.f;
-    }
+    if (reverse) animSpeed = -std::abs(animSpeed);
+    else animSpeed = std::abs(animSpeed);
+
+    // Sync animTime to current progress so animation continues smoothly from current position
+    animTime = glm::clamp(animProgress, 0.f, 1.f) * animDuration;
     isAnimating = true;
 }
 
 void AnimatedObject::playAnimation(float duration, float speed) {
     animDuration = duration;
     animSpeed = speed;
-    startAnimating();
+    // Start from current progress toward forward direction (speed sign already set).
+    startAnimating(animSpeed < 0.f);
 }
 
 void AnimatedObject::stopAnimating() {
@@ -287,6 +289,8 @@ void AnimatedObject::pauseAnimating() {
 }
 
 void AnimatedObject::resumeAnimating() {
+    // Resume preserving direction
+    animTime = glm::clamp(animProgress, 0.f, 1.f) * animDuration;
     isAnimating = true;
 }
 
@@ -295,36 +299,62 @@ void AnimatedObject::animate() {
     animTime += deltaTime * animSpeed;
     animProgress = animTime / animDuration;
     if (animProgress < 0.f) {
-        if (isLooping)
+        if (isLooping) {
             animProgress += 1.f; // Starts from end
-        else {
+            animTime = animProgress * animDuration;
+        } else {
             animProgress = 0.f;
             isAnimating = false;
+            animTime = 0.f;
         }
     }
     if (animProgress >= 1.f) {
-        if (isLooping)
+        if (isLooping) {
             animProgress -= 1.f; // Starts from beginning
-        else {
+            animTime = animProgress * animDuration;
+        } else {
             animProgress = 1.f;
             isAnimating = false;
+            animTime = animDuration;
         }
     }
     onUpdate();
 }
 
 void AnimatedObject::open() {
+    // Toggle behavior on interaction:
     if (isAnimating) {
-        if (animSpeed < 0.f) animSpeed = -animSpeed; // Reverse direction
-        else return; // Already opening
+        // Reverse direction from current position
+        animSpeed = -animSpeed;
+        // Keep animTime in sync with animProgress
+        animTime = glm::clamp(animProgress, 0.f, 1.f) * animDuration;
+        return;
     }
-    startAnimating();
+
+    // If not animating: decide direction based on current progress (>=0.5 -> consider "open")
+    if (animProgress >= 1.f) {
+        // Fully open -> start closing
+        startAnimating(true);
+    } else if (animProgress <= 0.f) {
+        // Fully closed -> start opening
+        startAnimating(false);
+    } else {
+        // Partially animated but stopped: choose to open if closer to end, else open from current
+        // Here we default to opening (you can invert if desired)
+        startAnimating(false);
+    }
 }
 
 void AnimatedObject::close() {
     if (isAnimating) {
-        if (animSpeed > 0.f) animSpeed = -animSpeed; // Reverse direction
-        else return; // Already closing
+        animSpeed = -animSpeed;
+        animTime = glm::clamp(animProgress, 0.f, 1.f) * animDuration;
+        return;
+    }
+    // If stopped, start closing if currently open or partial
+    if (animProgress <= 0.f) {
+        // Already closed: nothing
+        return;
     }
     startAnimating(true);
 }
@@ -336,11 +366,29 @@ void Door:: onUpdate() {
 
 void Slider::onUpdate() {
         currentPos = animProgress * openPos + (1 - animProgress) * closePos; // Linear interpolation
-        move(right, currentPos - glm::dot(position, right), false);
+
+        // Initialize origin once: originPosition is such that originPosition + right * closePos == starting world position
+        if (!originInitialized) {
+            originPosition = position - right * closePos;
+            originInitialized = true;
+        }
+
+        // Compute desired world position and set it directly
+        glm::vec3 desiredPos = originPosition + right * currentPos;
+        setPosition(desiredPos);
     }
 
 
 void Drawer::onUpdate() {
         currentPos = animProgress * openPos + (1 - animProgress) * closePos; // Linear interpolation
-        move(right, currentPos - glm::dot(position, front), false);
+
+        // Initialize origin once: originPosition is such that originPosition + front * closePos == starting world position
+        if (!originInitialized) {
+            originPosition = position - front * closePos;
+            originInitialized = true;
+        }
+
+        // Move along front axis from the origin by currentPos
+        glm::vec3 desiredPos = originPosition + front * currentPos;
+        setPosition(desiredPos);
     }

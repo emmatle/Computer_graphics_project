@@ -190,9 +190,15 @@ public:
     float animDuration = 1.f;
     float animProgress = 0.f; // 0.f to 1.f
 
+    // Origin used to calculate translations along an axis (initialized on first update)
+    glm::vec3 originPosition = glm::vec3(0.f);
+    bool originInitialized = false;
+
     AnimatedObject(const glm::vec3 &pos = {}, const glm::vec3 &rot = {}, const glm::vec3 &scl = {1.f, 1.f, 1.f},
                    std::string path = "", int id = 0, std::string name = "");
 
+    // Start animating; reverse = true plays towards start, false towards end.
+    // This no longer forcefully resets animProgress; it sets animSpeed sign and animTime to match current progress.
     void startAnimating(bool reverse = false);
 
     void playAnimation(float duration = 1.f, float speed = 1.f);
@@ -208,6 +214,7 @@ public:
     virtual void onUpdate() {
     }; // To be overridden by derived classes
 
+    // open() acts as toggle: if animating it reverses direction; if stopped it starts toward the other state.
     void open();
 
     void close();
