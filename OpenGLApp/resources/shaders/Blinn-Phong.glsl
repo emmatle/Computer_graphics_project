@@ -50,7 +50,7 @@ out vec4 FragColor;
 
 // Illumination model: 0 No shading (Base color), 1 Ambient + Diffuse (Lambert), 2 Ambient + Diffuse + Specular (Blinn-Phong)
 uniform vec3 ambientLight = vec3(1.0, 0.82, 0.62); // 4000K white;
-vec3 k_a = vec3(0.1); // No ambient reflectivity uniform for simplicity
+vec3 k_a = vec3(0.2); // No ambient reflectivity uniform for simplicity
 uniform vec3 k_d = vec3(1.0);
 uniform vec3 k_s = vec3(0.5);
 uniform int illum = 2;
