@@ -253,3 +253,94 @@ const glm::mat4 &Camera::getProjectionMatrix(float distance, bool persp) const {
     }
     return projectionMatrix;
 }
+
+AnimatedObject::AnimatedObject(const glm::vec3 &pos, const glm::vec3 &rot, const glm::vec3 &scl,
+                               std::string path, int id, std::string name) : Object(
+    pos, rot, scl, std::move(path), id, std::move(name)) {
+}
+
+void AnimatedObject::startAnimating(bool reverse) {
+    if (reverse) {
+        animSpeed = -std::abs(animSpeed);
+        animProgress = 1.f;
+    } else {
+        animSpeed = std::abs(animSpeed);
+        animProgress = 0.f;
+    }
+    isAnimating = true;
+}
+
+void AnimatedObject::playAnimation(float duration, float speed) {
+    animDuration = duration;
+    animSpeed = speed;
+    startAnimating();
+}
+
+void AnimatedObject::stopAnimating() {
+    isAnimating = false;
+    animTime = 0.f;
+    animProgress = 0.f;
+}
+
+void AnimatedObject::pauseAnimating() {
+    isAnimating = false;
+}
+
+void AnimatedObject::resumeAnimating() {
+    isAnimating = true;
+}
+
+void AnimatedObject::animate() {
+    if (!isAnimating) return;
+    animTime += deltaTime * animSpeed;
+    animProgress = animTime / animDuration;
+    if (animProgress < 0.f) {
+        if (isLooping)
+            animProgress += 1.f; // Starts from end
+        else {
+            animProgress = 0.f;
+            isAnimating = false;
+        }
+    }
+    if (animProgress >= 1.f) {
+        if (isLooping)
+            animProgress -= 1.f; // Starts from beginning
+        else {
+            animProgress = 1.f;
+            isAnimating = false;
+        }
+    }
+    onUpdate();
+}
+
+void AnimatedObject::open() {
+    if (isAnimating) {
+        if (animSpeed < 0.f) animSpeed = -animSpeed; // Reverse direction
+        else return; // Already opening
+    }
+    startAnimating();
+}
+
+void AnimatedObject::close() {
+    if (isAnimating) {
+        if (animSpeed > 0.f) animSpeed = -animSpeed; // Reverse direction
+        else return; // Already closing
+    }
+    startAnimating(true);
+}
+
+void Door:: onUpdate() {
+        currentAngle = animProgress * openAngle + (1 - animProgress) * closeAngle; // Linear interpolation
+        rotate(up, currentAngle - rotation.y, false);
+    }
+
+void Slider::onUpdate() {
+        currentPos = animProgress * openPos + (1 - animProgress) * closePos; // Linear interpolation
+        move(right, currentPos - glm::dot(position, right), false);
+    }
+
+
+void Drawer::onUpdate() {
+        currentPos = animProgress * openPos + (1 - animProgress) * closePos; // Linear interpolation
+        move(right, currentPos - glm::dot(position, front), false);
+    }

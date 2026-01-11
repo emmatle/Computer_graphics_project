@@ -71,6 +71,30 @@
       "position": [-2.3, 1.2, 0.5],
       "rotation": [0.0, 180.0, 0.0],
       "scale": [1.0, 1.0, 1.0]
+    },
+    {
+        "id": 8,
+        "name": "Door",
+        "model": "models/Picture.obj",
+        "position": [0.0, 0.0, 0.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 9,
+      "name": "Slider",
+      "model": "models/Picture.obj",
+      "position": [0.0, 1.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+        "id": 10,
+        "name": "Drawer",
+        "model": "models/Picture.obj",
+        "position": [0.0, 2.0, 0.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0]
     }
   ]
 }

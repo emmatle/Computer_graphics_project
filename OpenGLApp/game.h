@@ -88,7 +88,7 @@ public:
 
     Object *selectObject(int id);
 
-    void inspectObject(int id);
+    void useObject(int id);
 
     // --- Callbacks ---
 

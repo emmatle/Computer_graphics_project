@@ -28,7 +28,25 @@ bool Game::loadObjects() {
     json &s = j["objects"];
 
     for (const auto &entry: s) {
-        auto obj = std::make_shared<Object>(entry);
+        std::shared_ptr<Object> obj = nullptr;
+        if (entry.contains("name")) {
+            std::string name = entry.at("name");
+            std::string nameLow = name = stringToLower(name);
+            if (nameLow == "player") {
+            player.setPosition(entry.value("position", glm::vec3(0.f)));
+            player.setRotation(glm::radians(entry.value("rotation", glm::vec3(0.f))));
+            continue;
+            }
+            if (nameLow.find("door") != std::string::npos) {
+                obj = std::make_shared<Door>(entry);
+            } else if (nameLow.find("slider") != std::string::npos) {
+                obj = std::make_shared<Slider>(entry);
+            } else if (nameLow.find("drawer") != std::string::npos) {
+                obj = std::make_shared<Drawer>(entry);
+            } else {
+                obj = std::make_shared<Object>(entry);
+            }
+        }
         std::string sceneName = entry.value("scene", "room");
         if (sceneName == "room") {
             room.objs.push_back(obj.get());
@@ -53,6 +71,11 @@ bool Game::loadObjects() {
 }
 
 void Game::update() {
+    for (auto &obj: objects) {
+        if (auto animatedObj = dynamic_cast<AnimatedObject*>(obj.get())) {
+            if (animatedObj->isAnimating) animatedObj->animate();
+        }
+    }
     if (playerScore >= 3) state = Menu;
     if (state == InGame) {
         // Calculate the amount of the movement considering sprint (SHIFT)
@@ -122,8 +145,15 @@ Object *Game::selectObject(int id) {
     return nullptr;
 }
 
-void Game::inspectObject(int id) {
-    if (id < 1) return;
+void Game::useObject(int id) {
+    if (!selectObject(id)) return;
+    // Try to open object
+    if (auto obj = dynamic_cast<AnimatedObject*>(selectedObj.get())) {
+        obj->open();
+        return;
+    }
+
+    // Inspect object
     inspectedObj = *selectObject(id); // Copy.
     inspectedObj.setPosition();
     inspectedObj.setRotation();
@@ -145,15 +175,11 @@ void Game::onKey() {
 }
 
 void Game::onMouseButton() {
-    if (state == InGame) {
-        if (input.rmb && selectedObj) {
-            inspectedObj = *selectedObj; // Copy.
-            inspectedObj.setPosition();
-            inspectedObj.setRotation();
-            inspectedObj.setScale();
-            state = Inventory; // inspect(selectedObject)
-        }
-    }
+    // if (state == InGame) {
+    //     if (input.rmb && selectedObj) {
+    //         useObject(selectedObj->id);
+    //     }
+    // }
 }
 
 void Game::onMouseMovement(float xdelta, float ydelta) {

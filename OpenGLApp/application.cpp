@@ -225,10 +225,11 @@ void Application::run() {
             Renderer::clear(Game::BG_COLOR);
                 renderer.drawText(
                 "Yippee, you are a star!",
-                static_cast<float>(fbWidth) / 2.0f - 200.0f,
+                static_cast<float>(fbWidth) / 2.0f,
                 static_cast<float>(fbHeight) / 2.0f,
                 fbScale,
-                glm::vec3(1.0f, 1.0f, 0.0f)
+                glm::vec3(1.0f, 1.0f, 0.0f),
+                Align::Center
             );
         }
 
@@ -600,7 +601,7 @@ void Application::mouseButtonCallback(GLFWwindow *window, int button, int action
     int id = 0;
     if (game.state == Game::InGame && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
         id = renderer.readObjFromCursor(game.room);
-        game.inspectObject(id);
+        game.useObject(id);
     }
 
     game.onMouseButton();

@@ -3,10 +3,13 @@
 #include "utils.h"
 
 #include <string>
+#include <utility>
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <nlohmann/json_fwd.hpp>
+
+#include "scene.h"
 
 class Object;
 class Camera;
@@ -87,6 +90,8 @@ public:
 
     Object(const Object &other);
 
+    virtual ~Object() = default;
+
     // Copy Assignment Operator
     Object &operator=(const Object &other);
 
@@ -100,8 +105,6 @@ public:
     void move(const glm::vec3 &dir, float amount, bool walk = false);
 
     void rotate(const glm::vec3 &axis, float radians, bool safe = false);
-
-    virtual void onUpdate(void *arg = nullptr) {}
 
     const glm::mat4 &getModelMatrix() const;
 
@@ -176,4 +179,62 @@ public:
     const glm::mat4 &getViewMatrix() const;
 
     const glm::mat4 &getProjectionMatrix(float distance = MAX_CLIPPING, bool persp = true) const;
+};
+
+class AnimatedObject : public Object {
+public:
+    bool isAnimating = false;
+    bool isLooping = false;
+    float animSpeed = 1.f;
+    float animTime = 0.f; // Time elapsed since animation started
+    float animDuration = 1.f;
+    float animProgress = 0.f; // 0.f to 1.f
+
+    AnimatedObject(const glm::vec3 &pos = {}, const glm::vec3 &rot = {}, const glm::vec3 &scl = {1.f, 1.f, 1.f},
+                   std::string path = "", int id = 0, std::string name = "");
+
+    void startAnimating(bool reverse = false);
+
+    void playAnimation(float duration = 1.f, float speed = 1.f);
+
+    void stopAnimating();
+
+    void pauseAnimating();
+
+    void resumeAnimating();
+
+    void animate();
+
+    virtual void onUpdate() {
+    }; // To be overridden by derived classes
+
+    void open();
+
+    void close();
+};
+
+class Door : public AnimatedObject {
+public:
+    float openAngle = glm::radians(105.f);
+    float closeAngle = 0.f;
+    float currentAngle = 0.f;
+
+    void onUpdate() override;
+};
+
+class Slider : public AnimatedObject {
+public:
+    float openPos = 1.f;
+    float closePos = 0.f;
+    float currentPos = 0.f;
+
+    void onUpdate() override;
+};
+
+class Drawer : public AnimatedObject {
+    float openPos = 0.2f;
+    float closePos = 0.f;
+    float currentPos = 0.f;
+
+    void onUpdate() override;
 };
