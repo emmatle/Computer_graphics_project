@@ -34,13 +34,13 @@ public:
     // --------------------------------------------------------------
 
     // Integer overloads
-    void setInt(const char *name, int v0) const;
+    void set(const char *name, int v0) const;
 
-    void setInt(const char *name, int v0, int v1) const;
+    void set(const char *name, int v0, int v1) const;
 
-    void setInt(const char *name, int v0, int v1, int v2) const;
+    void set(const char *name, int v0, int v1, int v2) const;
 
-    void setInt(const char *name, int v0, int v1, int v2, int v3) const;
+    void set(const char *name, int v0, int v1, int v2, int v3) const;
 
     // Float overloads
     void set(const char *name, float v0) const;

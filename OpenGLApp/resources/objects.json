@@ -73,12 +73,12 @@
       "scale": [1.0, 1.0, 1.0]
     },
     {
-        "id": 8,
-        "name": "Door",
-        "model": "models/Picture.obj",
-        "position": [0.0, 0.0, 0.0],
-        "rotation": [0.0, 0.0, 0.0],
-        "scale": [1.0, 1.0, 1.0]
+      "id": 8,
+      "name": "Door",
+      "model": "models/Picture.obj",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
     },
     {
       "id": 9,
@@ -89,12 +89,20 @@
       "scale": [1.0, 1.0, 1.0]
     },
     {
-        "id": 10,
-        "name": "Drawer",
-        "model": "models/Picture.obj",
-        "position": [0.0, 2.0, 0.0],
-        "rotation": [0.0, 0.0, 0.0],
-        "scale": [1.0, 1.0, 1.0]
+      "id": 10,
+      "name": "Drawer",
+      "model": "models/Picture.obj",
+      "position": [0.0, 2.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 11,
+      "name": "Pencil",
+      "model": "models/redpencil.obj",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [2.0, 2.0, 2.0]
     }
   ]
 }

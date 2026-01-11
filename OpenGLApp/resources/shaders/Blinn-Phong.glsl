@@ -48,12 +48,12 @@ out vec4 FragColor;
 
 // --- Material uniforms ---
 
-// Illumination model: 0 No shading (Base color), 1 Ambient + Diffuse (Lambert), 2 Ambient + Diffuse+ Specular (Blinn-Phong)
-uniform int illum = 2;
+// Illumination model: 0 No shading (Base color), 1 Ambient + Diffuse (Lambert), 2 Ambient + Diffuse + Specular (Blinn-Phong)
 uniform vec3 ambientLight = vec3(1.0, 0.82, 0.62); // 4000K white;
-uniform float k_a = 0.1;
-uniform float k_d = 1;
-uniform float k_s = 0.5;
+vec3 k_a = vec3(0.1); // No ambient reflectivity uniform for simplicity
+uniform vec3 k_d = vec3(1.0);
+uniform vec3 k_s = vec3(0.5);
+uniform int illum = 2;
 uniform float shininess = 32.0;
 
 uniform sampler2D diffuseMap;
@@ -84,8 +84,8 @@ uniform vec3 viewPos;
 void main() {
     vec3 V = normalize(viewPos - FragPos);
 
-    vec3 baseColor = hasDiffuseMap ? texture(diffuseMap, TexCoords).rgb : vec3(1.0);
-    vec3 ambientColor = hasAmbientOcclusionMap ? vec3(texture(ambientOcclusionMap, TexCoords).r) * ambientLight : ambientLight;
+    vec3 baseColor = hasDiffuseMap ? texture(diffuseMap, TexCoords).rgb: k_d;
+    vec3 ambientColor = hasAmbientOcclusionMap ? vec3(texture(ambientOcclusionMap, TexCoords).r) * ambientLight: ambientLight;
     vec3 normal = hasNormalMap ? texture(normalMap, TexCoords).rgb : vec3(0.5, 0.5, 1.0);
     float roughness = hasRoughnessMap ? texture(roughnessMap, TexCoords).r : 0.125;
     float metalness = hasMetalnessMap ? texture(metalnessMap, TexCoords).r : 0.0;

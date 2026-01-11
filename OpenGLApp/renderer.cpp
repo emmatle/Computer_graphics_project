@@ -205,13 +205,13 @@ void Renderer::drawScene(const Scene &scene, bool picking) const {
     shader.set("projection", scene.cam->getProjectionMatrix());
     if (!picking) {
         for (int i = 0; i < scene.lights.size(); ++i) scene.lights[i].apply(const_cast<Shader &>(shader), i);
-        shader.setInt("numLights", static_cast<int>(scene.lights.size()));
+        shader.set("numLights", static_cast<int>(scene.lights.size()));
         shader.set("viewPos", scene.cam->position);
     }
     for (const auto &obj: scene.objs) {
         if (!obj || !obj->model) continue;
         shader.set("model", obj->getModelMatrix());
-        if (picking && obj->id) shader.setInt("id", obj->id);
+        if (picking && obj->id) shader.set("id", obj->id);
         obj->model->draw(const_cast<Shader &>(shader), !picking);
     }
 }

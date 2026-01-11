@@ -35,7 +35,7 @@ struct Light {
 
     Object *parent;
 
-    Light(const glm::vec3 &pos = {}, const glm::vec3 &color = glm::vec3(1.f), float intensity = 1.f,
+    Light(const glm::vec3 &pos = {}, const glm::vec3 &color = glm::vec3(1.f), float intensity = 1.0f,
           float constant = 0.75f, float linear = 0.5f, float quadratic = 0.25f);
 
     void apply(const Shader &shader, int index) const;
@@ -187,7 +187,7 @@ public:
     bool isLooping = false;
     float animSpeed = 1.f;
     float animTime = 0.f; // Time elapsed since animation started
-    float animDuration = 1.f;
+    float animDuration = 0.5f;
     float animProgress = 0.f; // 0.f to 1.f
 
     // Origin used to calculate translations along an axis (initialized on first update)

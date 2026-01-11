@@ -19,7 +19,11 @@ struct Vertex {
 
 struct Material {
     std::string name;
+    glm::vec3 k_a = glm::vec3(1.0f);
+    glm::vec3 k_d = glm::vec3(1.0f);
+    glm::vec3 k_s = glm::vec3(0.5f);
     int illum = 2;
+    float shininess = 32.0f;
     Texture *textures[Texture::N_TYPES] = {};
 
     void apply(const Shader &shader) const {
@@ -27,15 +31,19 @@ struct Material {
         const char *flags[] = {
             "hasDiffuseMap", "hasAmbientOcclusionMap", "hasNormalMap", "hasRoughnessMap", "hasMetalnessMap"
         };
-        shader.setInt("illum", illum);
+        // shader.set("k_a", k_a); // Ambient term is not used for simplicity
+        shader.set("k_d", k_d);
+        shader.set("k_s", k_s);
+        shader.set("illum", illum);
+        shader.set("shininess", shininess);
 
         for (int unit = 0; unit < Texture::N_TYPES; unit++) {
             if (textures[unit]) {
                 textures[unit]->use(unit);
-                shader.setInt(samplers[unit], unit);
-                shader.setInt(flags[unit], true);
+                shader.set(samplers[unit], unit);
+                shader.set(flags[unit], true);
             } else {
-                shader.setInt(flags[unit], false);
+                shader.set(flags[unit], false);
             }
         }
     }
@@ -136,17 +144,35 @@ public:
 
         // Preload all materials
         for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
+            aiMaterial *aiMat = scene->mMaterials[i];
             Material mat;
-            mat.name = scene->mMaterials[i]->GetName().C_Str();
+            mat.name = aiMat->GetName().C_Str();
             int shadingModel = 2; // Defaults to Blinn-Phong
-            if (scene->mMaterials[i]->Get(AI_MATKEY_SHADING_MODEL, shadingModel) == AI_SUCCESS) {
+            if (aiMat->Get(AI_MATKEY_SHADING_MODEL, shadingModel) == AI_SUCCESS) {
                 if (shadingModel == aiShadingMode_NoShading) {
                     mat.illum = 0;
                 } else if (shadingModel == aiShadingMode_Flat) {
                     mat.illum = 1;
                 }
             }
-            loadMaterialTextures(scene->mMaterials[i], mat);
+            aiColor3D ambient(1.0f, 1.f, 1.0f);
+            aiColor3D diffuse(1.f, 1.f, 1.f);
+            aiColor3D specular(0.5f, 0.5f, 0.5f);
+
+            if (AI_SUCCESS == aiMat->Get(AI_MATKEY_COLOR_AMBIENT, ambient))
+                mat.k_a = glm::vec3(ambient.r, ambient.g, ambient.b);
+
+            if (AI_SUCCESS == aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse))
+                mat.k_d = glm::vec3(diffuse.r, diffuse.g, diffuse.b);
+
+            if (AI_SUCCESS == aiMat->Get(AI_MATKEY_COLOR_SPECULAR, specular))
+                mat.k_s = glm::vec3(specular.r, specular.g, specular.b);
+
+            float shininess = 32.0f;
+            if (AI_SUCCESS == aiMat->Get(AI_MATKEY_SHININESS, shininess)) {
+            }
+
+            loadMaterialTextures(aiMat, mat);
             materials.push_back(mat);
         }
 

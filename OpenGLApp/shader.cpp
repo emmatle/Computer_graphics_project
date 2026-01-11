@@ -85,22 +85,22 @@ void Shader::use() const {
 // --------------------------------------------------------------
 
 // Integer overloads
-void Shader::setInt(const char *name, int v0) const {
+void Shader::set(const char *name, int v0) const {
     int uniformId = getUniform(name);
     glUniform1i(uniformId, v0);
 }
 
-void Shader::setInt(const char *name, int v0, int v1) const {
+void Shader::set(const char *name, int v0, int v1) const {
     int uniformId = getUniform(name);
     glUniform2i(uniformId, v0, v1);
 }
 
-void Shader::setInt(const char *name, int v0, int v1, int v2) const {
+void Shader::set(const char *name, int v0, int v1, int v2) const {
     int uniformId = getUniform(name);
     glUniform3i(uniformId, v0, v1, v2);
 }
 
-void Shader::setInt(const char *name, int v0, int v1, int v2, int v3) const {
+void Shader::set(const char *name, int v0, int v1, int v2, int v3) const {
     int uniformId = getUniform(name);
     glUniform4i(uniformId, v0, v1, v2, v3);
 }
