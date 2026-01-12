@@ -54,13 +54,22 @@ public:
     Object inspectedObj;
     std::shared_ptr<Object> selectedObj = nullptr;
 
-    // Camera player{{0.3f, 1.75f, -0.5f}, {glm::radians(-12.0f), glm::radians(64.0f), 0.0f}};
-    Camera player{{0.3f, 1.75f, -0.5f}};
+    // Camera player{{2.24f, 0.93f, 1.17f}, {glm::radians(-5.2f), glm::radians(-50.f), 0.f}}; // Blender render cam
+    Camera player{{0.0f, 1.75f, 0.0f}}; // Spawning point
     Camera fixed{{0.0f, 0.0f, 1.f}};
     Camera easleView;
     Camera pictureView;
 
-    Scene room = {{}, &player, {{{-1.0f, 2.0f, -1.0f}, {1.0f, 0.82f, 0.62f}}}};
+    static constexpr glm::vec3 LIGHT_COLOR = {1.0f, 0.82f, 0.62f};
+
+    Light lights[3] = {
+        {{-2.56f, 1.18f, -0.09f}, LIGHT_COLOR, }, // Window 1
+        {{5.0f, 1.6f, -3.0f}, LIGHT_COLOR, },  // Window 2
+        {{7.32f, 1.80f, 1.14f}, LIGHT_COLOR, } // Window 3
+
+    };
+
+    Scene room = {{}, &player, {{lights[0], lights[1], lights[2]}}};
     Scene inventory = {
         {&inspectedObj}, &fixed, {
             {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.82f, 0.62f}}, // Key light 4000K

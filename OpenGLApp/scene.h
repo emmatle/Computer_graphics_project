@@ -36,7 +36,7 @@ struct Light {
     Object *parent;
 
     Light(const glm::vec3 &pos = {}, const glm::vec3 &color = glm::vec3(1.f), float intensity = 1.0f,
-          float constant = 0.75f, float linear = 0.5f, float quadratic = 0.25f);
+          float constant = 1.f, float linear = 0.1f, float quadratic = 0.2f);
 
     void apply(const Shader &shader, int index) const;
 };

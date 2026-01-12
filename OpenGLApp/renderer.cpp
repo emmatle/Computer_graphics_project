@@ -204,7 +204,7 @@ void Renderer::drawScene(const Scene &scene, bool picking) const {
     shader.set("view", scene.cam->getViewMatrix());
     shader.set("projection", scene.cam->getProjectionMatrix());
     if (!picking) {
-        for (int i = 0; i < scene.lights.size(); ++i) scene.lights[i].apply(const_cast<Shader &>(shader), i);
+        for (int i = 0; i < scene.lights.size(); ++i) scene.lights[i].apply(shader, i);
         shader.set("numLights", static_cast<int>(scene.lights.size()));
         shader.set("viewPos", scene.cam->position);
     }
@@ -279,7 +279,7 @@ void Renderer::drawText(const std::string &text, float x, float y, float scale, 
 void Renderer::drawText3D(const std::string &text, const glm::vec3 &position, const Camera &cam, float scale,
                           const glm::vec3 &color, Align align) {
     std::string clean = convertUTF8toLatin1(text);
-    scale *= 0.002f;// Adjust this scale factor as needed
+    scale *= 0.002f; // Adjust this scale factor as needed
 
     // Compute total width for alignment in 3D space (same as 2D but in object space units)
     float textWidth = 0.0f;

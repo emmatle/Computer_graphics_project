@@ -61,12 +61,6 @@ bool Game::loadObjects() {
         // } else if (sceneName == "picture") {
         //     picture.objs.push_back(obj.get());
         // }
-
-        // TODO: Link lights.
-        // if (entry.contains("light")) {
-        //     std::string name = entry["light"];
-        //     lights[i].parent = obj.get();
-        // }
         objects.push_back(obj);
     }
     return true;

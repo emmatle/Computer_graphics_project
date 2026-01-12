@@ -100,9 +100,9 @@
       "id": 11,
       "name": "Pencil",
       "model": "models/redpencil.obj",
-      "position": [0.0, 0.0, 0.0],
+      "position": [0.0, 1.0, -2.0],
       "rotation": [0.0, 0.0, 0.0],
-      "scale": [2.0, 2.0, 2.0]
+      "scale": [1.0, 1.0, 1.0]
     }
   ]
 }
