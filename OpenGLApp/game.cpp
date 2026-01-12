@@ -50,7 +50,9 @@ bool Game::loadObjects() {
         std::string sceneName = entry.value("scene", "room");
         if (sceneName == "room") {
             room.objs.push_back(obj.get());
-            portal1.objs.push_back(obj.get());
+            portals[0].objs.push_back(obj.get());
+        } else if (sceneName == "portal1") {
+            portals[1].objs.push_back(obj.get());
         }
 
         // else if (sceneName == "inventory") {

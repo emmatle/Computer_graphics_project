@@ -57,7 +57,7 @@ public:
     // Camera player{{0.3f, 1.75f, -0.5f}, {glm::radians(-12.0f), glm::radians(64.0f), 0.0f}};
     Camera player{{0.3f, 1.75f, -0.5f}};
     Camera fixed{{0.0f, 0.0f, 1.f}};
-    Camera mirrorView;
+    Camera easleView;
     Camera pictureView;
 
     Scene room = {{}, &player, {{{-1.0f, 2.0f, -1.0f}, {1.0f, 0.82f, 0.62f}}}};
@@ -67,11 +67,13 @@ public:
             {{1.0f, -1.0f, -1.0f}, {0.78f, 0.82, 1.0f}} // Back light 8000K
         }
     };
-    Scene portal1 = {{}, &player, {{{-1.0f, 2.0f, -1.0f}}}};
-    Scene portal2 = {
-        {}, &player, {
-            {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.82f, 0.62f}}, // Key light 4000K
-            {{1.0f, -1.0f, -2.0f}, {0.776f, 0.824, 1.0f}} // Back light 8000K
+    Scene portals[2] = {
+        {{}, &player, {{{-1.0f, 2.0f, -1.0f}}}},
+        {
+            {}, &easleView, {
+                {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.82f, 0.62f}}, // Key light 4000K
+                {{1.0f, -1.0f, -2.0f}, {0.776f, 0.824, 1.0f}} // Back light 8000K
+            }
         }
     };
 

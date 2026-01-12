@@ -168,10 +168,10 @@ void Application::run() {
 
         // Scene rendering
         if (game.state == Game::InGame) {
-            // static auto mirror = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Mirror"));
-            // static auto picture = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Picture"));
-            // if (mirror) renderer.updateTexture(*mirror, game.room);
-            // if (picture) renderer.updateTexture(*picture, game.room);
+            static auto picture = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Picture"));
+            static auto canvas = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Canvas"));
+            if (canvas) renderer.updateTexture(*canvas, game.inventory);
+            if (picture) renderer.updateTexture(*picture, game.room);
 
             Renderer::clear(Game::BG_COLOR);
 
