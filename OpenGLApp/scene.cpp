@@ -68,8 +68,21 @@ void Animation::apply(Object &obj) {
         originOrientation = obj.getOrientation();
         originInitialized = true;
     }
-    obj.setPosition(originPosition + translation * progress);
-    obj.setRotation(originOrientation * glm::quat(rotation * progress), pivot);
+
+    glm::quat newOrientation = originOrientation * glm::quat(rotation * progress);
+    glm::vec3 newPosition = originPosition + translation * progress;
+
+    if (pivot != glm::vec3(0.f)) {
+        // Calculate the fixed world pivot using initial state
+        glm::vec3 worldPivot = originPosition + originOrientation * pivot;
+        // Calculate the new position such that the world pivot remains fixed
+        newPosition = worldPivot - newOrientation * pivot;
+        // If there's also translation in the animation, add it
+        newPosition += originOrientation * (translation * progress);
+    }
+
+    if (translation != glm::vec3(0.f)) obj.setPosition(newPosition);
+    if (rotation != glm::vec3(0.f)) obj.setRotation(newOrientation, pivot);
 }
 
 Light::Light(const glm::vec3 &pos, const glm::vec3 &color, float intensity, float constant, float linear,
