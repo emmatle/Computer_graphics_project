@@ -54,7 +54,12 @@
       "model": "models/Brush.obj",
       "position": [0.6, 1.0, -2.2],
       "rotation": [0.0, 75.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
+      "scale": [1.0, 1.0, 1.0],
+      "animation": {
+        "rotation": [0.0, 360.0, 0.0],
+        "duration": 1.0,
+        "loop": true
+      }
     },
     {
       "id": 6,
@@ -78,7 +83,11 @@
       "model": "models/Picture.obj",
       "position": [0.0, 0.0, 0.0],
       "rotation": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
+      "scale": [1.0, 1.0, 1.0],
+      "animation": {
+        "rotation": [0.0, 105.0, 0.0],
+        "duration": 0.5
+      }
     },
     {
       "id": 9,
@@ -86,7 +95,11 @@
       "model": "models/Picture.obj",
       "position": [0.0, 1.0, 0.0],
       "rotation": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
+      "scale": [1.0, 1.0, 1.0],
+      "animation": {
+        "translation": [1.0, 0.0, 0.0],
+        "duration": 0.5
+      }
     },
     {
       "id": 10,
@@ -94,7 +107,11 @@
       "model": "models/Picture.obj",
       "position": [0.0, 2.0, 0.0],
       "rotation": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
+      "scale": [1.0, 1.0, 1.0],
+      "animation": {
+        "translation": [0.0, 0.0, -0.2],
+        "duration": 0.5
+      }
     },
     {
       "id": 11,

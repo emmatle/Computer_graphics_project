@@ -3,17 +3,63 @@
 #include "utils.h"
 
 #include <string>
-#include <utility>
 #include <vector>
+#include <functional>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <nlohmann/json_fwd.hpp>
 
 #include "scene.h"
 
+
 class Object;
 class Camera;
 struct Light;
+
+struct Animation {
+    bool isPlaying = false;
+    bool isLooping = false;
+    float speed = 1.f;
+    float time = 0.f;
+    float duration = 0.5f;
+    float progress = 0.f;
+
+    // Offset values
+    glm::vec3 translation = glm::vec3(0.f);
+    glm::vec3 rotation = glm::vec3(0.f);
+    glm::vec3 pivot = glm::vec3(0.f);
+
+    glm::vec3 originPosition = glm::vec3(0.f);
+    glm::quat originOrientation = glm::quat(1.f, 0.f, 0.f, 0.f);
+    bool originInitialized = false;
+
+    std::function<void(Animation &)> onUpdate;
+
+    bool empty() const;
+
+    void play(bool reverse = false);
+
+    void update(float dt = deltaTime);
+
+    void stop();
+
+    void toggle();
+
+    void reset();
+
+    void apply(Object &obj);
+};
+
+inline void from_json(const nlohmann::json &j, Animation &anim) {
+    anim.duration = j.value("duration", anim.duration);
+    anim.speed = j.value("speed", anim.speed);
+    anim.isLooping = j.value("loop", anim.isLooping);
+    anim.translation = j.value("translation", anim.translation);
+    if (j.contains("rotation")) {
+        anim.rotation = glm::radians(j.at("rotation").get<glm::vec3>());
+    }
+    anim.pivot = j.value("pivot", anim.pivot);
+}
 
 struct Scene {
     std::vector<Object *> objs;
@@ -43,6 +89,7 @@ struct Light {
 
 
 class Object {
+protected:
     glm::vec3 _position;
     glm::vec3 _rotation; // Euler angles cache
     glm::vec3 _scale;
@@ -76,6 +123,8 @@ public:
     std::string modelPath;
     std::vector<AABB> collisions;
 
+    Animation animation;
+
     Object *parent; // TODO: Optimize by keeping track of childs and invalidate their matrices when the parent moves.
 
     // World Constants
@@ -92,25 +141,33 @@ public:
 
     virtual ~Object() = default;
 
+    virtual void updateLogic() {}
+
     // Copy Assignment Operator
     Object &operator=(const Object &other);
 
     // Setters
     void setPosition(const glm::vec3 &pos = {});
 
-    void setRotation(const glm::vec3 &radians = {}, bool safe = false);
+    void setRotation(const glm::quat &quat, const glm::vec3 &pivot = glm::vec3(0.f));
+
+    void setRotation(const glm::vec3 &radians = {}, bool safe = false, const glm::vec3 &pivot = glm::vec3(0.f));
 
     void setScale(const glm::vec3 &scl = {1.f, 1.f, 1.f});
 
+    const glm::quat &getOrientation() const { return orientation; }
+
     void move(const glm::vec3 &dir, float amount, bool walk = false);
 
-    void rotate(const glm::vec3 &axis, float radians, bool safe = false);
+    void rotate(const glm::vec3 &axis, float radians, bool safe = false, const glm::vec3 &offset = {0.f, 0.f, 0.f});
 
     const glm::mat4 &getModelMatrix() const;
 
     const glm::mat4 &getInverseModelMatrix() const;
 
     bool checkCollision(Object &other, bool pushOut = false);
+
+    void onUpdate();
 
     friend void from_json(const nlohmann::json &j, Object &obj);
 };
@@ -147,13 +204,13 @@ class Camera : public Object {
     mutable float lastDistance;
     mutable bool lastMode;
 
+public:
     // Constraints and clipping planes
     static constexpr float MAX_FOV = 120.f;
     static constexpr float MAX_PITCH = 89.f;
     static constexpr float MIN_CLIPPING = 0.01f;
-    static constexpr float MAX_CLIPPING = 40.f;
+    static constexpr float MAX_CLIPPING = 30.f;
 
-public:
     const float &fov = _fov;
     const float &aspect = _aspect;
     bool costrain;
@@ -181,67 +238,28 @@ public:
     const glm::mat4 &getProjectionMatrix(float distance = MAX_CLIPPING, bool persp = true) const;
 };
 
-class AnimatedObject : public Object {
+class Canvas : public Object {
+    static constexpr float POSITION_THRESHOLD = 0.1f;
+    static constexpr float ROTATION_THRESHOLD = glm::radians(5.f);
+    glm::vec3 correctPosition;
+    glm::vec3 correctRotation;
+
 public:
-    bool isAnimating = false;
-    bool isLooping = false;
-    float animSpeed = 1.f;
-    float animTime = 0.f; // Time elapsed since animation started
-    float animDuration = 0.5f;
-    float animProgress = 0.f; // 0.f to 1.f
+    Camera *view = nullptr;
+    bool isSolved = false;
 
-    // Origin used to calculate translations along an axis (initialized on first update)
-    glm::vec3 originPosition = glm::vec3(0.f);
-    bool originInitialized = false;
+    Canvas(const glm::vec3 &pos, const glm::vec3 &rot) : correctPosition(pos), correctRotation(rot) {};
 
-    AnimatedObject(const glm::vec3 &pos = {}, const glm::vec3 &rot = {}, const glm::vec3 &scl = {1.f, 1.f, 1.f},
-                   std::string path = "", int id = 0, std::string name = "");
-
-    // Start animating; reverse = true plays towards start, false towards end.
-    // This no longer forcefully resets animProgress; it sets animSpeed sign and animTime to match current progress.
-    void startAnimating(bool reverse = false);
-
-    void playAnimation(float duration = 1.f, float speed = 1.f);
-
-    void stopAnimating();
-
-    void pauseAnimating();
-
-    void resumeAnimating();
-
-    void animate();
-
-    virtual void onUpdate() {
-    }; // To be overridden by derived classes
-
-    // open() acts as toggle: if animating it reverses direction; if stopped it starts toward the other state.
-    void open();
-
-    void close();
-};
-
-class Door : public AnimatedObject {
-public:
-    float openAngle = glm::radians(105.f);
-    float closeAngle = 0.f;
-    float currentAngle = 0.f;
-
-    void onUpdate() override;
-};
-
-class Slider : public AnimatedObject {
-public:
-    float openPos = 1.f;
-    float closePos = 0.f;
-    float currentPos = 0.f;
-
-    void onUpdate() override;
-};
-
-class Drawer : public AnimatedObject {
-    float openPos = 0.2f;
-    float closePos = 0.f;
-    float currentPos = 0.f;
-
-    void onUpdate() override;
+    void updateLogic() override {
+        if (!isSolved) {
+            float posOffest = glm::distance(position, correctPosition);
+            float rotOffset = glm::distance(rotation, correctRotation);
+            if (posOffest < POSITION_THRESHOLD && rotOffset < ROTATION_THRESHOLD) {
+                isSolved = true;
+                // TODO: Align the view to the canvas perfectly as transition.
+                view->setPosition(correctPosition);
+                view->setRotation(correctRotation);
+            }
+        }
+    }
 };

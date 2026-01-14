@@ -202,16 +202,20 @@ void Renderer::drawScene(const Scene &scene, bool picking) const {
     glEnable(GL_DEPTH_TEST);
     shader.use();
     shader.set("view", scene.cam->getViewMatrix());
-    shader.set("projection", scene.cam->getProjectionMatrix());
     if (!picking) {
+        shader.set("projection", scene.cam->getProjectionMatrix());
         for (int i = 0; i < scene.lights.size(); ++i) scene.lights[i].apply(shader, i);
         shader.set("numLights", static_cast<int>(scene.lights.size()));
         shader.set("viewPos", scene.cam->position);
+    } else {
+        // TODO: Optimize by caching projection matrix
+        glm::mat4 projectionMatrix = glm::perspective(scene.cam->fov, scene.cam->aspect, Camera::MIN_CLIPPING, 2.0f);
+        shader.set("projection", projectionMatrix);
     }
     for (const auto &obj: scene.objs) {
         if (!obj || !obj->model) continue;
         shader.set("model", obj->getModelMatrix());
-        if (picking && obj->id) shader.set("id", obj->id);
+        if (picking) shader.set("id", obj->id);
         obj->model->draw(const_cast<Shader &>(shader), !picking);
     }
 }

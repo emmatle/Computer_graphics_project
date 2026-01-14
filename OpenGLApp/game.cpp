@@ -28,51 +28,36 @@ bool Game::loadObjects() {
     json &s = j["objects"];
 
     for (const auto &entry: s) {
-        std::shared_ptr<Object> obj = nullptr;
-        if (entry.contains("name")) {
-            std::string name = entry.at("name");
-            std::string nameLow = name = stringToLower(name);
-            if (nameLow == "player") {
-            player.setPosition(entry.value("position", glm::vec3(0.f)));
-            player.setRotation(glm::radians(entry.value("rotation", glm::vec3(0.f))));
-            continue;
-            }
-            if (nameLow.find("door") != std::string::npos) {
-                obj = std::make_shared<Door>(entry);
-            } else if (nameLow.find("slider") != std::string::npos) {
-                obj = std::make_shared<Slider>(entry);
-            } else if (nameLow.find("drawer") != std::string::npos) {
-                obj = std::make_shared<Drawer>(entry);
-            } else {
-                obj = std::make_shared<Object>(entry);
-            }
+        std::shared_ptr<Object> obj = std::make_shared<Object>(entry);
+
+        if (entry.contains("player")) {
+            player.setPosition(entry["player"].value("position", glm::vec3(0.f)));
+            player.setRotation(glm::radians(entry["player"].value("rotation", glm::vec3(0.f))));
+        } else if (entry.contains("portal")) {
+            int index = entry["portal"].value("index", -1);
+            if (index == -1) continue;
+            // TODO: Implement portals properly.
         }
+
+        if (entry.contains("animation")) {
+            obj->animation = entry["animation"].get<Animation>();
+        }
+
         std::string sceneName = entry.value("scene", "room");
         if (sceneName == "room") {
             room.objs.push_back(obj.get());
             portals[0].objs.push_back(obj.get());
-        } else if (sceneName == "portal1") {
+        } else if (sceneName == "portal") {
             portals[1].objs.push_back(obj.get());
         }
-
-        // else if (sceneName == "inventory") {
-        //     auto copy = *obj; // Copy
-        //     inventory.objs.push_back(obj.get());
-        // } else if (sceneName == "picture") {
-        //     picture.objs.push_back(obj.get());
-        // }
         objects.push_back(obj);
     }
+
     return true;
 }
 
 void Game::update() {
-    for (auto &obj: objects) {
-        if (auto animatedObj = dynamic_cast<AnimatedObject*>(obj.get())) {
-            if (animatedObj->isAnimating) animatedObj->animate();
-        }
-    }
-    if (playerScore >= 3) state = Menu;
+    if (playerScore >= 3) state = Credits;
     if (state == InGame) {
         // Calculate the amount of the movement considering sprint (SHIFT)
         float velocity = playerSpeed * deltaTime;
@@ -90,8 +75,8 @@ void Game::update() {
             getObject("Brush3")
         };
 
-        for (auto brush : brushes) {
-            brush->rotate(Object::WRLD_UP, INSPECT_ANGULAR_SPEED * deltaTime);
+        for (auto &obj: objects) {
+            obj->onUpdate();
         }
 
         if (!debug) {
@@ -112,7 +97,7 @@ void Game::update() {
                 }
             }
         }
-    } else if (state == Inventory) {
+    } else if (state == Inspection) {
         // Object rotation in Inspect mode
         float amount = INSPECT_ANGULAR_SPEED * deltaTime;
 
@@ -130,7 +115,8 @@ Object *Game::getObject(const std::string &name) {
     return nullptr;
 }
 
-Object *Game::selectObject(int id) {
+// TODO: Optimize with hashmap.
+Object *Game::findObject(int id) {
     if (id < 1) return nullptr;
     for (auto &obj: objects) {
         if (obj.get()->id == id) {
@@ -141,20 +127,61 @@ Object *Game::selectObject(int id) {
     return nullptr;
 }
 
-void Game::useObject(int id) {
-    if (!selectObject(id)) return;
+void Game::viewCanvas(int index) {}
+
+void Game::useObject(Object *obj) {
+    size_t pos = obj->name.find("Button");
+    if (pos != std::string::npos) {
+        pos += 6;
+        std::string num = obj->name.substr(pos);
+        if (!num.empty()) {
+            if (std::isdigit(num[0])) {
+                if (enteredCode.length() >= password.length()) {
+                    enteredCode.clear();
+                } else {
+                    enteredCode.append(num);
+                }
+            }
+            if (num == "Clear") {
+                if (!enteredCode.empty()) {
+                    enteredCode.pop_back();
+                }
+            }
+            if (num == "Enter") {
+                if (enteredCode == password) {
+                    std::cout << "Correct code entered! Door unlocked." << std::endl;
+                    if (auto door = getObject("Safe Door")) door->animation.play();
+                } else {
+                    // Incorrect code, reset entered code
+                    std::cout << "Incorrect code. Try again." << std::endl;
+                    enteredCode.clear();
+                }
+            }
+        }
+    }
+    pos = obj->name.find("Portal");
+    if (pos != std::string::npos) {
+        pos += 6;
+        std::string num = obj->name.substr(pos);
+        if (!num.empty() && !std::isdigit(num[0])) {
+            // TODO: Transition player camera to canvas view.
+            int index = std::stoi(num) - 1;
+            if (!canvas[index].isSolved) viewCanvas(index);
+            return;
+        }
+    }
     // Try to open object
-    if (auto obj = dynamic_cast<AnimatedObject*>(selectedObj.get())) {
-        obj->open();
+    if (obj->name != "Safe Door" && !obj->animation.empty()) {
+        obj->animation.toggle();
         return;
     }
 
     // Inspect object
-    inspectedObj = *selectObject(id); // Copy.
+    inspectedObj = *obj; // Copy.
     inspectedObj.setPosition();
     inspectedObj.setRotation();
     inspectedObj.setScale();
-    state = Inventory;
+    state = Inspection;
 }
 
 // --- Callbacks ---
@@ -165,31 +192,31 @@ void Game::onKey() {
         // if (input.tab) mode = Inventory; // TODO: Add Inventory mode.
         // if (input.e && selectedObj) interact(selectedObj);
         if (input.q) playerScore++;
-    } else if (state == Inventory) {
+    } else if (state == Inspection) {
         if (input.esc) state = InGame;
     }
 }
 
 void Game::onMouseButton() {
-    // if (state == InGame) {
-    //     if (input.rmb && selectedObj) {
-    //         useObject(selectedObj->id);
-    //     }
-    // }
+    if (state == InGame) {
+        if (input.lmb && hoveredObj) {
+            useObject(hoveredObj);
+        }
+    }
 }
 
 void Game::onMouseMovement(float xdelta, float ydelta) {
     if (state == InGame) {
         player.yaw(glm::radians(mouseSensitivity * xdelta));
         player.pitch(glm::radians(mouseSensitivity * ydelta));
-    } else if (state == Inventory && input.lmb) {
+    } else if (state == Inspection && input.lmb) {
         inspectedObj.rotate(fixed.up, -glm::radians(mouseSensitivity * xdelta), true);
         inspectedObj.rotate(fixed.right, -glm::radians(mouseSensitivity * ydelta), true);
     }
 }
 
 void Game::onMouseScroll(float yoffset) {
-    if (state == InGame || state == Inventory) {
+    if (state == InGame || state == Inspection) {
         float amount = glm::radians(3.f * yoffset);
         player.zoom(amount);
         fixed.zoom(amount);

@@ -1,13 +1,81 @@
 #include "scene.h"
 #include "shader.h"
+#include "model.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <nlohmann/json.hpp>
+
+bool Animation::empty() const { return translation == glm::vec3(0.f) && rotation == glm::vec3(0.f); }
+
+void Animation::play(bool reverse) {
+    if (reverse) speed = -std::abs(speed);
+    else speed = std::abs(speed);
+
+    time = glm::clamp(progress, 0.f, 1.f) * duration;
+    isPlaying = true;
+}
+
+void Animation::stop() {
+    isPlaying = false;
+    time = 0.f;
+    progress = 0.f;
+}
+
+void Animation::toggle() {
+    if (isPlaying) {
+        speed = -speed;
+        time = glm::clamp(progress, 0.f, 1.f) * duration;
+        return;
+    }
+    if (progress >= 1.f) play(true);
+    else if (progress <= 0.f) play(false);
+    else play(false);
+}
+
+void Animation::update(float dt) {
+    if (!isPlaying) return;
+
+    time += dt * speed;
+    progress = time / duration;
+    if (progress < 0.f) {
+        if (isLooping) {
+            progress += 1.f;
+            time = progress * duration;
+        } else {
+            progress = 0.f;
+            isPlaying = false;
+            time = 0.f;
+        }
+    }
+    if (progress >= 1.f) {
+        if (isLooping) {
+            progress -= 1.f;
+            time = progress * duration;
+        } else {
+            progress = 1.f;
+            isPlaying = false;
+            time = duration;
+        }
+    }
+}
+
+void Animation::reset() {
+    originInitialized = false;
+}
+
+void Animation::apply(Object &obj) {
+    if (!originInitialized) {
+        originPosition = obj.position;
+        originOrientation = obj.getOrientation();
+        originInitialized = true;
+    }
+    obj.setPosition(originPosition + translation * progress);
+    obj.setRotation(originOrientation * glm::quat(rotation * progress), pivot);
+}
 
 Light::Light(const glm::vec3 &pos, const glm::vec3 &color, float intensity, float constant, float linear,
              float quadratic)
     : position(pos), color(color), intensity(intensity), constant(constant), linear(linear), quadratic(quadratic),
-      parent(nullptr) {
-}
+      parent(nullptr) {}
 
 void Light::apply(const Shader &shader, int index) const {
     std::string base = "lights[" + std::to_string(index) + "]";
@@ -32,7 +100,7 @@ Object::Object(const nlohmann::json &j) : Object() {
 
 Object::Object(const Object &other)
     : Object(other.position, other.rotation, other.scale, other.modelPath, other.id, other.name) {
-    model = other.model;
+    model = other.model, animation = other.animation;
 }
 
 // Copy assignment operator
@@ -50,6 +118,7 @@ Object &Object::operator=(const Object &other) {
     collisions = other.collisions;
     model = other.model;
     parent = other.parent;
+    animation = other.animation;
 
     // Reset flags so the new copy calculates its own matrices
     modelDirty = true;
@@ -81,14 +150,40 @@ void Object::setPosition(const glm::vec3 &pos) {
     inverseDirty = true;
 }
 
-void Object::setRotation(const glm::vec3 &radians, bool safe) {
+void Object::setRotation(const glm::quat &quat, const glm::vec3 &pivot) {
+    if (pivot != glm::vec3(0.f)) {
+        glm::vec3 worldPivot = _position + pivot;
+        glm::vec3 toOrigin = _position - worldPivot;
+        glm::quat delta = quat * glm::inverse(orientation);
+        _position = worldPivot + (delta * toOrigin);
+    }
+
+    orientation = quat;
+    update(true);
+    modelDirty = true;
+    inverseDirty = true;
+}
+
+void Object::setRotation(const glm::vec3 &radians, bool safe, const glm::vec3 &pivot) {
+    glm::quat nextOrientation;
     if (safe) {
-        // Build from quaternion, then sync _rotation (update)
-        orientation = glm::quat(radians);
+        nextOrientation = glm::quat(radians);
     } else {
-        // Euler fallback
+        nextOrientation = glm::quat(radians); // In Euler mode it's same for quat conversion
+    }
+
+    if (pivot != glm::vec3(0.f)) {
+        glm::vec3 worldPivot = _position + pivot;
+        glm::vec3 toOrigin = _position - worldPivot;
+        glm::quat delta = nextOrientation * glm::inverse(orientation);
+        _position = worldPivot + (delta * toOrigin);
+    }
+
+    if (safe) {
+        orientation = nextOrientation;
+    } else {
         _rotation = radians;
-        orientation = glm::quat(_rotation);
+        orientation = nextOrientation;
     }
 
     update(safe);
@@ -107,10 +202,23 @@ void Object::move(const glm::vec3 &dir, float amount, bool walk) {
     setPosition(_position + glm::normalize(moveDir) * amount);
 }
 
-void Object::rotate(const glm::vec3 &axis, float radians, bool safe) {
+void Object::rotate(const glm::vec3 &axis, float radians, bool safe, const glm::vec3 &offset) {
+    // Generate the rotation increment
+    glm::quat delta = glm::angleAxis(radians, glm::normalize(axis));
+
+    // If an offset is provided, orbit the position around it
+    if (offset != glm::vec3(0.0f)) {
+        glm::vec3 pivot = _position + offset;
+
+        // Vector from pivot back to object center
+        glm::vec3 toOrigin = _position - pivot;
+
+        // New position = pivot point + the rotated vector
+        _position = pivot + (delta * toOrigin);
+    }
+
     if (safe) {
-        // Quaternion multiplication (avoids gimbal lock), then sync _rotation (update)
-        glm::quat delta = glm::angleAxis(radians, glm::normalize(axis));
+        // Quaternion multiplication (avoids gimbal lock)
         orientation = glm::normalize(delta * orientation);
     } else {
         // Euler fallback
@@ -189,9 +297,15 @@ bool Object::checkCollision(Object &other, bool pushOut) {
     return collide;
 }
 
-Camera::Camera(glm::vec3 pos, glm::vec3 rot, float fov, float asp, bool costrain)
-    : Object(pos, rot), _fov(fov), _aspect(asp), costrain(costrain) {
+void Object::onUpdate() {
+    if (!animation.empty() && animation.isPlaying) {
+        animation.update();
+        animation.apply(*this);
+    }
 }
+
+Camera::Camera(glm::vec3 pos, glm::vec3 rot, float fov, float asp, bool costrain)
+    : Object(pos, rot), _fov(fov), _aspect(asp), costrain(costrain) {}
 
 void Camera::setFov(float radians) {
     _fov = radians;
@@ -253,142 +367,3 @@ const glm::mat4 &Camera::getProjectionMatrix(float distance, bool persp) const {
     }
     return projectionMatrix;
 }
-
-AnimatedObject::AnimatedObject(const glm::vec3 &pos, const glm::vec3 &rot, const glm::vec3 &scl,
-                               std::string path, int id, std::string name) : Object(
-    pos, rot, scl, std::move(path), id, std::move(name)) {
-    // Do not assume origin yet; initialize flag. originPosition will be computed on first onUpdate().
-    originInitialized = false;
-}
-
-// Start animating: set direction and sync animTime to current progress. Do NOT forcibly reset animProgress.
-void AnimatedObject::startAnimating(bool reverse) {
-    if (reverse) animSpeed = -std::abs(animSpeed);
-    else animSpeed = std::abs(animSpeed);
-
-    // Sync animTime to current progress so animation continues smoothly from current position
-    animTime = glm::clamp(animProgress, 0.f, 1.f) * animDuration;
-    isAnimating = true;
-}
-
-void AnimatedObject::playAnimation(float duration, float speed) {
-    animDuration = duration;
-    animSpeed = speed;
-    // Start from current progress toward forward direction (speed sign already set).
-    startAnimating(animSpeed < 0.f);
-}
-
-void AnimatedObject::stopAnimating() {
-    isAnimating = false;
-    animTime = 0.f;
-    animProgress = 0.f;
-}
-
-void AnimatedObject::pauseAnimating() {
-    isAnimating = false;
-}
-
-void AnimatedObject::resumeAnimating() {
-    // Resume preserving direction
-    animTime = glm::clamp(animProgress, 0.f, 1.f) * animDuration;
-    isAnimating = true;
-}
-
-void AnimatedObject::animate() {
-    if (!isAnimating) return;
-    animTime += deltaTime * animSpeed;
-    animProgress = animTime / animDuration;
-    if (animProgress < 0.f) {
-        if (isLooping) {
-            animProgress += 1.f; // Starts from end
-            animTime = animProgress * animDuration;
-        } else {
-            animProgress = 0.f;
-            isAnimating = false;
-            animTime = 0.f;
-        }
-    }
-    if (animProgress >= 1.f) {
-        if (isLooping) {
-            animProgress -= 1.f; // Starts from beginning
-            animTime = animProgress * animDuration;
-        } else {
-            animProgress = 1.f;
-            isAnimating = false;
-            animTime = animDuration;
-        }
-    }
-    onUpdate();
-}
-
-void AnimatedObject::open() {
-    // Toggle behavior on interaction:
-    if (isAnimating) {
-        // Reverse direction from current position
-        animSpeed = -animSpeed;
-        // Keep animTime in sync with animProgress
-        animTime = glm::clamp(animProgress, 0.f, 1.f) * animDuration;
-        return;
-    }
-
-    // If not animating: decide direction based on current progress (>=0.5 -> consider "open")
-    if (animProgress >= 1.f) {
-        // Fully open -> start closing
-        startAnimating(true);
-    } else if (animProgress <= 0.f) {
-        // Fully closed -> start opening
-        startAnimating(false);
-    } else {
-        // Partially animated but stopped: choose to open if closer to end, else open from current
-        // Here we default to opening (you can invert if desired)
-        startAnimating(false);
-    }
-}
-
-void AnimatedObject::close() {
-    if (isAnimating) {
-        animSpeed = -animSpeed;
-        animTime = glm::clamp(animProgress, 0.f, 1.f) * animDuration;
-        return;
-    }
-    // If stopped, start closing if currently open or partial
-    if (animProgress <= 0.f) {
-        // Already closed: nothing
-        return;
-    }
-    startAnimating(true);
-}
-
-void Door:: onUpdate() {
-        currentAngle = animProgress * openAngle + (1 - animProgress) * closeAngle; // Linear interpolation
-        rotate(up, currentAngle - rotation.y, false);
-    }
-
-void Slider::onUpdate() {
-        currentPos = animProgress * openPos + (1 - animProgress) * closePos; // Linear interpolation
-
-        // Initialize origin once: originPosition is such that originPosition + right * closePos == starting world position
-        if (!originInitialized) {
-            originPosition = position - right * closePos;
-            originInitialized = true;
-        }
-
-        // Compute desired world position and set it directly
-        glm::vec3 desiredPos = originPosition + right * currentPos;
-        setPosition(desiredPos);
-    }
-
-
-void Drawer::onUpdate() {
-        currentPos = animProgress * openPos + (1 - animProgress) * closePos; // Linear interpolation
-
-        // Initialize origin once: originPosition is such that originPosition + front * closePos == starting world position
-        if (!originInitialized) {
-            originPosition = position - front * closePos;
-            originInitialized = true;
-        }
-
-        // Move along front axis from the origin by currentPos
-        glm::vec3 desiredPos = originPosition + front * currentPos;
-        setPosition(desiredPos);
-    }

@@ -168,6 +168,11 @@ void Application::run() {
 
         // Scene rendering
         if (game.state == Game::InGame) {
+            int id = renderer.readObjFromCursor(game.room);
+            game.hoveredObj = game.findObject(id);
+
+            // TODO: Display hint if present.
+
             static auto picture = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Picture"));
             static auto canvas = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Canvas"));
             if (canvas) renderer.updateTexture(*canvas, game.inventory);
@@ -217,11 +222,11 @@ void Application::run() {
                         Align::Center
                     );
             }
-        } else if (game.state == Game::Inventory) {
+        } else if (game.state == Game::Inspection) {
             Renderer::clear(Game::MENU_COLOR);
 
             renderer.drawScene(game.inventory);
-        } else if (game.state == Game::Menu) {
+        } else if (game.state == Game::Credits) {
             Renderer::clear(Game::BG_COLOR);
                 renderer.drawText(
                 "Yippee, you are a star!",
@@ -349,9 +354,9 @@ void Application::loadState(int slot) {
     if (s.contains("player")) game.player.setPosition(glm::vec3{s["player"]["position"]});
     if (s.contains("mode")) {
         std::string name = s["mode"];
-        if (name == "Menu") game.state = Game::Menu;
+        if (name == "Menu") game.state = Game::Credits;
         if (name == "Explore") game.state = Game::InGame;
-        if (name == "Inspect") game.state = Game::Inventory;
+        if (name == "Inspect") game.state = Game::Inspection;
     }
 }
 
@@ -390,7 +395,7 @@ void Application::saveState(int slot) {
 
 // Debug UI with camera and object controls
 void Application::drawDebugMenu() {
-    Camera &cam = game.state == Game::Inventory ? game.fixed : game.player;
+    Camera &cam = game.state == Game::Inspection ? game.fixed : game.player;
     Object *obj = &game.inspectedObj;
 
     if (game.state == Game::InGame && game.selectedObj) obj = game.selectedObj.get();
@@ -596,12 +601,6 @@ void Application::mouseButtonCallback(GLFWwindow *window, int button, int action
     if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
         if (action == GLFW_PRESS) game.input.mmb = true;
         if (action == GLFW_RELEASE) game.input.mmb = false;
-    }
-
-    int id = 0;
-    if (game.state == Game::InGame && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-        id = renderer.readObjFromCursor(game.room);
-        game.useObject(id);
     }
 
     game.onMouseButton();

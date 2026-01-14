@@ -16,9 +16,9 @@ public:
     static constexpr glm::vec4 MENU_COLOR{0.f, 0.f, 0.f, 1.f};
 
     enum State {
-        Menu,
         InGame,
-        Inventory,
+        Inspection,
+        Credits
     } state = InGame;
 
     struct Input {
@@ -48,8 +48,9 @@ public:
     } input;
 
     std::vector<std::shared_ptr<Object> > objects;
-    std::vector<std::shared_ptr<Object> > collecables;
+    std::vector<Animation*> activeAnimations;
 
+    Object *hoveredObj= nullptr;
     Object inventoryObjs[10]; // TODO: Implement inventory.
     Object inspectedObj;
     std::shared_ptr<Object> selectedObj = nullptr;
@@ -77,7 +78,7 @@ public:
         }
     };
     Scene portals[2] = {
-        {{}, &player, {{{-1.0f, 2.0f, -1.0f}}}},
+        {{}, {}, {{{-1.0f, 2.0f, -1.0f}}}},
         {
             {}, &easleView, {
                 {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.82f, 0.62f}}, // Key light 4000K
@@ -91,15 +92,26 @@ public:
     float mouseSensitivity = 0.05f;
     bool mouseDrag = false;
 
+    // Safe code entry
+    std::string enteredCode;
+    std::string password = "4687391";
+
+    struct Portal {
+        std::vector<std::shared_ptr<Object> > objs;
+        bool isSolved = false;
+    } canvas[2];
+
     bool loadObjects();
 
     void update();
 
     Object *getObject(const std::string &name);
 
-    Object *selectObject(int id);
+    Object *findObject(int id);
 
-    void useObject(int id);
+    void viewCanvas(int index); // TODO
+
+    void useObject(Object *obj);
 
     // --- Callbacks ---
 
