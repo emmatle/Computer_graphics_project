@@ -118,6 +118,7 @@ Object *Game::getObject(const std::string &name) {
 // TODO: Optimize with hashmap.
 Object *Game::findObject(int id) {
     if (id < 1) return nullptr;
+    std::cout << "Searching for object withv" << id << std::endl;
     for (auto &obj: objects) {
         if (obj.get()->id == id) {
             selectedObj = obj;
@@ -158,6 +159,7 @@ void Game::useObject(Object *obj) {
                 }
             }
         }
+        return;
     }
     pos = obj->name.find("Portal");
     if (pos != std::string::npos) {
@@ -170,8 +172,10 @@ void Game::useObject(Object *obj) {
             return;
         }
     }
+    if (obj->name == "Safe Door") return; // Do not open the door
+
     // Try to open object
-    if (obj->name != "Safe Door" && !obj->animation.empty()) {
+    if (!obj->animation.empty()) {
         obj->animation.toggle();
         return;
     }

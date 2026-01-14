@@ -130,6 +130,7 @@ void main() {
         totalSpecular += spec * lights[i].color * attenuation;
     }
 
+    if (illum > 3) k_a = vec3(1.0); // Baked lighting workaround
     vec3 ambient = k_a * baseColor * ambientColor; // Basic global ambient
     vec3 diffuse = k_d * totalDiffuse * diffuseColor;
     vec3 specular = k_s * totalSpecular * specularColor;

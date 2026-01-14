@@ -152,38 +152,31 @@ void Object::setPosition(const glm::vec3 &pos) {
 
 void Object::setRotation(const glm::quat &quat, const glm::vec3 &pivot) {
     if (pivot != glm::vec3(0.f)) {
-        glm::vec3 worldPivot = _position + pivot;
-        glm::vec3 toOrigin = _position - worldPivot;
-        glm::quat delta = quat * glm::inverse(orientation);
-        _position = worldPivot + (delta * toOrigin);
+        glm::vec3 oldWorldPivot = _position + orientation * pivot;
+        orientation = quat;
+        _position = oldWorldPivot - orientation * pivot;
+    } else {
+        orientation = quat;
     }
 
-    orientation = quat;
     update(true);
     modelDirty = true;
     inverseDirty = true;
 }
 
 void Object::setRotation(const glm::vec3 &radians, bool safe, const glm::vec3 &pivot) {
-    glm::quat nextOrientation;
-    if (safe) {
-        nextOrientation = glm::quat(radians);
-    } else {
-        nextOrientation = glm::quat(radians); // In Euler mode it's same for quat conversion
-    }
+    glm::quat nextOrientation = glm::quat(radians);
 
     if (pivot != glm::vec3(0.f)) {
-        glm::vec3 worldPivot = _position + pivot;
-        glm::vec3 toOrigin = _position - worldPivot;
-        glm::quat delta = nextOrientation * glm::inverse(orientation);
-        _position = worldPivot + (delta * toOrigin);
+        glm::vec3 oldWorldPivot = _position + orientation * pivot;
+        orientation = nextOrientation;
+        _position = oldWorldPivot - orientation * pivot;
+    } else {
+        orientation = nextOrientation;
     }
 
-    if (safe) {
-        orientation = nextOrientation;
-    } else {
+    if (!safe) {
         _rotation = radians;
-        orientation = nextOrientation;
     }
 
     update(safe);
@@ -206,24 +199,22 @@ void Object::rotate(const glm::vec3 &axis, float radians, bool safe, const glm::
     // Generate the rotation increment
     glm::quat delta = glm::angleAxis(radians, glm::normalize(axis));
 
-    // If an offset is provided, orbit the position around it
     if (offset != glm::vec3(0.0f)) {
-        glm::vec3 pivot = _position + offset;
-
-        // Vector from pivot back to object center
-        glm::vec3 toOrigin = _position - pivot;
-
-        // New position = pivot point + the rotated vector
-        _position = pivot + (delta * toOrigin);
-    }
-
-    if (safe) {
-        // Quaternion multiplication (avoids gimbal lock)
-        orientation = glm::normalize(delta * orientation);
+        glm::vec3 oldWorldPivot = _position + orientation * offset;
+        if (safe) {
+            orientation = glm::normalize(delta * orientation);
+        } else {
+            _rotation += glm::normalize(axis) * radians;
+            orientation = glm::quat(_rotation);
+        }
+        _position = oldWorldPivot - orientation * offset;
     } else {
-        // Euler fallback
-        _rotation += glm::normalize(axis) * radians;
-        orientation = glm::quat(_rotation);
+        if (safe) {
+            orientation = glm::normalize(delta * orientation);
+        } else {
+            _rotation += glm::normalize(axis) * radians;
+            orientation = glm::quat(_rotation);
+        }
     }
 
     update(safe);

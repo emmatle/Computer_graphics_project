@@ -417,8 +417,7 @@ void Application::drawDebugMenu() {
 
     ImGui::BulletText("W/A/S/D: Move/Inspect");
     ImGui::BulletText("Mouse Movement: Look Around");
-    ImGui::BulletText("Right Mouse Button: Inspect");
-    ImGui::BulletText("Left Mouse Button: Rotate (Inspect)");
+    ImGui::BulletText("Left Mouse Button: Interact");
     ImGui::BulletText("Mouse Wheel: Change Zoom");
     ImGui::BulletText("Left Shift: Sprint");
     // ImGui::BulletText("0-9: Equip Slot 0-9"); // TODO
@@ -452,6 +451,11 @@ void Application::drawDebugMenu() {
     if (ImGui::Combo("##Game Mode", &modeIndex, modes, 3)) {
         game.state = static_cast<Game::State>(modeIndex);
     }
+
+    ImGui::SeparatorText("Game Progress");
+    ImGui::Text("Brushes Collected: %d/%d", game.playerScore, 3);
+    ImGui::Text("Entered: %s", game.enteredCode.c_str());
+    ImGui::Text("Password: %s", game.password.c_str());
 
     if (game.selectedObj) {
         ImGui::SeparatorText(obj->name.c_str());
