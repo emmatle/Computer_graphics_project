@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
+#include "application.h"
+
 bool Game::loadObjects() {
     std::filesystem::path file = getResourcePath("objects.json");
     if (file.empty()) return false;
@@ -46,9 +48,8 @@ bool Game::loadObjects() {
         std::string sceneName = entry.value("scene", "room");
         if (sceneName == "room") {
             room.objs.push_back(obj.get());
-            portals[0].objs.push_back(obj.get());
         } else if (sceneName == "portal") {
-            portals[1].objs.push_back(obj.get());
+            portals[0].objs.push_back(obj.get());
         }
         objects.push_back(obj);
     }
@@ -99,12 +100,23 @@ void Game::update() {
         }
     } else if (state == Inspection) {
         // Object rotation in Inspect mode
-        float amount = INSPECT_ANGULAR_SPEED * deltaTime;
+        float amount = glm::radians(90.f) * deltaTime;
 
         if (input.w) inspectedObj.rotate(fixed.right, -amount, true);
         if (input.s) inspectedObj.rotate(fixed.right, amount, true);
         if (input.a) inspectedObj.rotate(fixed.up, -amount, true);
         if (input.d) inspectedObj.rotate(fixed.up, amount, true);
+    } else if (state == Puzzle) {
+        // Portal view rotation in Puzzle mode
+        float amount = glm::radians(90.f) * deltaTime;
+        if (input.shift) amount *= 0.1f;
+
+        for (const auto &obj: portals[0].objs) {
+            if (input.w) obj->rotate(Object::WRLD_RIGHT, -amount, true);
+            if (input.s) obj->rotate(Object::WRLD_RIGHT, amount, true);
+            if (input.a) obj->rotate(Object::WRLD_UP, -amount, true);
+            if (input.d) obj->rotate(Object::WRLD_UP, amount, true);
+        }
     }
 }
 
@@ -118,7 +130,6 @@ Object *Game::getObject(const std::string &name) {
 // TODO: Optimize with hashmap.
 Object *Game::findObject(int id) {
     if (id < 1) return nullptr;
-    std::cout << "Searching for object withv" << id << std::endl;
     for (auto &obj: objects) {
         if (obj.get()->id == id) {
             selectedObj = obj;
@@ -161,14 +172,23 @@ void Game::useObject(Object *obj) {
         }
         return;
     }
+    pos = obj->name.find("Canvas");
+    if (pos != std::string::npos) {
+        return;
+    }
     pos = obj->name.find("Portal");
     if (pos != std::string::npos) {
         pos += 6;
         std::string num = obj->name.substr(pos);
-        if (!num.empty() && !std::isdigit(num[0])) {
-            // TODO: Transition player camera to canvas view.
+        if (!num.empty() && std::isdigit(num[0])) {
             int index = std::stoi(num) - 1;
-            if (!canvas[index].isSolved) viewCanvas(index);
+            if (canvas[index].isSolved) return;
+            lastPos = player.position;
+            lastRot = player.rotation;
+            // TODO: Center the origin to the canvas.
+            player.setPosition(obj->position - obj->front * 2.0f + obj->up * 1.8f);
+            player.setRotation(obj->rotation - glm::vec3(glm::radians(20.f), 0.0f, 0.f));
+            state = Puzzle;
             return;
         }
     }
@@ -198,6 +218,12 @@ void Game::onKey() {
         if (input.q) playerScore++;
     } else if (state == Inspection) {
         if (input.esc) state = InGame;
+    } else if (state == Puzzle) {
+        if (input.esc) {
+            state = InGame;
+            player.setPosition(lastPos);
+            player.setRotation(lastRot);
+        }
     }
 }
 
@@ -216,6 +242,9 @@ void Game::onMouseMovement(float xdelta, float ydelta) {
     } else if (state == Inspection && input.lmb) {
         inspectedObj.rotate(fixed.up, -glm::radians(mouseSensitivity * xdelta), true);
         inspectedObj.rotate(fixed.right, -glm::radians(mouseSensitivity * ydelta), true);
+    } else if (state == Puzzle) {
+        portalView.yaw(0.1f * glm::radians(mouseSensitivity * xdelta));
+        portalView.pitch(0.1f * glm::radians(mouseSensitivity * ydelta));
     }
 }
 

@@ -167,7 +167,7 @@ void Application::run() {
         if (debug) drawDebugMenu();
 
         // Scene rendering
-        if (game.state == Game::InGame) {
+        if (game.state == Game::InGame || game.state == Game::Puzzle) {
             int id = renderer.readObjFromCursor(game.room);
             game.hoveredObj = game.findObject(id);
 
@@ -175,8 +175,8 @@ void Application::run() {
 
             static auto picture = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Picture"));
             static auto canvas = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Canvas"));
-            if (canvas) renderer.updateTexture(*canvas, game.inventory);
-            if (picture) renderer.updateTexture(*picture, game.room);
+            if (canvas) renderer.updateTexture(*canvas, game.portals[0]);
+            if (picture) renderer.updateTexture(*picture, game.inventory);
 
             Renderer::clear(Game::BG_COLOR);
 

@@ -105,15 +105,19 @@
     },
     {
       "id": 8,
-      "name": "Easle",
+      "name": "EaslePortal0",
       "model": "models/Easle.obj",
-      "position": [0.0, 2.0, -0.2],
-      "rotation": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0],
-      "animation": {
-        "translation": [-0.5, 0.0, 0.0],
-        "duration": 0.5
-      }
+      "position": [4.0, 0.0, -2.0],
+      "rotation": [0.0, -45.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 9,
+      "name": "Canvas",
+      "model": "models/cube.obj",
+      "position": [3.0, 1.5, -3.0],
+      "rotation": [0.0, -45.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
     },
     {
       "id": 10,
@@ -210,6 +214,15 @@
       "position": [0.3, 1.1, -1.0],
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 22,
+      "name": "Venus",
+      "model": "models/Venus.obj",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0],
+      "scene": "portal"
     }
   ]
 }

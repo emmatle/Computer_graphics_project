@@ -18,6 +18,7 @@ public:
     enum State {
         InGame,
         Inspection,
+        Puzzle,
         Credits
     } state = InGame;
 
@@ -48,9 +49,9 @@ public:
     } input;
 
     std::vector<std::shared_ptr<Object> > objects;
-    std::vector<Animation*> activeAnimations;
+    std::vector<Animation *> activeAnimations;
 
-    Object *hoveredObj= nullptr;
+    Object *hoveredObj = nullptr;
     Object inventoryObjs[10]; // TODO: Implement inventory.
     Object inspectedObj;
     std::shared_ptr<Object> selectedObj = nullptr;
@@ -59,14 +60,15 @@ public:
     Camera player{{0.0f, 1.75f, 0.0f}}; // Spawning point
     Camera fixed{{0.0f, 0.0f, 1.f}};
     Camera easleView;
-    Camera pictureView;
+    Camera pictureView{{}, {glm::radians(0.f), glm::radians(0.f), 0.f}};
+    Camera portalView{{0.0f, 0.0f, 12.0f}};
 
     static constexpr glm::vec3 LIGHT_COLOR = {1.0f, 0.82f, 0.62f};
 
     Light lights[3] = {
-        {{-2.56f, 1.18f, -0.09f}, LIGHT_COLOR, }, // Window 1
-        {{5.0f, 1.6f, -3.0f}, LIGHT_COLOR, },  // Window 2
-        {{7.32f, 1.80f, 1.14f}, LIGHT_COLOR, } // Window 3
+        {{-2.56f, 1.18f, -0.09f}, LIGHT_COLOR,}, // Window 1
+        {{5.0f, 1.6f, -3.0f}, LIGHT_COLOR,}, // Window 2
+        {{7.32f, 1.80f, 1.14f}, LIGHT_COLOR,} // Window 3
 
     };
 
@@ -78,13 +80,13 @@ public:
         }
     };
     Scene portals[2] = {
-        {{}, {}, {{{-1.0f, 2.0f, -1.0f}}}},
         {
-            {}, &easleView, {
+            {}, &portalView, {
                 {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.82f, 0.62f}}, // Key light 4000K
                 {{1.0f, -1.0f, -2.0f}, {0.776f, 0.824, 1.0f}} // Back light 8000K
             }
-        }
+        },
+        {{}, {}, {{{-1.0f, 2.0f, -1.0f}}}}
     };
 
     float playerSpeed = 2.0f;
@@ -95,6 +97,9 @@ public:
     // Safe code entry
     std::string enteredCode;
     std::string password = "4687391";
+
+    glm::vec3 lastPos{};
+    glm::vec3 lastRot{};
 
     struct Portal {
         std::vector<std::shared_ptr<Object> > objs;
