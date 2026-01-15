@@ -93,7 +93,7 @@ protected:
     glm::vec3 _position;
     glm::vec3 _rotation; // Euler angles cache
     glm::vec3 _scale;
-    glm::quat orientation; // Used for preventing gimbal lock
+    glm::quat _orientation; // Used for preventing gimbal lock
 
     glm::vec3 _front;
     glm::vec3 _right;
@@ -112,6 +112,7 @@ public:
     const glm::vec3 &position = _position;
     const glm::vec3 &rotation = _rotation;
     const glm::vec3 &scale = _scale;
+    const glm::quat &orientation = _orientation;
 
     const glm::vec3 &front = _front;
     const glm::vec3 &right = _right;
@@ -155,7 +156,7 @@ public:
 
     void setScale(const glm::vec3 &scl = {1.f, 1.f, 1.f});
 
-    const glm::quat &getOrientation() const { return orientation; }
+    const glm::quat &getOrientation() const { return _orientation; } // TODO: Remove and use orientation
 
     void move(const glm::vec3 &dir, float amount, bool walk = false);
 
@@ -178,7 +179,7 @@ inline void from_json(const nlohmann::json &j, Object &obj) {
     obj._position = j.value("position", obj._position);
     if (j.contains("rotation")) {
         obj._rotation = glm::radians(j.at("rotation").get<glm::vec3>());
-        obj.orientation = glm::quat(obj._rotation);
+        obj._orientation = glm::quat(obj._rotation);
     }
     obj._scale = j.value("scale", obj._scale);
     obj.modelPath = j.value("model", obj.modelPath);

@@ -60,6 +60,7 @@ void Animation::update(float dt) {
 
 void Animation::reset() {
     originInitialized = false;
+    progress = 0.f;
 }
 
 void Animation::apply(Object &obj) {
@@ -102,7 +103,7 @@ void Light::apply(const Shader &shader, int index) const {
 
 Object::Object(const glm::vec3 &pos, const glm::vec3 &rot, const glm::vec3 &scl, std::string path, int id,
                std::string name)
-    : _position(pos), _rotation(rot), _scale(scl), orientation(glm::quat(rot)), id(id),
+    : _position(pos), _rotation(rot), _scale(scl), _orientation(glm::quat(rot)), id(id),
       name(std::move(name)), model(nullptr), modelPath(std::move(path)) {
     update();
 }
@@ -124,7 +125,7 @@ Object &Object::operator=(const Object &other) {
     _position = other._position;
     _rotation = other._rotation;
     _scale = other._scale;
-    orientation = other.orientation;
+    _orientation = other._orientation;
     id = other.id;
     name = other.name; // TODO: Check if it's working correctly.
     modelPath = other.modelPath;
@@ -142,12 +143,12 @@ Object &Object::operator=(const Object &other) {
 }
 
 void Object::update(bool safe) {
-    _front = glm::normalize(orientation * WRLD_FRONT);
-    _right = glm::normalize(orientation * WRLD_RIGHT);
-    _up = glm::normalize(orientation * WRLD_UP);
+    _front = glm::normalize(_orientation * WRLD_FRONT);
+    _right = glm::normalize(_orientation * WRLD_RIGHT);
+    _up = glm::normalize(_orientation * WRLD_UP);
 
     if (safe) {
-        _rotation = glm::eulerAngles(orientation);
+        _rotation = glm::eulerAngles(_orientation);
     }
 
     constexpr float TWO_PI = glm::two_pi<float>();
@@ -165,11 +166,11 @@ void Object::setPosition(const glm::vec3 &pos) {
 
 void Object::setRotation(const glm::quat &quat, const glm::vec3 &pivot) {
     if (pivot != glm::vec3(0.f)) {
-        glm::vec3 oldWorldPivot = _position + orientation * pivot;
-        orientation = quat;
-        _position = oldWorldPivot - orientation * pivot;
+        glm::vec3 oldWorldPivot = _position + _orientation * pivot;
+        _orientation = quat;
+        _position = oldWorldPivot - _orientation * pivot;
     } else {
-        orientation = quat;
+        _orientation = quat;
     }
 
     update(true);
@@ -181,11 +182,11 @@ void Object::setRotation(const glm::vec3 &radians, bool safe, const glm::vec3 &p
     glm::quat nextOrientation = glm::quat(radians);
 
     if (pivot != glm::vec3(0.f)) {
-        glm::vec3 oldWorldPivot = _position + orientation * pivot;
-        orientation = nextOrientation;
-        _position = oldWorldPivot - orientation * pivot;
+        glm::vec3 oldWorldPivot = _position + _orientation * pivot;
+        _orientation = nextOrientation;
+        _position = oldWorldPivot - _orientation * pivot;
     } else {
-        orientation = nextOrientation;
+        _orientation = nextOrientation;
     }
 
     if (!safe) {
@@ -213,20 +214,20 @@ void Object::rotate(const glm::vec3 &axis, float radians, bool safe, const glm::
     glm::quat delta = glm::angleAxis(radians, glm::normalize(axis));
 
     if (offset != glm::vec3(0.0f)) {
-        glm::vec3 oldWorldPivot = _position + orientation * offset;
+        glm::vec3 oldWorldPivot = _position + _orientation * offset;
         if (safe) {
-            orientation = glm::normalize(delta * orientation);
+            _orientation = glm::normalize(delta * _orientation);
         } else {
             _rotation += glm::normalize(axis) * radians;
-            orientation = glm::quat(_rotation);
+            _orientation = glm::quat(_rotation);
         }
-        _position = oldWorldPivot - orientation * offset;
+        _position = oldWorldPivot - _orientation * offset;
     } else {
         if (safe) {
-            orientation = glm::normalize(delta * orientation);
+            _orientation = glm::normalize(delta * _orientation);
         } else {
             _rotation += glm::normalize(axis) * radians;
-            orientation = glm::quat(_rotation);
+            _orientation = glm::quat(_rotation);
         }
     }
 

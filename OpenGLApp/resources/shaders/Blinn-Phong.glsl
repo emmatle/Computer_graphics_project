@@ -50,7 +50,7 @@ out vec4 FragColor;
 
 // Illumination model: 0 No shading (Base color), 1 Ambient + Diffuse (Lambert), 2 Ambient + Diffuse + Specular (Blinn-Phong)
 uniform vec3 ambientLight = vec3(1.0, 0.82, 0.62); // 4000K white;
-vec3 k_a = vec3(0.2); // No ambient reflectivity uniform for simplicity
+vec3 k_a = vec3(0.4); // No ambient reflectivity uniform for simplicity, workaround for baked lighting
 uniform vec3 k_d = vec3(1.0);
 uniform vec3 k_s = vec3(0.5);
 uniform int illum = 2;
@@ -124,13 +124,11 @@ void main() {
         float diff = max(dot(N, L), 0.0);
         totalDiffuse += diff * lights[i].color * attenuation;
 
-        if (illum < 2) continue;
         // Specular
         float spec = pow(max(dot(N, H), 0.0), exponent);
         totalSpecular += spec * lights[i].color * attenuation;
     }
 
-    if (illum > 3) k_a = vec3(1.0); // Baked lighting workaround
     vec3 ambient = k_a * baseColor * ambientColor; // Basic global ambient
     vec3 diffuse = k_d * totalDiffuse * diffuseColor;
     vec3 specular = k_s * totalSpecular * specularColor;

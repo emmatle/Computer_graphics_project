@@ -151,7 +151,9 @@ public:
             if (aiMat->Get(AI_MATKEY_SHADING_MODEL, shadingModel) == AI_SUCCESS) {
                 if (shadingModel == aiShadingMode_NoShading) {
                     mat.illum = 0;
-                } else if (shadingModel == aiShadingMode_Flat) {
+                } else if (shadingModel == aiShadingMode_Phong) {
+                    mat.illum = 2;
+                } else {
                     mat.illum = 1;
                 }
             }
