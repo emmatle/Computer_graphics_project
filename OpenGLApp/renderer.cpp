@@ -192,17 +192,18 @@ void Renderer::free() {
     for (auto &entry: models) entry.second->free();
 }
 
-void Renderer::clear(glm::vec4 color) {
-    glClearColor(color.r, color.g, color.b, color.a);
+void Renderer::clear(const glm::vec3 &color) {
+    glClearColor(color.r, color.g, color.b, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Renderer::drawScene(const Scene &scene, bool picking) const {
+void Renderer::drawScene(const Scene &scene, bool picking, int activeIndex) const {
     const Shader &shader = picking ? pickingShader : renderingShader;
     glEnable(GL_DEPTH_TEST);
     shader.use();
     shader.set("view", scene.cam->getViewMatrix());
     if (!picking) {
+        clear(scene.clearColor);
         shader.set("projection", scene.cam->getProjectionMatrix());
         for (int i = 0; i < scene.lights.size(); ++i) scene.lights[i].apply(shader, i);
         shader.set("numLights", static_cast<int>(scene.lights.size()));
@@ -212,7 +213,9 @@ void Renderer::drawScene(const Scene &scene, bool picking) const {
         glm::mat4 projectionMatrix = glm::perspective(scene.cam->fov, scene.cam->aspect, Camera::MIN_CLIPPING, 2.0f);
         shader.set("projection", projectionMatrix);
     }
-    for (const auto &obj: scene.objs) {
+    for (int i = 0; i < scene.objs.size(); ++i) {
+        const auto &obj = scene.objs[i];
+        if (activeIndex != -1 && i != activeIndex) continue;
         if (!obj || !obj->model) continue;
         shader.set("model", obj->getModelMatrix());
         if (picking) shader.set("id", obj->id);
@@ -220,8 +223,7 @@ void Renderer::drawScene(const Scene &scene, bool picking) const {
     }
 }
 
-// New implementation with alignment
-void Renderer::drawText(const std::string &text, float x, float y, float scale, const glm::vec3 &color, Align align) {
+void Renderer::drawText(const std::string &text, float x, float y, float scale, const glm::vec3 &color, Align align) const {
     std::string clean = convertUTF8toLatin1(text);
     glm::mat4 projectionMatrix = glm::ortho(0.0f, static_cast<float>(fbWidth), static_cast<float>(fbHeight), 0.0f);
 
@@ -281,7 +283,7 @@ void Renderer::drawText(const std::string &text, float x, float y, float scale, 
 }
 
 void Renderer::drawText3D(const std::string &text, const glm::vec3 &position, const Camera &cam, float scale,
-                          const glm::vec3 &color, Align align) {
+                          const glm::vec3 &color, Align align) const {
     std::string clean = convertUTF8toLatin1(text);
     scale *= 0.002f; // Adjust this scale factor as needed
 
@@ -292,8 +294,6 @@ void Renderer::drawText3D(const std::string &text, const glm::vec3 &position, co
         textWidth += static_cast<float>(ch.advance >> 6) * scale;
     }
 
-    // glm::mat4 modelMatrix = cam.getModelMatrix();
-    // modelMatrix = glm::translate(modelMatrix, position);
     glm::mat4 modelMatrix(1.0f);
     modelMatrix[0] = glm::vec4(cam.right, 0.0f);
     modelMatrix[1] = glm::vec4(cam.up, 0.0f);

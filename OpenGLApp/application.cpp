@@ -26,10 +26,7 @@ bool Application::fullscreen = false; // Overrides width and height if true
 bool Application::vsync = false;
 float Application::mouseSensitivity = 0.1f;
 float Application::fontSize = 16.f;
-
-float Application::currentTime = 0.f;
-float Application::lastTime = 0.f;
-float Application::fps = 0.f;
+float Application::fps = 0.f; // Average framerate (on 0.5 seconds)
 
 float Application::mouseX = static_cast<float>(width) / 2.f;
 float Application::mouseY = static_cast<float>(height) / 2.f;
@@ -38,20 +35,26 @@ bool Application::firstMouse = true;
 
 sf::Music backgroundMusic(getResourcePath("sounds/BackgroundMusic.mp3"));
 
-float getFPS() {
+void Application::updateTime() {
+    static float currentFrame = 0.f;
+    static float lastFrame = 0.f;
     static float average = 0.f;
     static float elapsedTime = 0.f;
-    static int nFrames = 0;
+    static int frameCount = 0;
 
-    nFrames++;
+    currentFrame = static_cast<float>(glfwGetTime());
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
+
+    frameCount++;
     elapsedTime += deltaTime;
 
     if (elapsedTime > 0.5f) {
-        average = static_cast<float>(nFrames) / elapsedTime;
+        average = static_cast<float>(frameCount) / elapsedTime;
         elapsedTime = 0.f;
-        nFrames = 0;
+        frameCount = 0;
     }
-    return average;
+    fps = average;
 }
 
 // Initializes GLFW, GLAD, and ImGui
@@ -152,10 +155,7 @@ void Application::run() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        currentTime = static_cast<float>(glfwGetTime());
-        deltaTime = currentTime - lastTime;
-        lastTime = currentTime;
-        fps = getFPS();
+        updateTime();
 
         game.update();
 
@@ -167,21 +167,19 @@ void Application::run() {
         if (debug) drawDebugMenu();
 
         static auto canvas = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Canvas"));
-        if (canvas) renderer.updateTexture(*canvas, game.portals[0]);
+        if (canvas) renderer.updateTexture(*canvas, game.canvas);
 
         // Scene rendering
-        if (game.state == Game::InGame || game.state == Game::Puzzle) {
+        if (game.state == Game::InGame || game.state == Game::Canvas) {
             int id = renderer.readObjFromCursor(game.room);
             game.hoveredObj = game.findObject(id);
 
-            // TODO: Display hint if present.
+            // TODO: Display text hint if present.
 
-            if (game.state == Game::Puzzle && canvas) renderer.updateTexture(*canvas, game.portals[0]);
+            if (game.state == Game::Canvas && canvas) renderer.updateTexture(*canvas, game.canvas);
 
             static auto picture = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Picture"));
             if (picture) renderer.updateTexture(*picture, game.inventory);
-
-            Renderer::clear(Game::BG_COLOR);
 
             renderer.drawScene(game.room);
 
@@ -196,7 +194,7 @@ void Application::run() {
             );
 
             renderer.drawText(
-                "Collect all the brushes (" + std::to_string(game.playerScore) + "/3)",
+                "Collect all the brushes (" + std::to_string(game.collectedItems) + "/3)",
                 25.0f,
                 60.0f,
                 fbScale,
@@ -204,7 +202,7 @@ void Application::run() {
             );
 
             renderer.drawText(
-                "Score: " + std::to_string(game.playerScore),
+                "Score: " + std::to_string(game.collectedItems),
                 25.0f,
                 static_cast<float>(fbHeight) - 40.0f,
                 fbScale,
@@ -225,10 +223,8 @@ void Application::run() {
                         Align::Center
                     );
             }
-        } else if (game.state == Game::Inspection) {
-            Renderer::clear(Game::MENU_COLOR);
-
-            renderer.drawScene(game.inventory);
+        } else if (game.state == Game::Inventory) {
+            renderer.drawScene(game.inventory, false, game.inventoryIndex);
         } else if (game.state == Game::Credits) {
             Renderer::clear(Game::BG_COLOR);
                 renderer.drawText(
@@ -328,78 +324,13 @@ void Application::storeSettings() {
     }
 }
 
-// TODO: implement multiples save states.
-void Application::loadState(int slot) {
-    std::filesystem::path file = getResourcePath("data.json", true);
-    return;
-
-    using json = nlohmann::json;
-    std::ifstream in(file);
-    if (!in) {
-        std::cerr << "ERROR: save file " << file << " not found" << std::endl;
-        return;
-    }
-
-    in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    json j;
-
-    try {
-        in >> j;
-    } catch (std::exception &e) {
-        std::cerr << "ERROR: failed to load game state from " << file << ": " << e.what() << std::endl;
-        return;
-    }
-
-    std::string save = "save_" + std::to_string(slot);
-    if (!j.contains(save)) return;
-    const json &s = j[save];
-
-    if (s.contains("player")) game.player.setPosition(glm::vec3{s["player"]["position"]});
-    if (s.contains("mode")) {
-        std::string name = s["mode"];
-        if (name == "Menu") game.state = Game::Credits;
-        if (name == "Explore") game.state = Game::InGame;
-        if (name == "Inspect") game.state = Game::Inspection;
-    }
-}
-
-// TODO: implement multiples save states.
-void Application::saveState(int slot) {
-    std::filesystem::path file = getResourcePath("data.json", true);
-    return;
-
-    using ojson = nlohmann::ordered_json;
-
-    std::ofstream out(file);
-    if (!out) {
-        std::cerr << "ERROR: cannot open file " << file << " for writing" << std::endl;
-        return;
-    }
-
-    std::string modes[] = {"Menu", "Explore", "Inspect"};
-    ojson j;
-
-    std::string save = "save_" + std::to_string(slot);
-    j[save] = ojson{
-        {
-            "player", {game.player.position.x, game.player.position.y, game.player.position.z},
-            {game.player.rotation.x, game.player.rotation.y, game.player.rotation.z}
-        },
-        {"mode", modes[game.state]}
-    };
-
-    try {
-        out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-        out << j.dump(4);
-    } catch (std::exception &e) {
-        std::cerr << "ERROR: failed to save game state to " << file << ": " << e.what() << std::endl;
-    }
-}
-
 // Debug UI with camera and object controls
 void Application::drawDebugMenu() {
-    Camera &cam = game.state == Game::Inspection ? game.fixed : game.player;
-    Object *obj = &game.inspectedObj;
+    Camera &cam = game.state == Game::Inventory ? game.inventoryView : game.player;
+    Object *obj = nullptr;
+    if (game.state == Game::Inventory && !game.inventory.objs.empty()) {
+        obj = game.inventory.objs[game.inventoryIndex];
+    }
 
     if (game.state == Game::InGame && game.selectedObj) obj = game.selectedObj.get();
 
@@ -408,15 +339,13 @@ void Application::drawDebugMenu() {
 
     ImGui::Begin("Debug Menu");
 
-    ImGui::Text("FPS: %f", fps);
+    ImGui::Text("Time: %.2f    FPS: %.2f", game.time, fps);
 
     ImGui::SeparatorText("Controls");
     ImGui::BulletText("F1: Toggle Window Focus");
     ImGui::BulletText("F2: Toggle Background Music");
     ImGui::BulletText("F3: Toggle Debug Menu");
     ImGui::BulletText("F4: Quit Application");
-    // ImGui::BulletText("Ctrl+0-9: Save Slot 0-9"); // TODO
-    // ImGui::BulletText("ALT+0-9: Load Slot 0-9"); // TODO
 
     ImGui::BulletText("W/A/S/D: Move/Inspect");
     ImGui::BulletText("Mouse Movement: Look Around");
@@ -456,11 +385,11 @@ void Application::drawDebugMenu() {
     }
 
     ImGui::SeparatorText("Game Progress");
-    ImGui::Text("Brushes Collected: %d/%d", game.playerScore, 3);
+    ImGui::Text("Brushes Collected: %d/%d", game.collectedItems, 3);
     ImGui::Text("Entered: %s", game.enteredCode.c_str());
     ImGui::Text("Password: %s", game.password.c_str());
 
-    if (game.selectedObj) {
+    if (obj) {
         ImGui::SeparatorText(obj->name.c_str());
         glm::vec3 objPos = obj->position;
         if (ImGui::SliderFloat3("Pos##Object Pos", &objPos[0], -5.f, 5.f)) {
@@ -536,12 +465,6 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
     if (key == GLFW_KEY_F4 && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9 && action == GLFW_PRESS) {
-        int index = key - GLFW_KEY_1;
-        if (mods == GLFW_MOD_CONTROL) saveState(index);
-        else if (mods == GLFW_MOD_ALT) loadState(index);
-    }
-
     if (!gameFocus) return;
 
     if (key == GLFW_KEY_W) {
@@ -589,6 +512,12 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
     if (key == GLFW_KEY_ESCAPE) {
         if (action == GLFW_PRESS) game.input.esc = true;
         if (action == GLFW_RELEASE) game.input.esc = false;
+    }
+    if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9) {
+        int index = key - GLFW_KEY_1;
+        if (action == GLFW_PRESS) game.input.nums[index] = true;
+        if (action == GLFW_RELEASE) game.input.nums[index] = false;
+
     }
 
     game.onKey();

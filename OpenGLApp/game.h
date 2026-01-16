@@ -17,8 +17,8 @@ public:
 
     enum State {
         InGame,
-        Inspection,
-        Puzzle,
+        Inventory,
+        Canvas,
         Credits
     } state = InGame;
 
@@ -52,16 +52,12 @@ public:
     std::vector<Animation *> activeAnimations;
 
     Object *hoveredObj = nullptr;
-    Object inventoryObjs[10]; // TODO: Implement inventory.
-    Object inspectedObj;
     std::shared_ptr<Object> selectedObj = nullptr;
 
     // Camera player{{2.24f, 0.93f, 1.17f}, {glm::radians(-5.2f), glm::radians(-50.f), 0.f}}; // Blender render cam
     Camera player{{0.0f, 1.75f, 0.0f}}; // Spawning point
-    Camera fixed{{0.0f, 0.0f, 1.f}};
-    Camera easleView;
-    Camera pictureView{{}, {glm::radians(0.f), glm::radians(0.f), 0.f}};
-    Camera portalView{{0.0f, 0.0f, 12.0f}};
+    Camera inventoryView{{0.0f, 0.0f, 1.0f}};
+    Camera canvasView{{0.0f, 0.0f, 12.0f}};
 
     static constexpr glm::vec3 LIGHT_COLOR = {1.0f, 0.82f, 0.62f};
 
@@ -74,25 +70,30 @@ public:
 
     Scene room = {{}, &player, {{lights[0], lights[1], lights[2]}}};
     Scene inventory = {
-        {&inspectedObj}, &fixed, {
+        {}, &inventoryView, {
             {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.82f, 0.62f}}, // Key light 4000K
             {{1.0f, -1.0f, -1.0f}, {0.78f, 0.82, 1.0f}} // Back light 8000K
         }
     };
-    Scene portals[2] = {
-        {
-            {}, &portalView, {
-                {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.82f, 0.62f}}, // Key light 4000K
-                {{1.0f, -1.0f, -2.0f}, {0.776f, 0.824, 1.0f}} // Back light 8000K
-            }
-        },
-        {{}, {}, {{{-1.0f, 2.0f, -1.0f}}}}
+    Scene canvas = {
+        {}, &canvasView, {
+            {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.82f, 0.62f}}, // Key light 4000K
+            {{1.0f, -1.0f, -2.0f}, {0.776f, 0.824, 1.0f}} // Back light 8000K
+        }
     };
 
-    float playerSpeed = 2.0f;
-    int playerScore = 0;
     float mouseSensitivity = 0.05f;
     bool mouseDrag = false;
+
+    // In game stats
+    float time = 0.0f;
+    int inventoryIndex = 0;
+    float playerSpeed = 2.0f;
+
+    // Palette minigame
+    float collectionTimer = 0.0f;
+    int collectedItems = 0;
+
 
     // Safe code entry
     std::string enteredCode;
@@ -100,11 +101,6 @@ public:
 
     glm::vec3 lastPos{};
     glm::vec3 lastRot{};
-
-    struct Portal {
-        std::vector<std::shared_ptr<Object> > objs;
-        bool isSolved = false;
-    } canvas[2];
 
     bool loadObjects();
 
@@ -116,7 +112,7 @@ public:
 
     void viewCanvas(int index); // TODO
 
-    void useObject(Object *obj);
+    void interact(Object *obj);
 
     // --- Callbacks ---
 

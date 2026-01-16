@@ -23,25 +23,22 @@ public:
 private:
     static Game game;
     static Renderer renderer;
-    static float currentTime;
-    static float lastTime;
     static float mouseX;
     static float mouseY;
     static bool gameFocus;
     static bool firstMouse;
+    static float time;
     static float fps;
 
     void init();
 
     void terminate();
 
+    static void updateTime();
+
     void loadSettings();
 
     void storeSettings();
-
-    static void loadState(int slot = 1);
-
-    static void saveState(int slot = 1);
 
     static void drawDebugMenu();
 

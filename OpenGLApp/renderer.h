@@ -39,15 +39,15 @@ public:
 
     void free();
 
-    static void clear(glm::vec4 color);
+    static void clear(const glm::vec3 &color);
 
-    void drawScene(const Scene &scene, bool picking = false) const;
+    void drawScene(const Scene &scene, bool picking = false, int activeIndex = -1) const;
 
     void drawText(const std::string &text, float x, float y, float scale, const glm::vec3 &color = glm::vec3(1.0f),
-                  Align align = Align::Left);
+                  Align align = Align::Left) const;
 
     void drawText3D(const std::string &text, const glm::vec3 &position, const Camera &cam, float scale = 1.f,
-                    const glm::vec3 &color = glm::vec3(1.f), Align align = Align::Left);
+                    const glm::vec3 &color = glm::vec3(1.f), Align align = Align::Left) const;
 
     void updateTexture(const DynamicTexture &dyn, const Scene &scene) const;
 

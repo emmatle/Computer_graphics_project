@@ -65,6 +65,7 @@ struct Scene {
     std::vector<Object *> objs;
     Camera *cam = nullptr;
     std::vector<Light> lights;
+    glm::vec3 clearColor{};
 };
 
 class Shader;

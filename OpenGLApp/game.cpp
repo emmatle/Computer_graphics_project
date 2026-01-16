@@ -7,8 +7,6 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
-#include "application.h"
-
 bool Game::loadObjects() {
     std::filesystem::path file = getResourcePath("objects.json");
     if (file.empty()) return false;
@@ -35,10 +33,6 @@ bool Game::loadObjects() {
         if (entry.contains("player")) {
             player.setPosition(entry["player"].value("position", glm::vec3(0.f)));
             player.setRotation(glm::radians(entry["player"].value("rotation", glm::vec3(0.f))));
-        } else if (entry.contains("portal")) {
-            int index = entry["portal"].value("index", -1);
-            if (index == -1) continue;
-            // TODO: Implement portals properly.
         }
 
         if (entry.contains("animation")) {
@@ -48,8 +42,8 @@ bool Game::loadObjects() {
         std::string sceneName = entry.value("scene", "room");
         if (sceneName == "room") {
             room.objs.push_back(obj.get());
-        } else if (sceneName == "portal") {
-            portals[0].objs.push_back(obj.get());
+        } else if (sceneName == "canvas") {
+            canvas.objs.push_back(obj.get());
         }
         objects.push_back(obj);
     }
@@ -58,7 +52,8 @@ bool Game::loadObjects() {
 }
 
 void Game::update() {
-    if (playerScore >= 3) state = Credits;
+    time += deltaTime;
+
     if (state == InGame) {
         // Calculate the amount of the movement considering sprint (SHIFT)
         float velocity = playerSpeed * deltaTime;
@@ -87,7 +82,7 @@ void Game::update() {
                     if ((*brushIt)->name == (*roomObjIt)->name && (*brushIt)->checkCollision(player)) {
                         brushes.erase(brushIt);
                         roomObjIt = room.objs.erase(roomObjIt);
-                        playerScore++; // TODO: Add sound effect.
+                        collectedItems++; // TODO: Add sound effect.
                         erased = true;
                         break;
                     }
@@ -98,20 +93,21 @@ void Game::update() {
                 }
             }
         }
-    } else if (state == Inspection) {
-        // Object rotation in Inspect mode
+    } else if (state == Inventory) {
         float amount = glm::radians(90.f) * deltaTime;
 
-        if (input.w) inspectedObj.rotate(fixed.right, -amount, true);
-        if (input.s) inspectedObj.rotate(fixed.right, amount, true);
-        if (input.a) inspectedObj.rotate(fixed.up, -amount, true);
-        if (input.d) inspectedObj.rotate(fixed.up, amount, true);
-    } else if (state == Puzzle) {
+        if (inventory.objs.empty()) return;
+
+        if (input.w) inventory.objs[inventoryIndex]->rotate(Object::WRLD_RIGHT, -amount, true);
+        if (input.s) inventory.objs[inventoryIndex]->rotate(Object::WRLD_RIGHT, amount, true);
+        if (input.a) inventory.objs[inventoryIndex]->rotate(Object::WRLD_UP, -amount, true);
+        if (input.d) inventory.objs[inventoryIndex]->rotate(Object::WRLD_UP, amount, true);
+    } else if (state == Canvas) {
         // Portal view rotation in Puzzle mode
-        float amount = glm::radians(90.f) * deltaTime;
-        if (input.shift) amount *= 0.1f;
+        float amount = glm::radians(45.f) * deltaTime;
+        if (input.shift) amount *= 0.2f;
 
-        for (const auto &obj: portals[0].objs) {
+        for (const auto &obj: canvas.objs) {
             if (input.w) obj->rotate(Object::WRLD_RIGHT, -amount, true);
             if (input.s) obj->rotate(Object::WRLD_RIGHT, amount, true);
             if (input.a) obj->rotate(Object::WRLD_UP, -amount, true);
@@ -139,9 +135,7 @@ Object *Game::findObject(int id) {
     return nullptr;
 }
 
-void Game::viewCanvas(int index) {}
-
-void Game::useObject(Object *obj) {
+void Game::interact(Object *obj) {
     size_t pos = obj->name.find("Button");
     if (pos != std::string::npos) {
         pos += 6;
@@ -172,58 +166,56 @@ void Game::useObject(Object *obj) {
         }
         return;
     }
-    pos = obj->name.find("Portal");
-    if (pos == std::string::npos) {
-        pos = obj->name.find("Canvas");
-    }
-
+    pos = obj->name.find("Easle");
     if (pos != std::string::npos) {
-        std::string num;
-        for (size_t i = pos; i < obj->name.length(); ++i) {
-            if (std::isdigit(obj->name[i])) {
-                num += obj->name[i];
-            }
-        }
-        if (num.empty()) num = "0";
-
-        int index = std::stoi(num);
-        if (index >= 0 && index < 2) {
-            lastPos = player.position;
-            lastRot = player.rotation;
-            // TODO: Center the origin to the canvas.
-            player.setPosition(obj->position - obj->front * 2.0f + obj->up * 2.12f);
-            player.setRotation(obj->rotation - glm::vec3(glm::radians(20.f), 0.0f, 0.f));
-            state = Puzzle;
-            return;
-        }
+        lastPos = player.position;
+        lastRot = player.rotation;
+        player.setPosition(obj->position - obj->front * 2.0f + obj->up * 2.12f);
+        player.setRotation(obj->rotation - glm::vec3(glm::radians(20.f), 0.0f, 0.f));
+        state = Canvas;
+        return;
     }
+
     if (obj->name == "Safe Door") return; // Do not open the door
 
-    // Try to open object
+    // Used mostly for opening/closing objects
     if (!obj->animation.empty()) {
         obj->animation.toggle();
         return;
     }
 
-    // Inspect object
-    inspectedObj = *obj; // Copy.
-    inspectedObj.setPosition();
-    inspectedObj.setRotation();
-    inspectedObj.setScale();
-    state = Inspection;
+    // Pick object instead of inspecting it.
+    for (auto it = room.objs.begin(); it != room.objs.end(); ++it) {
+        if (*it == obj) {
+            inventory.objs.push_back(obj);
+            room.objs.erase(it);
+            break;
+        }
+    }
+
+    obj->setPosition();
+    obj->setRotation();
+    obj->setScale();
+    inventoryIndex = static_cast<int>(inventory.objs.size()) - 1;
+    state = Inventory;
 }
 
 // --- Callbacks ---
 
 void Game::onKey() {
     if (state == InGame) {
-        // if (input.esc) mode = Menu; // openMenu()
-        // if (input.tab) mode = Inventory; // TODO: Add Inventory mode.
-        // if (input.e && selectedObj) interact(selectedObj);
-        if (input.q) playerScore++;
-    } else if (state == Inspection) {
+        if (input.tab) state = Inventory;
+        if (input.q) collectedItems++;
+    } else if (state == Inventory) {
         if (input.esc) state = InGame;
-    } else if (state == Puzzle) {
+
+        if (input.q && !inventory.objs.empty()) {
+            inventoryIndex = (inventoryIndex - 1 + (int) inventory.objs.size()) % (int) inventory.objs.size();
+        }
+        if (input.e && !inventory.objs.empty()) {
+            inventoryIndex = (inventoryIndex + 1) % (int) inventory.objs.size();
+        }
+    } else if (state == Canvas) {
         if (input.esc) {
             state = InGame;
             player.setPosition(lastPos);
@@ -235,7 +227,7 @@ void Game::onKey() {
 void Game::onMouseButton() {
     if (state == InGame) {
         if (input.lmb && hoveredObj) {
-            useObject(hoveredObj);
+            interact(hoveredObj);
         }
     }
 }
@@ -244,28 +236,27 @@ void Game::onMouseMovement(float xdelta, float ydelta) {
     if (state == InGame) {
         player.yaw(glm::radians(mouseSensitivity * xdelta));
         player.pitch(glm::radians(mouseSensitivity * ydelta));
-    } else if (state == Inspection && input.lmb) {
-        inspectedObj.rotate(fixed.up, -glm::radians(mouseSensitivity * xdelta), true);
-        inspectedObj.rotate(fixed.right, -glm::radians(mouseSensitivity * ydelta), true);
-    } else if (state == Puzzle) {
+    } else if (state == Inventory && input.lmb) {
+        inventory.objs[inventoryIndex]->rotate(inventoryView.up, -glm::radians(mouseSensitivity * xdelta), true);
+        inventory.objs[inventoryIndex]->rotate(inventoryView.right, -glm::radians(mouseSensitivity * ydelta), true);
+    } else if (state == Canvas) {
         player.yaw(0.2f * glm::radians(mouseSensitivity * xdelta));
         player.pitch(0.2f * glm::radians(mouseSensitivity * ydelta));
 
-        portalView.yaw(0.1f * glm::radians(mouseSensitivity * xdelta));
-        portalView.pitch(0.1f * glm::radians(mouseSensitivity * ydelta));
+        canvasView.yaw(0.1f * glm::radians(mouseSensitivity * xdelta));
+        canvasView.pitch(0.1f * glm::radians(mouseSensitivity * ydelta));
     }
 }
 
 void Game::onMouseScroll(float yoffset) {
-    if (state == InGame || state == Inspection) {
+    if (state == InGame || state == Inventory) {
         float amount = glm::radians(3.f * yoffset);
         player.zoom(amount);
-        fixed.zoom(amount);
     }
 }
 
 void Game::onResize(int width, int height) {
     float aspect = static_cast<float>(width) / static_cast<float>(height);
     player.setAspect(aspect);
-    fixed.setAspect(aspect);
+    inventoryView.setAspect(aspect);
 }
