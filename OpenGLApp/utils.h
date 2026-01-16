@@ -25,6 +25,7 @@ inline int fbWidth = 1920; // Framebuffer width
 inline int fbHeight = 1080; // Framebuffer height
 inline float fbScale = 1.f; // Framebuffer scale
 inline float aspect = 16.f / 9.f; // Aspect Ratio
+inline float mouseSensitivity = 0.05f;
 inline bool debug = true; // Enables debug menu and flying camera
 
 namespace glm {

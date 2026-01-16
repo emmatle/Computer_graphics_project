@@ -41,7 +41,9 @@ bool Game::loadObjects() {
 
         std::string sceneName = entry.value("scene", "room");
         if (sceneName == "room") {
-            room.objs.push_back(obj.get());
+            if (entry.value("name", "").find("Brush") == std::string::npos) {
+                room.objs.push_back(obj.get());
+            }
         } else if (sceneName == "canvas") {
             canvas.objs.push_back(obj.get());
         }
@@ -64,31 +66,44 @@ void Game::update() {
         if (input.a) player.move(-player.right, velocity, !debug);
         if (input.d) player.move(player.right, velocity, !debug);
 
-        static auto ref = getObject("Book");
-        static std::vector brushes = {
-            getObject("Brush1"),
-            getObject("Brush2"),
-            getObject("Brush3")
-        };
-
         for (auto &obj: objects) {
             obj->onUpdate();
         }
 
+        if (collectionTimer > 0.f) {
+            collectionTimer -= deltaTime;
+            if (collectionTimer <= 0.f) {
+                collectionTimer = 0.f;
+                // Clear brushes from room if they weren't collected
+                for (auto it = room.objs.begin(); it != room.objs.end(); ) {
+                    if ((*it)->name.find("Brush") != std::string::npos) {
+                        it = room.objs.erase(it);
+                    } else {
+                        ++it;
+                    }
+                }
+            }
+        }
+
         if (!debug) {
             for (auto roomObjIt = room.objs.begin(); roomObjIt != room.objs.end();) {
+                Object* obj = *roomObjIt;
                 bool erased = false;
-                for (auto brushIt = brushes.begin(); brushIt != brushes.end(); ++brushIt) {
-                    if ((*brushIt)->name == (*roomObjIt)->name && (*brushIt)->checkCollision(player)) {
-                        brushes.erase(brushIt);
+
+                if (collectionTimer > 0 && obj->name.find("Brush") != std::string::npos) {
+                    if (obj->checkCollision(player)) {
                         roomObjIt = room.objs.erase(roomObjIt);
                         collectedItems++; // TODO: Add sound effect.
                         erased = true;
-                        break;
+                        
+                        if (collectedItems >= 4) {
+                            collectionTimer = 0.f; // Success
+                        }
                     }
                 }
+
                 if (!erased) {
-                    (*roomObjIt)->checkCollision(player, true);
+                    obj->checkCollision(player, true);
                     ++roomObjIt;
                 }
             }
@@ -166,6 +181,34 @@ void Game::interact(Object *obj) {
         }
         return;
     }
+    pos = obj->name.find("Palette");
+    if (pos != std::string::npos) {
+        if (collectedItems > 4) return;
+
+        collectionTimer = 10.f;
+        collectedItems = 0;
+
+        std::vector<std::string> brushNames = {"Brush0", "Brush1", "Brush2", "Brush3"};
+        for (const auto& name : brushNames) {
+            Object* brush = getObject(name);
+            if (brush) {
+                // Check if it's already in the room
+                bool inRoom = false;
+                for (auto roomObj : room.objs) {
+                    if (roomObj == brush) {
+                        inRoom = true;
+                        break;
+                    }
+                }
+                if (!inRoom) {
+                    brush->animation.play();
+                    room.objs.push_back(brush);
+                }
+            }
+        }
+        return;
+    }
+
     pos = obj->name.find("Easle");
     if (pos != std::string::npos) {
         lastPos = player.position;
@@ -183,8 +226,7 @@ void Game::interact(Object *obj) {
         obj->animation.toggle();
         return;
     }
-
-    // Pick object instead of inspecting it.
+    
     for (auto it = room.objs.begin(); it != room.objs.end(); ++it) {
         if (*it == obj) {
             inventory.objs.push_back(obj);
@@ -240,11 +282,11 @@ void Game::onMouseMovement(float xdelta, float ydelta) {
         inventory.objs[inventoryIndex]->rotate(inventoryView.up, -glm::radians(mouseSensitivity * xdelta), true);
         inventory.objs[inventoryIndex]->rotate(inventoryView.right, -glm::radians(mouseSensitivity * ydelta), true);
     } else if (state == Canvas) {
-        player.yaw(0.2f * glm::radians(mouseSensitivity * xdelta));
-        player.pitch(0.2f * glm::radians(mouseSensitivity * ydelta));
+        player.yaw(0.1f * glm::radians(mouseSensitivity * xdelta));
+        player.pitch(0.1f * glm::radians(mouseSensitivity * ydelta));
 
-        canvasView.yaw(0.1f * glm::radians(mouseSensitivity * xdelta));
-        canvasView.pitch(0.1f * glm::radians(mouseSensitivity * ydelta));
+        canvasView.yaw(0.05f * glm::radians(mouseSensitivity * xdelta));
+        canvasView.pitch(0.05f * glm::radians(mouseSensitivity * ydelta));
     }
 }
 

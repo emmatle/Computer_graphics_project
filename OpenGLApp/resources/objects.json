@@ -17,6 +17,58 @@
       "scale": [1.0, 1.0, 1.0]
     },
     {
+      "id": 0,
+      "name": "Brush0",
+      "model": "models/Brush.obj",
+      "position": [0.0, 2.0, -0.2],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0],
+      "animation": {
+        "rotation": [0.0, 360.0, 0.0],
+        "speed": 0.1,
+        "loop": true
+      }
+    },
+    {
+      "id": 0,
+      "name": "Brush1",
+      "model": "models/Brush.obj",
+      "position": [0.0, 2.0, -0.2],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0],
+      "animation": {
+        "rotation": [0.0, 360.0, -0.2],
+        "speed": 0.1,
+        "loop": true
+      }
+    },
+    {
+      "id": 0,
+      "name": "Brush2",
+      "model": "models/Brush.obj",
+      "position": [0.0, 2.0, -0.2],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0],
+      "animation": {
+        "rotation": [0.0, 360.0, -0.2],
+        "speed": 0.1,
+        "loop": true
+      }
+    },
+    {
+      "id": 0,
+      "name": "Brush3",
+      "model": "models/Brush.obj",
+      "position": [0.0, 2.0, -0.2],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0],
+      "animation": {
+        "rotation": [0.0, 360.0, -0.2],
+        "speed": 0.1,
+        "loop": true
+      }
+    },
+    {
       "id": 1,
       "name": "Door",
       "model": "models/Door.obj",
@@ -38,38 +90,6 @@
       "scale": [1.0, 1.0, 1.0]
     },
     {
-      "id": 3,
-      "name": "Brush0",
-      "model": "models/Brush.obj",
-      "position": [0.0, 2.0, -0.2],
-      "rotation": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
-    },
-    {
-      "id": 4,
-      "name": "Brush1",
-      "model": "models/Brush.obj",
-      "position": [0.0, 2.0, -0.2],
-      "rotation": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
-    },
-    {
-      "id": 5,
-      "name": "Brush2",
-      "model": "models/Brush.obj",
-      "position": [0.0, 2.0, -0.2],
-      "rotation": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
-    },
-    {
-      "id": 6,
-      "name": "Brush3",
-      "model": "models/Brush.obj",
-      "position": [0.0, 2.0, -0.2],
-      "rotation": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
-    },
-    {
       "id": 7,
       "name": "Easle",
       "model": "models/Easle.obj",
@@ -84,7 +104,7 @@
       "position": [0.0, 0.0, 0.0],
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0],
-      "scene": "portal"
+      "scene": "canvas"
     },
     {
       "id": 9,

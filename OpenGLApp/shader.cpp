@@ -207,14 +207,14 @@ int Shader::getUniform(const char *name) const {
         return it->second;
     }
 
-    int uniformId = glGetUniformLocation(id, name);
-    if (uniformId == -1) {
+    int uniformID = glGetUniformLocation(id, name);
+    if (uniformID == -1) {
         if (!silenceWarning) {
             std::cerr << "WARNING: invalid uniform name \"" << name << "\"" << std::endl;
             silenceWarning = true;
         }
     } else {
-        uniformLocations[name] = uniformId;
+        uniformLocations[name] = uniformID;
     }
-    return uniformId;
+    return uniformID;
 }

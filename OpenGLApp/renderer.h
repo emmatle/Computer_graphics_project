@@ -39,7 +39,7 @@ public:
 
     void free();
 
-    static void clear(const glm::vec3 &color);
+    static void clear(const glm::vec3 &color = {});
 
     void drawScene(const Scene &scene, bool picking = false, int activeIndex = -1) const;
 

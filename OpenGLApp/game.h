@@ -12,9 +12,6 @@ class Game {
     static constexpr float INSPECT_ANGULAR_SPEED = glm::radians(90.f);
 
 public:
-    static constexpr glm::vec4 BG_COLOR{0.2, 0.3f, 0.4f, 1.f};
-    static constexpr glm::vec4 MENU_COLOR{0.f, 0.f, 0.f, 1.f};
-
     enum State {
         InGame,
         Inventory,
@@ -49,8 +46,6 @@ public:
     } input;
 
     std::vector<std::shared_ptr<Object> > objects;
-    std::vector<Animation *> activeAnimations;
-
     Object *hoveredObj = nullptr;
     std::shared_ptr<Object> selectedObj = nullptr;
 
@@ -59,30 +54,28 @@ public:
     Camera inventoryView{{0.0f, 0.0f, 1.0f}};
     Camera canvasView{{0.0f, 0.0f, 12.0f}};
 
-    static constexpr glm::vec3 LIGHT_COLOR = {1.0f, 0.82f, 0.62f};
+    static constexpr glm::vec3 KEY_LIGHT = {1.0f, 0.82f, 0.62f}; // 4000K warm light
+    static constexpr glm::vec3 BACK_LIGHT = {0.78f, 0.82, 1.0f}; // 8000K cool light
 
     Light lights[3] = {
-        {{-2.56f, 1.18f, -0.09f}, LIGHT_COLOR,}, // Window 1
-        {{5.0f, 1.6f, -3.0f}, LIGHT_COLOR,}, // Window 2
-        {{7.32f, 1.80f, 1.14f}, LIGHT_COLOR,} // Window 3
+        {{-2.56f, 1.18f, -0.09f}, KEY_LIGHT,}, // Window 1
+        {{5.0f, 1.6f, -3.0f}, KEY_LIGHT,}, // Window 2
+        {{7.32f, 1.80f, 1.14f}, KEY_LIGHT,} // Window 3
 
     };
 
     Scene room = {{}, &player, {{lights[0], lights[1], lights[2]}}};
+
     Scene inventory = {
         {}, &inventoryView, {
-            {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.82f, 0.62f}}, // Key light 4000K
-            {{1.0f, -1.0f, -1.0f}, {0.78f, 0.82, 1.0f}} // Back light 8000K
+            {{-1.0f, 1.0f, 1.0f}, KEY_LIGHT},
+            {{1.0f, -1.0f, -1.0f}, BACK_LIGHT}
         }
     };
     Scene canvas = {
-        {}, &canvasView, {
-            {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.82f, 0.62f}}, // Key light 4000K
-            {{1.0f, -1.0f, -2.0f}, {0.776f, 0.824, 1.0f}} // Back light 8000K
-        }
+        {}, &canvasView
     };
 
-    float mouseSensitivity = 0.05f;
     bool mouseDrag = false;
 
     // In game stats

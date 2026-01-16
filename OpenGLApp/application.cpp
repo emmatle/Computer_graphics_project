@@ -41,6 +41,12 @@ void Application::updateTime() {
     static float average = 0.f;
     static float elapsedTime = 0.f;
     static int frameCount = 0;
+    static bool initialized = false;
+
+    if (!initialized) {
+        glfwSetTime(0.0);
+        initialized = true;
+    }
 
     currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
@@ -140,14 +146,21 @@ void Application::init() {
 void Application::run() {
     init();
 
+    if (!renderer.compileShaders()) exit(EXIT_FAILURE);
+
+    if (!renderer.loadFont("fonts/Antonio-Bold.ttf")) exit(EXIT_FAILURE);
+
+    // TODO: Add a splashscreen.
+    glfwPollEvents();
+    Renderer::clear();
+    renderer.drawText("Loading...", 25.0f, static_cast<float>(fbHeight) - 25.0f, fbScale,
+                      glm::vec3(1.0f, 1.0f, 0.0f));
+    glfwSwapBuffers(window);
+
     if (!game.loadObjects()) exit(EXIT_FAILURE);
 
     // TODO: free up allocated resources before exiting.
     if (!renderer.genBuffers()) exit(EXIT_FAILURE);
-
-    if (!renderer.compileShaders()) exit(EXIT_FAILURE);
-
-    if (!renderer.loadFont("fonts/Antonio-Bold.ttf")) exit(EXIT_FAILURE);
 
     if (!renderer.loadModels(game.objects)) exit(EXIT_FAILURE);
 
@@ -166,21 +179,15 @@ void Application::run() {
 
         if (debug) drawDebugMenu();
 
-        static auto canvas = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Canvas"));
+        static auto canvas = dynamic_cast<DynamicTexture *>(renderer.getTexture("#Canvas"));
         if (canvas) renderer.updateTexture(*canvas, game.canvas);
 
         // Scene rendering
         if (game.state == Game::InGame || game.state == Game::Canvas) {
             int id = renderer.readObjFromCursor(game.room);
-            game.hoveredObj = game.findObject(id);
-
-            // TODO: Display text hint if present.
+            game.hoveredObj = game.findObject(id); // TODO: Display text hint if present.
 
             if (game.state == Game::Canvas && canvas) renderer.updateTexture(*canvas, game.canvas);
-
-            static auto picture = dynamic_cast<DynamicTexture*>(renderer.getTexture("#Picture"));
-            if (picture) renderer.updateTexture(*picture, game.inventory);
-
             renderer.drawScene(game.room);
 
             // Crosshair
@@ -193,41 +200,27 @@ void Application::run() {
                 Align::Center
             );
 
-            renderer.drawText(
-                "Collect all the brushes (" + std::to_string(game.collectedItems) + "/3)",
-                25.0f,
-                60.0f,
-                fbScale,
-                glm::vec3(1.0f, 1.0f, 0.0f)
-            );
-
-            renderer.drawText(
-                "Score: " + std::to_string(game.collectedItems),
-                25.0f,
-                static_cast<float>(fbHeight) - 40.0f,
-                fbScale,
-                glm::vec3(1.0f, 1.0f, 0.0f)
-            );
-
-            static Object *chair = game.getObject("Chair");
-
-            if (chair) {
-                glm::vec3 textPos = chair->position + chair->up *chair->scale.y;
-
-                renderer.drawText3D(
-                        "This is a chair",
-                        textPos,
-                        game.player,
-                        fbScale,
-                        glm::vec3(1.0f, 1.0f, 0.0f),
-                        Align::Center
-                    );
+            if (game.collectionTimer > 0.f) {
+                renderer.drawText(
+                    "Collect all the brushes (" + std::to_string(game.collectedItems) + "/4)",
+                    25.0f,
+                    60.0f,
+                    fbScale,
+                    glm::vec3(1.0f, 1.0f, 0.0f)
+                );
+                renderer.drawText(
+                    "Time left: " + std::to_string(static_cast<int>(game.collectionTimer)) + "s",
+                    25.0f,
+                    120.0f,
+                    fbScale,
+                    glm::vec3(1.0f, 0.0f, 0.0f)
+                );
             }
         } else if (game.state == Game::Inventory) {
             renderer.drawScene(game.inventory, false, game.inventoryIndex);
         } else if (game.state == Game::Credits) {
-            Renderer::clear(Game::BG_COLOR);
-                renderer.drawText(
+            Renderer::clear();
+            renderer.drawText(
                 "Yippee, you are a star!",
                 static_cast<float>(fbWidth) / 2.0f,
                 static_cast<float>(fbHeight) / 2.0f,
@@ -385,7 +378,8 @@ void Application::drawDebugMenu() {
     }
 
     ImGui::SeparatorText("Game Progress");
-    ImGui::Text("Brushes Collected: %d/%d", game.collectedItems, 3);
+    ImGui::Text("Brushes Collected: %d/%d", game.collectedItems, 4);
+    if (game.collectionTimer > 0) ImGui::Text("Timer: %.2fs", game.collectionTimer);
     ImGui::Text("Entered: %s", game.enteredCode.c_str());
     ImGui::Text("Password: %s", game.password.c_str());
 
@@ -517,7 +511,6 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
         int index = key - GLFW_KEY_1;
         if (action == GLFW_PRESS) game.input.nums[index] = true;
         if (action == GLFW_RELEASE) game.input.nums[index] = false;
-
     }
 
     game.onKey();
