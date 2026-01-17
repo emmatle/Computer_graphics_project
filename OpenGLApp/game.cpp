@@ -1,4 +1,5 @@
 #include "game.h"
+#include "renderer.h"
 #include "utils.h"
 
 #include <iostream>
@@ -70,6 +71,11 @@ void Game::update() {
             obj->onUpdate();
         }
 
+        if (equippedObj) {
+            equippedObj->setPosition(player.position + player.front * 0.5f + player.right * 0.3f - player.up * 0.2f);
+            equippedObj->setRotation(player.orientation);
+        }
+
         if (collectionTimer > 0.f) {
             collectionTimer -= deltaTime;
             if (collectionTimer <= 0.f) {
@@ -128,6 +134,61 @@ void Game::update() {
             if (input.a) obj->rotate(Object::WRLD_UP, -amount, true);
             if (input.d) obj->rotate(Object::WRLD_UP, amount, true);
         }
+    }
+}
+
+void Game::draw(int fbWidth, int fbHeight, float fbScale) {
+    if (!renderer) return;
+
+    static auto canvasTex = dynamic_cast<DynamicTexture *>(renderer->getTexture("#Canvas"));
+    if (canvasTex) renderer->updateTexture(*canvasTex, canvas);
+
+    // Scene rendering
+    if (state == InGame || state == Canvas) {
+        int id = renderer->readObjFromCursor(room);
+        hoveredObj = findObject(id); // TODO: Display text hint if present.
+
+        if (state == Canvas && canvasTex) renderer->updateTexture(*canvasTex, canvas);
+        renderer->drawScene(room);
+
+        // Crosshair
+        renderer->drawText(
+            ".",
+            static_cast<float>(fbWidth) / 2.0f,
+            static_cast<float>(fbHeight) / 2.0f,
+            fbScale,
+            glm::vec3(0.8f, 0.8f, 0.8f),
+            Align::Center
+        );
+
+        if (collectionTimer > 0.f) {
+            renderer->drawText(
+                "Collect all the brushes (" + std::to_string(collectedItems) + "/4)",
+                25.0f,
+                60.0f,
+                fbScale,
+                glm::vec3(1.0f, 1.0f, 0.0f)
+            );
+            renderer->drawText(
+                "Time left: " + std::to_string(static_cast<int>(collectionTimer)) + "s",
+                25.0f,
+                120.0f,
+                fbScale,
+                glm::vec3(1.0f, 0.0f, 0.0f)
+            );
+        }
+    } else if (state == Inventory) {
+        renderer->drawScene(inventory, false, inventoryIndex);
+    } else if (state == Credits) {
+        Renderer::clear();
+        renderer->drawText(
+            "Yippee, you are a star!",
+            static_cast<float>(fbWidth) / 2.0f,
+            static_cast<float>(fbHeight) / 2.0f,
+            fbScale,
+            glm::vec3(1.0f, 1.0f, 0.0f),
+            Align::Center
+        );
     }
 }
 
@@ -221,6 +282,21 @@ void Game::interact(Object *obj) {
 
     if (obj->name == "Safe Door") return; // Do not open the door
 
+    if (obj->name == "Door") {
+        if (doorUnlocked) {
+            obj->animation.play();
+            return;
+        }
+        if (equippedObj && equippedObj->name.find("Key") != std::string::npos) {
+            doorUnlocked = true;
+            obj->animation.play();
+            std::cout << "Door unlocked with " << equippedObj->name << "!" << std::endl;
+        } else {
+            std::cout << "The door is locked. You need a key." << std::endl;
+        }
+        return;
+    }
+
     // Used mostly for opening/closing objects
     if (!obj->animation.empty()) {
         obj->animation.toggle();
@@ -237,7 +313,6 @@ void Game::interact(Object *obj) {
 
     obj->setPosition();
     obj->setRotation();
-    obj->setScale();
     inventoryIndex = static_cast<int>(inventory.objs.size()) - 1;
     state = Inventory;
 }
@@ -247,9 +322,6 @@ void Game::interact(Object *obj) {
 void Game::onKey() {
     if (state == InGame) {
         if (input.tab) state = Inventory;
-        if (input.q) collectedItems++;
-    } else if (state == Inventory) {
-        if (input.esc) state = InGame;
 
         if (input.q && !inventory.objs.empty()) {
             inventoryIndex = (inventoryIndex - 1 + (int) inventory.objs.size()) % (int) inventory.objs.size();
@@ -257,6 +329,8 @@ void Game::onKey() {
         if (input.e && !inventory.objs.empty()) {
             inventoryIndex = (inventoryIndex + 1) % (int) inventory.objs.size();
         }
+    } else if (state == Inventory) {
+        if (input.esc) state = InGame;
     } else if (state == Canvas) {
         if (input.esc) {
             state = InGame;
@@ -268,8 +342,37 @@ void Game::onKey() {
 
 void Game::onMouseButton() {
     if (state == InGame) {
-        if (input.lmb && hoveredObj) {
-            interact(hoveredObj);
+        if (input.rmb) {
+            if (equippedObj) {
+                // Unequip
+                std::cout << "Unequipped " << equippedObj->name << std::endl;
+                equippedObj->setPosition();
+                equippedObj->setRotation();
+                inventory.objs.push_back(equippedObj);
+
+                // Remove from room
+                for (auto it = room.objs.begin(); it != room.objs.end(); ++it) {
+                    if (*it == equippedObj) {
+                        room.objs.erase(it);
+                        break;
+                    }
+                }
+
+                equippedObj = nullptr;
+                inventoryIndex = (int) inventory.objs.size() - 1;
+            } else if (!inventory.objs.empty()) {
+                // Equip
+                equippedObj = inventory.objs[inventoryIndex];
+                room.objs.push_back(equippedObj);
+                inventory.objs.erase(inventory.objs.begin() + inventoryIndex);
+                if (inventoryIndex >= inventory.objs.size()) inventoryIndex = (int) inventory.objs.size() - 1;
+                if (inventoryIndex < 0) inventoryIndex = 0;
+                std::cout << "Equipped " << equippedObj->name << std::endl;
+            }
+        } else if (input.lmb) {
+            if (hoveredObj) {
+                interact(hoveredObj);
+            }
         }
     }
 }

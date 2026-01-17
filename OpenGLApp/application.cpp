@@ -159,6 +159,8 @@ void Application::run() {
 
     if (!game.loadObjects()) exit(EXIT_FAILURE);
 
+    game.setRenderer(&renderer);
+
     // TODO: free up allocated resources before exiting.
     if (!renderer.genBuffers()) exit(EXIT_FAILURE);
 
@@ -179,56 +181,7 @@ void Application::run() {
 
         if (debug) drawDebugMenu();
 
-        static auto canvas = dynamic_cast<DynamicTexture *>(renderer.getTexture("#Canvas"));
-        if (canvas) renderer.updateTexture(*canvas, game.canvas);
-
-        // Scene rendering
-        if (game.state == Game::InGame || game.state == Game::Canvas) {
-            int id = renderer.readObjFromCursor(game.room);
-            game.hoveredObj = game.findObject(id); // TODO: Display text hint if present.
-
-            if (game.state == Game::Canvas && canvas) renderer.updateTexture(*canvas, game.canvas);
-            renderer.drawScene(game.room);
-
-            // Crosshair
-            renderer.drawText(
-                ".",
-                static_cast<float>(fbWidth) / 2.0f,
-                static_cast<float>(fbHeight) / 2.0f,
-                fbScale,
-                glm::vec3(0.8f, 0.8f, 0.8f),
-                Align::Center
-            );
-
-            if (game.collectionTimer > 0.f) {
-                renderer.drawText(
-                    "Collect all the brushes (" + std::to_string(game.collectedItems) + "/4)",
-                    25.0f,
-                    60.0f,
-                    fbScale,
-                    glm::vec3(1.0f, 1.0f, 0.0f)
-                );
-                renderer.drawText(
-                    "Time left: " + std::to_string(static_cast<int>(game.collectionTimer)) + "s",
-                    25.0f,
-                    120.0f,
-                    fbScale,
-                    glm::vec3(1.0f, 0.0f, 0.0f)
-                );
-            }
-        } else if (game.state == Game::Inventory) {
-            renderer.drawScene(game.inventory, false, game.inventoryIndex);
-        } else if (game.state == Game::Credits) {
-            Renderer::clear();
-            renderer.drawText(
-                "Yippee, you are a star!",
-                static_cast<float>(fbWidth) / 2.0f,
-                static_cast<float>(fbHeight) / 2.0f,
-                fbScale,
-                glm::vec3(1.0f, 1.0f, 0.0f),
-                Align::Center
-            );
-        }
+        game.draw(fbWidth, fbHeight, fbScale);
 
         // Render ImGui
         ImGui::Render();

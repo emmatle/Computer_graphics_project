@@ -4,6 +4,8 @@
 
 #include <glm/glm.hpp>
 
+class Renderer;
+
 /**
  * @brief Manages game logic and handles objects and player state and input.
  */
@@ -11,7 +13,10 @@ class Game {
     static constexpr float SPRINT = 2.0f;
     static constexpr float INSPECT_ANGULAR_SPEED = glm::radians(90.f);
 
+    Renderer* renderer = nullptr;
+
 public:
+    void setRenderer(Renderer* r) { renderer = r; }
     enum State {
         InGame,
         Inventory,
@@ -81,12 +86,13 @@ public:
     // In game stats
     float time = 0.0f;
     int inventoryIndex = 0;
+    Object* equippedObj = nullptr;
     float playerSpeed = 2.0f;
+    bool doorUnlocked = false;
 
     // Palette minigame
     float collectionTimer = 0.0f;
     int collectedItems = 0;
-
 
     // Safe code entry
     std::string enteredCode;
@@ -98,6 +104,8 @@ public:
     bool loadObjects();
 
     void update();
+
+    void draw(int fbWidth, int fbHeight, float fbScale);
 
     Object *getObject(const std::string &name);
 

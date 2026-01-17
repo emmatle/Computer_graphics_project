@@ -83,14 +83,22 @@
     },
     {
       "id": 2,
+      "name": "Key",
+      "model": "models/Cube.obj",
+      "position": [0.0, 1.0, -2.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [0.5, 0.5, 0.5]
+    },
+    {
+      "id": 3,
       "name": "Palette",
       "model": "models/Cube.obj",
-      "position": [0.0, 1.5, -3.0],
+      "position": [0.0, 1.5, -2.0],
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0]
     },
     {
-      "id": 7,
+      "id": 4,
       "name": "Easle",
       "model": "models/Easle.obj",
       "position": [4.0, 0.0, -2.0],
@@ -98,7 +106,7 @@
       "scale": [1.0, 1.0, 1.0]
     },
     {
-      "id": 8,
+      "id": 5,
       "name": "Venus",
       "model": "models/Venus.obj",
       "position": [0.0, 0.0, 0.0],
