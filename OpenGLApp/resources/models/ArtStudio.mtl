@@ -1,17 +1,27 @@
 # Blender 5.0.0 MTL File: 'ArtStudio.blend'
 # www.blender.org
 
-newmtl Black_Metal
+newmtl Bricks
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Metal029_1K-JPG_Color.jpg
-map_Ns textures/Metal029_1K-JPG_Roughness.jpg
-map_refl textures/Metal029_1K-JPG_Metalness.jpg
-map_Bump -bm 1.000000 textures/Metal029_1K-JPG_NormalGL.jpg
+map_Kd textures/Bricks083_1K-JPG_Color.jpg
+map_Ns textures/Bricks083_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Bricks083_1K-JPG_NormalGL.jpg
+
+newmtl Ceiling
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Wallpaper001A_1K-JPG_Color.jpg
+map_Ns textures/Wallpaper001A_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Wallpaper001A_1K-JPG_NormalGL.jpg
 
 newmtl Curtains
 Ka 1.000000 1.000000 1.000000
@@ -35,6 +45,68 @@ map_Kd textures/Wood029_1K-JPG_Color.jpg
 map_Ns textures/Wood029_1K-JPG_Roughness.jpg
 map_Bump -bm 1.000000 textures/Wood029_1K-JPG_NormalGL.jpg
 
+newmtl Film1
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd -o -0.19999999 0.19999999 0 -s 1.4000003 1.4000001 1 textures/Film1.jpg
+
+newmtl Film2
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd -o -0.19999999 0.19999999 0 -s 1.4000003 1.4000001 1 textures/Film2.jpg
+
+newmtl Film3
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd -o -0.19999999 0.19999999 0 -s 1.4000003 1.4000001 1 textures/Film3.jpg
+
+newmtl Film4
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd -o -0.19999999 0.19999999 0 -s 1.4000003 1.4000001 1 textures/Film4.jpg
+
+newmtl Floor
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/WoodFloor043_1K-JPG_Color.jpg
+map_Ns textures/WoodFloor043_1K-JPG_Roughness.jpg
+map_refl textures/WoodFloor043_1K-JPG_Metalness.jpg
+map_Bump -bm 1.000000 textures/WoodFloor043_1K-JPG_NormalGL.jpg
+
+newmtl Frame
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.003936 0.003936 0.003936
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+
 newmtl Glass
 Ns 360.000000
 Ka 1.000000 1.000000 1.000000
@@ -57,19 +129,45 @@ map_Ns textures/Metal049B_1K-JPG_Roughness.jpg
 map_refl textures/Metal049B_1K-JPG_Metalness.jpg
 map_Bump -bm 1.000000 textures/Metal049B_1K-JPG_NormalGL.jpg
 
-newmtl Room
+newmtl Photo1
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
-Kd 0.800000 0.800000 0.800000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Room_4K-PNG_Color.png
-map_Ns textures/Room_4K-PNG_Roughness.png
-map_refl textures/Room_4K-PNG_Metalness.png
-map_Bump -bm 1.000000 textures/Room_4K-PNG_Normal.png
+map_Kd -o -0.19999999 0.19999999 0 -s 1.4000001 1.4000001 1 textures/Photo1.jpg
+
+newmtl Photo2
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd -o -0.19999999 0.19999999 0 -s 1.4000001 1.4000001 1 textures/Photo2.jpg
+
+newmtl Photo3
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd -o -0.099999994 0.825 0 -s 1.3000001 1.3 1 textures/Photo3.jpg
+
+newmtl Picture
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Picture_1K-JPG_Color.jpg
 
 newmtl Slab
 Ka 1.000000 1.000000 1.000000

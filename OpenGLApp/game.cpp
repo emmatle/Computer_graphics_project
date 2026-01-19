@@ -51,6 +51,15 @@ bool Game::loadObjects() {
         objects.push_back(obj);
     }
 
+    for (const auto &entry: s) {
+        if (entry.contains("parent")) {
+            std::string objName = entry["name"];
+            std::string parentName = entry["parent"];
+            Object *parent = getObject(parentName);
+
+        }
+    }
+
     return true;
 }
 
@@ -137,7 +146,7 @@ void Game::update() {
     }
 }
 
-void Game::draw(int fbWidth, int fbHeight, float fbScale) {
+void Game::draw() {
     if (!renderer) return;
 
     static auto canvasTex = dynamic_cast<DynamicTexture *>(renderer->getTexture("#Canvas"));
@@ -359,7 +368,7 @@ void Game::onMouseButton() {
                 }
 
                 equippedObj = nullptr;
-                inventoryIndex = (int) inventory.objs.size() - 1;
+                inventoryIndex = static_cast<int>(inventory.objs.size()) - 1;
             } else if (!inventory.objs.empty()) {
                 // Equip
                 equippedObj = inventory.objs[inventoryIndex];

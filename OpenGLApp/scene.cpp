@@ -102,9 +102,9 @@ void Light::apply(const Shader &shader, int index) const {
 }
 
 Object::Object(const glm::vec3 &pos, const glm::vec3 &rot, const glm::vec3 &scl, std::string path, int id,
-               std::string name)
+               std::string name, Object *parent)
     : _position(pos), _rotation(rot), _scale(scl), _orientation(glm::quat(rot)), id(id),
-      name(std::move(name)), model(nullptr), modelPath(std::move(path)) {
+      name(std::move(name)), model(nullptr), modelPath(std::move(path)), parent(parent) {
     update();
 }
 
@@ -113,7 +113,7 @@ Object::Object(const nlohmann::json &j) : Object() {
 }
 
 Object::Object(const Object &other)
-    : Object(other.position, other.rotation, other.scale, other.modelPath, other.id, other.name) {
+    : Object(other.position, other.rotation, other.scale, other.modelPath, other.id, other.name, other.parent) {
     model = other.model, animation = other.animation;
 }
 
@@ -250,6 +250,10 @@ const glm::mat4 &Object::getModelMatrix() const {
         modelMatrix = glm::scale(modelMatrix, _scale);
         modelDirty = false;
     }
+    if (parent) {
+        worldMatrix = parent->getModelMatrix() * modelMatrix;
+        return worldMatrix;
+    }
     return modelMatrix;
 }
 
@@ -309,8 +313,8 @@ void Object::onUpdate() {
     }
 }
 
-Camera::Camera(glm::vec3 pos, glm::vec3 rot, float fov, float asp, bool costrain)
-    : Object(pos, rot), _fov(fov), _aspect(asp), costrain(costrain) {}
+Camera::Camera(glm::vec3 pos, glm::vec3 rot, float fov, float asp, bool costrain, bool ortho)
+    : Object(pos, rot), _fov(fov), _aspect(asp), costrain(costrain), ortho(ortho) {}
 
 void Camera::setFov(float radians) {
     _fov = radians;
@@ -361,13 +365,12 @@ const glm::mat4 &Camera::getViewMatrix() const {
     return getInverseModelMatrix();
 }
 
-const glm::mat4 &Camera::getProjectionMatrix(float distance, bool persp) const {
-    if (projectionDirty || distance != lastDistance || persp != lastMode) {
-        if (persp)
+const glm::mat4 &Camera::getProjectionMatrix(float distance) const {
+    if (projectionDirty || distance != lastDistance) {
+        if (!ortho)
             projectionMatrix = glm::perspective(_fov, _aspect, MIN_CLIPPING, distance);
-        else projectionMatrix = glm::ortho(-_aspect, _aspect, -1.f, 1.f, MIN_CLIPPING, distance);
+        else projectionMatrix = glm::ortho(-ORTHOGRAPHIC_SCALE * _aspect, ORTHOGRAPHIC_SCALE *_aspect, -ORTHOGRAPHIC_SCALE, ORTHOGRAPHIC_SCALE, MIN_CLIPPING, distance);
         lastDistance = distance;
-        lastMode = persp;
         projectionDirty = false;
     }
     return projectionMatrix;
