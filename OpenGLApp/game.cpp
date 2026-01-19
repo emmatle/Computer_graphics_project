@@ -339,7 +339,7 @@ void Game::interact(Object *obj) {
     if (pos != std::string::npos) {
         lastPos = player.position;
         lastRot = player.rotation;
-        player.setPosition(obj->position - obj->front * 2.0f);
+        player.setPosition(obj->position - obj->front * 1.5f);
         player.setRotation(obj->rotation);
         state = Canvas;
         return;
