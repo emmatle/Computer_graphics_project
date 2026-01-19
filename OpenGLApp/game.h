@@ -93,6 +93,7 @@ public:
     // Palette minigame
     float collectionTimer = 0.0f;
     int collectedItems = 0;
+    bool collectionCompleted = false;
 
     // Safe code entry
     std::string enteredCode;

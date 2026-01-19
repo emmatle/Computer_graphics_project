@@ -113,6 +113,7 @@ void Game::update() {
 
                         if (collectedItems >= 4) {
                             collectionTimer = 0.f; // Success
+                            collectionCompleted = true;
                         }
                     }
                 }
@@ -309,7 +310,7 @@ void Game::interact(Object *obj) {
     }
     pos = obj->name.find("Palette");
     if (pos != std::string::npos) {
-        if (collectedItems > 4) return;
+        if (collectionCompleted) return;
 
         collectionTimer = 10.f;
         collectedItems = 0;
