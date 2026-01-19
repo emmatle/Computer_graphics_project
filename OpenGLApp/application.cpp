@@ -18,7 +18,6 @@
 sf::Music Application::backgroundMusicNormal;
 sf::Music Application::backgroundMusicLowpass;
 bool Application::backgroundLowpassActive = false;
-float Application::backgroundMusicPrevVolume = 30.f;
 
 Game Application::game;
 Renderer Application::renderer;
@@ -80,13 +79,12 @@ void Application::init() {
         backgroundMusicNormal.setLooping(true);
         backgroundMusicNormal.play();
         backgroundLowpassActive = false;
-        backgroundMusicPrevVolume = 30.f;
     }
 
     if (!backgroundMusicLowpass.openFromFile(getResourcePath("sounds/BackgroundMusicLowPass.mp3"))) {
         std::cerr << "WARNING: can't load " << getResourcePath("sounds/BackgroundMusicLowPass.mp3") << std::endl;
     } else {
-        backgroundMusicLowpass.setVolume(30.f);
+        backgroundMusicLowpass.setVolume(15.f);
         backgroundMusicLowpass.setLooping(true);
     }
 
@@ -187,7 +185,7 @@ void Application::run() {
     // TODO: Add a splashscreen.
     glfwPollEvents();
     Renderer::clear();
-    renderer.drawText("Loading...", 25.0f, static_cast<float>(fbHeight) - 25.0f, fbScale,
+    renderer.drawText("Loading...", static_cast<float>(fbWidth) * 0.05f, static_cast<float>(fbHeight) * 0.95f, 1.0f,
                       glm::vec3(1.0f, 1.0f, 0.0f));
     glfwSwapBuffers(window);
 
@@ -393,17 +391,31 @@ void Application::drawDebugMenu() {
 
 void Application::setBackgroundLowpass(bool enable) {
     if (enable == backgroundLowpassActive) return;
-    backgroundLowpassActive = enable;
 
     if (enable) {
-        // salva volume corrente e abbassa la musica di sottofondo
-        backgroundMusicPrevVolume = backgroundMusicNormal.getVolume();
-        float lowered = std::max(5.f, backgroundMusicPrevVolume * 0.25f); // 25% o minimo 5
-        backgroundMusicNormal.setVolume(lowered);
+        if (backgroundMusicNormal.getStatus() == sf::Sound::Status::Playing) {
+            sf::Time offset = backgroundMusicNormal.getPlayingOffset();
+            backgroundMusicNormal.stop();
+            backgroundMusicLowpass.setPlayingOffset(offset);
+            backgroundMusicLowpass.play();
+        } else {
+            // If paused, just sync the offset without starting it
+            sf::Time offset = backgroundMusicNormal.getPlayingOffset();
+            backgroundMusicLowpass.setPlayingOffset(offset);
+        }
     } else {
-        // ripristina il volume salvato
-        backgroundMusicNormal.setVolume(backgroundMusicPrevVolume);
+        if (backgroundMusicLowpass.getStatus() == sf::Sound::Status::Playing) {
+            sf::Time offset = backgroundMusicLowpass.getPlayingOffset();
+            backgroundMusicLowpass.stop();
+            backgroundMusicNormal.setPlayingOffset(offset);
+            backgroundMusicNormal.play();
+        } else {
+            // Se in pausa, sincronizza solo l'offset senza farla partire
+            sf::Time offset = backgroundMusicLowpass.getPlayingOffset();
+            backgroundMusicNormal.setPlayingOffset(offset);
+        }
     }
+    backgroundLowpassActive = enable;
 }
 
 // Callback for closing the window
@@ -448,12 +460,18 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
         }
     }
     if (key == GLFW_KEY_F2 && action == GLFW_PRESS) {
-        auto &activeMusic = backgroundLowpassActive ? backgroundMusicLowpass : backgroundMusicNormal;
-        auto status = activeMusic.getStatus();
-        if (status == sf::Sound::Status::Playing) {
-            activeMusic.pause();
-        } else if (status == sf::Sound::Status::Paused) {
-            activeMusic.play();
+        if (backgroundLowpassActive) {
+            if (backgroundMusicLowpass.getStatus() == sf::Sound::Status::Playing) {
+                backgroundMusicLowpass.pause();
+            } else {
+                backgroundMusicLowpass.play();
+            }
+        } else {
+            if (backgroundMusicNormal.getStatus() == sf::Sound::Status::Playing) {
+                backgroundMusicNormal.pause();
+            } else {
+                backgroundMusicNormal.play();
+            }
         }
     }
     if (key == GLFW_KEY_F3 && action == GLFW_PRESS) {

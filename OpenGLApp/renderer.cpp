@@ -227,11 +227,12 @@ void Renderer::drawText(const std::string &text, float x, float y, float scale, 
     std::string clean = convertUTF8toLatin1(text);
     glm::mat4 projectionMatrix = glm::ortho(0.0f, static_cast<float>(fbWidth), static_cast<float>(fbHeight), 0.0f);
 
+    float scaleFactor = fbScale * scale;
     // Compute total width for alignment
     float textWidth = 0.0f;
     for (unsigned char uc: clean) {
         const Character &ch = characters[uc];
-        textWidth += static_cast<float>(ch.advance >> 6) * scale;
+        textWidth += static_cast<float>(ch.advance >> 6) * scaleFactor;
     }
 
     if (align == Align::Center) x -= textWidth * 0.5f;
@@ -250,16 +251,16 @@ void Renderer::drawText(const std::string &text, float x, float y, float scale, 
 
     for (unsigned char uc: clean) {
         const Character &ch = characters[uc];
-        float advance = static_cast<float>(ch.advance >> 6) * scale;
+        float advance = static_cast<float>(ch.advance >> 6) * scaleFactor;
         if (ch.textureID == 0) {
             x += advance;
             continue;
         }
 
-        float xpos = x + ch.bearing.x * scale;
-        float ypos = y - ch.bearing.y * scale;
-        float w = ch.size.x * scale;
-        float h = ch.size.y * scale;
+        float xpos = x + ch.bearing.x * scaleFactor;
+        float ypos = y - ch.bearing.y * scaleFactor;
+        float w = ch.size.x * scaleFactor;
+        float h = ch.size.y * scaleFactor;
 
         float verts[QUAD_VERTS][VERTICES_2D_SIZE] = {
             {xpos, ypos + h, 0.0f, 1.0f},
@@ -285,6 +286,7 @@ void Renderer::drawText(const std::string &text, float x, float y, float scale, 
 void Renderer::drawText3D(const std::string &text, const glm::vec3 &position, const Camera &cam, float scale,
                           const glm::vec3 &color, Align align) const {
     std::string clean = convertUTF8toLatin1(text);
+    float scaleFactor = fbScale * scale;
     scale *= 0.002f; // Adjust this scale factor as needed
 
     // Compute total width for alignment in 3D space (same as 2D but in object space units)
