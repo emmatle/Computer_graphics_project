@@ -41,6 +41,7 @@ bool Application::firstMouse = true;
 
 sf::Music backgroundMusic(getResourcePath("sounds/BackgroundMusic.mp3"));
 
+
 void Application::updateTime() {
     static float currentFrame = 0.f;
     static float lastFrame = 0.f;
@@ -171,6 +172,21 @@ void Application::init() {
     std::string fontPath = getResourcePath("fonts/OpenSans.ttf");
     const char *font = fontPath.c_str();
     ImGui::GetIO().Fonts->AddFontFromFileTTF(font, fontSize);
+}
+
+void Application::setBackgroundLowpass(bool enable) {
+    if (enable == backgroundLowpassActive) return;
+    backgroundLowpassActive = enable;
+
+    if (enable) {
+        // salva volume corrente e abbassa la musica di sottofondo
+        backgroundMusicPrevVolume = backgroundMusicNormal.getVolume();
+        float lowered = std::max(5.f, backgroundMusicPrevVolume * 0.25f); // 25% o minimo 5
+        backgroundMusicNormal.setVolume(lowered);
+    } else {
+        // ripristina il volume salvato
+        backgroundMusicNormal.setVolume(backgroundMusicPrevVolume);
+    }
 }
 
 /* TODO: abstract rendering and game logic from application class:

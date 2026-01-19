@@ -24,7 +24,9 @@ if (APPLE)
 elseif (WIN32)
     add_executable(${APP_NAME} ${APP_SOURCES} OpenGLApp OpenGLApp/app_icon.rc)
 else ()
-    add_executable(${APP_NAME} ${APP_SOURCES} OpenGLApp)
+    add_executable(${APP_NAME} ${APP_SOURCES} OpenGLApp
+            OpenGLApp/audio_manager.h
+            OpenGLApp/audio_manager.cpp)
 endif ()
 
 # === Include local libraries ===
@@ -59,6 +61,7 @@ target_link_libraries(${APP_NAME} PRIVATE
         OpenGL::GL
         Freetype::Freetype
         SFML::Audio
+        SFML::System
 )
 if (UNIX)
     target_link_libraries(${APP_NAME} PRIVATE dl pthread)
