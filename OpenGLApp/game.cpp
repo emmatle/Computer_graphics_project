@@ -147,8 +147,6 @@ void Game::update() {
 }
 
 void Game::draw() {
-    if (!renderer) return;
-
     static auto canvasTex = dynamic_cast<DynamicTexture *>(renderer->getTexture("#Canvas"));
     if (canvasTex) renderer->updateTexture(*canvasTex, canvas);
 
@@ -177,7 +175,7 @@ void Game::draw() {
             Align::Center
         );
 
-        if (hoveredObj && hoveredObj->name == "Easle") {
+        if (hoveredObj && hoveredObj->name == "Canvas") {
             renderer->drawText(
                 "Look at venus in the right angle...",
                 static_cast<float>(fbWidth) * 0.65f,   // right side
@@ -337,12 +335,12 @@ void Game::interact(Object *obj) {
         return;
     }
 
-    pos = obj->name.find("Easle");
+    pos = obj->name.find("Canvas");
     if (pos != std::string::npos) {
         lastPos = player.position;
         lastRot = player.rotation;
-        player.setPosition(obj->position - obj->front * 2.0f + obj->up * 2.12f);
-        player.setRotation(obj->rotation - glm::vec3(glm::radians(20.f), 0.0f, 0.f));
+        player.setPosition(obj->position - obj->front * 2.0f);
+        player.setRotation(obj->rotation);
         state = Canvas;
         return;
     }

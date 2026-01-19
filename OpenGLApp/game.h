@@ -96,7 +96,8 @@ public:
 
     // Safe code entry
     std::string enteredCode;
-    std::string password = "4687391";
+    // Number of pictures (8) + Colored pencils in order (4687391) + Sum of red, green, blue pencils (20)
+    std::string password = "8468739120";
 
     glm::vec3 lastPos{};
     glm::vec3 lastRot{};
