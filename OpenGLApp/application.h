@@ -1,10 +1,13 @@
 #pragma once
 
 #include <string>
+#include <SFML/Audio.hpp>
 
 class Game;
 class Renderer;
 struct GLFWwindow;
+
+
 
 class Application {
 public:
@@ -20,6 +23,8 @@ public:
 
     void run();
 
+    static void setBackgroundLowpass(bool enable);
+
 private:
     static Game game;
     static Renderer renderer;
@@ -30,6 +35,11 @@ private:
     static float time;
     static float fps;
 
+    static sf::Music backgroundMusicNormal;
+    static sf::Music backgroundMusicLowpass;
+    static bool backgroundLowpassActive;
+
+    static float backgroundMusicPrevVolume;
     void init();
 
     void terminate();

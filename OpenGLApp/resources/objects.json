@@ -33,7 +33,7 @@
       "id": 0,
       "name": "Brush1",
       "model": "models/Brush.obj",
-      "position": [0.0, 2.0, -0.2],
+      "position": [1.0, 2.0, -0.2],
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0],
       "animation": {
@@ -78,7 +78,7 @@
       "animation": {
         "rotation": [0.0, 105.0, 0.0],
         "pivot": [-0.427, 0.0, 0.0],
-        "duration": 0.5
+        "duration": 2.0
       }
     },
     {

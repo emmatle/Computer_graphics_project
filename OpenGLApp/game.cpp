@@ -1,6 +1,8 @@
 #include "game.h"
 #include "renderer.h"
 #include "utils.h"
+#include "audio_manager.h"
+#include "application.h"
 
 #include <iostream>
 #include <fstream>
@@ -11,6 +13,8 @@
 bool Game::loadObjects() {
     std::filesystem::path file = getResourcePath("objects.json");
     if (file.empty()) return false;
+
+    AudioManager::instance().init();
 
     using json = nlohmann::json;
     std::ifstream in(file);
@@ -100,6 +104,7 @@ void Game::update() {
                     if (obj->checkCollision(player)) {
                         roomObjIt = room.objs.erase(roomObjIt);
                         collectedItems++; // TODO: Add sound effect.
+                        AudioManager::instance().playSound("CollectItem", 80.f, false);
                         erased = true;
 
                         if (collectedItems >= 4) {
@@ -348,6 +353,8 @@ void Game::interact(Object *obj) {
         if (equippedObj && equippedObj->name.find("Key") != std::string::npos) {
             doorUnlocked = true;
             obj->animation.play();
+            //insert audio here
+            AudioManager::instance().playSound("OpenDoor");
             std::cout << "Door unlocked with " << equippedObj->name << "!" << std::endl;
         } else {
             std::cout << "The door is locked. You need a key." << std::endl;
@@ -373,13 +380,17 @@ void Game::interact(Object *obj) {
     obj->setRotation();
     inventoryIndex = static_cast<int>(inventory.objs.size()) - 1;
     state = Inventory;
+    Application::setBackgroundLowpass(true);
 }
 
 // --- Callbacks ---
 
 void Game::onKey() {
     if (state == InGame) {
-        if (input.tab) state = Inventory;
+        if (input.tab) {
+            state = Inventory;
+            Application::setBackgroundLowpass(true);
+        }
 
         if (input.q && !inventory.objs.empty()) {
             inventoryIndex = (inventoryIndex - 1 + (int) inventory.objs.size()) % (int) inventory.objs.size();
@@ -388,7 +399,10 @@ void Game::onKey() {
             inventoryIndex = (inventoryIndex + 1) % (int) inventory.objs.size();
         }
     } else if (state == Inventory) {
-        if (input.esc) state = InGame;
+        if (input.esc) {
+            state = InGame;
+            Application::setBackgroundLowpass(false);
+        }
     } else if (state == Canvas) {
         if (input.esc) {
             state = InGame;
