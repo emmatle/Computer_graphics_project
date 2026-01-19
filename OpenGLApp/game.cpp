@@ -390,14 +390,15 @@ void Game::onKey() {
     if (state == InGame) {
         if (input.tab) state = Inventory;
 
+    } else if (state == Inventory) {
+        if (input.esc) state = InGame;
+
         if (input.q && !inventory.objs.empty()) {
             inventoryIndex = (inventoryIndex - 1 + (int) inventory.objs.size()) % (int) inventory.objs.size();
         }
         if (input.e && !inventory.objs.empty()) {
             inventoryIndex = (inventoryIndex + 1) % (int) inventory.objs.size();
         }
-    } else if (state == Inventory) {
-        if (input.esc) state = InGame;
     } else if (state == Canvas) {
         if (input.esc) {
             state = InGame;
@@ -461,9 +462,12 @@ void Game::onMouseMovement(float xdelta, float ydelta) {
 }
 
 void Game::onMouseScroll(float yoffset) {
-    if (state == InGame || state == Inventory) {
-        float amount = glm::radians(3.f * yoffset);
+    float amount = glm::radians(3.f * yoffset);
+    if (state == InGame) {
         player.zoom(amount);
+    }
+    if (state == Inventory) {
+        inventoryView.zoom(amount);
     }
 }
 

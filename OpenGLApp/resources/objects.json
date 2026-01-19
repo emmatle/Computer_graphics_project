@@ -118,7 +118,7 @@
       "id": 6,
       "name": "Picture",
       "model": "models/Picture.obj",
-      "position": [5.36, 1.06, 1.82],
+      "position": [5.36, 1.06, 1.73],
       "rotation": [0.0, 180.0, 0.0]
     },
     {
