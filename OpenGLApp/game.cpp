@@ -1,6 +1,8 @@
 #include "game.h"
 #include "renderer.h"
 #include "utils.h"
+#include "audio_manager.h"
+#include "application.h"
 
 #include <iostream>
 #include <fstream>
@@ -11,6 +13,8 @@
 bool Game::loadObjects() {
     std::filesystem::path file = getResourcePath("objects.json");
     if (file.empty()) return false;
+
+    AudioManager::instance().init();
 
     using json = nlohmann::json;
     std::ifstream in(file);
@@ -109,6 +113,7 @@ void Game::update() {
                     if (obj->checkCollision(player)) {
                         roomObjIt = room.objs.erase(roomObjIt);
                         collectedItems++; // TODO: Add sound effect.
+                        AudioManager::instance().playSound("CollectItem", 80.f, false);
                         erased = true;
 
                         if (collectedItems >= 4) {
@@ -156,13 +161,6 @@ void Game::draw() {
         int id = renderer->readObjFromCursor(room);
         hoveredObj = findObject(id); // TODO: Display text hint if present.
 
-        //if (hoveredObj) {
-          //std::cout << "Hovered object: [" << hoveredObj->name << "]" << std::endl;
-        //}
-
-
-
-
         if (state == Canvas && canvasTex) renderer->updateTexture(*canvasTex, canvas);
         renderer->drawScene(room);
 
@@ -196,9 +194,9 @@ void Game::draw() {
                 Align::Right
             );
         }
-        if (hoveredObj && hoveredObj->name == "Palette") {
+        if (!collectionCompleted && hoveredObj && hoveredObj->name == "Palette") {
             renderer->drawText(
-                "Collect all the brushes in time !",
+                "Collect all the brushes in time!",
                 static_cast<float>(fbWidth) * 0.72f,   // right side
                 static_cast<float>(fbHeight) * 0.35f,  // vertical placement
                 fbScale*0.5,
@@ -356,6 +354,7 @@ void Game::interact(Object *obj) {
         if (equippedObj && equippedObj->name.find("Key") != std::string::npos) {
             doorUnlocked = true;
             obj->animation.play();
+            AudioManager::instance().playSound("OpenDoor");
             std::cout << "Door unlocked with " << equippedObj->name << "!" << std::endl;
         } else {
             std::cout << "The door is locked. You need a key." << std::endl;
@@ -381,16 +380,23 @@ void Game::interact(Object *obj) {
     obj->setRotation();
     inventoryIndex = static_cast<int>(inventory.objs.size()) - 1;
     state = Inventory;
+    Application::setBackgroundLowpass(true);
 }
 
 // --- Callbacks ---
 
 void Game::onKey() {
     if (state == InGame) {
-        if (input.tab) state = Inventory;
+        if (input.tab) {
+            state = Inventory;
+            Application::setBackgroundLowpass(true);
+        }
 
     } else if (state == Inventory) {
-        if (input.esc) state = InGame;
+        if (input.esc || input.tab) {
+            state = InGame;
+            Application::setBackgroundLowpass(false);
+        }
 
         if (input.q && !inventory.objs.empty()) {
             inventoryIndex = (inventoryIndex - 1 + (int) inventory.objs.size()) % (int) inventory.objs.size();

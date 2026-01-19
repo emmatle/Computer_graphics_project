@@ -14,6 +14,12 @@
 #include <backends/imgui_impl_glfw.h>
 #include <nlohmann/json.hpp>
 
+#include "audio_manager.h"
+sf::Music Application::backgroundMusicNormal;
+sf::Music Application::backgroundMusicLowpass;
+bool Application::backgroundLowpassActive = false;
+float Application::backgroundMusicPrevVolume = 30.f;
+
 Game Application::game;
 Renderer Application::renderer;
 
@@ -67,9 +73,37 @@ void Application::updateTime() {
 void Application::init() {
     loadSettings();
 
-    backgroundMusic.setVolume(30.0f);
-    backgroundMusic.setLooping(true);
-    backgroundMusic.play();
+    if (!backgroundMusicNormal.openFromFile(getResourcePath("sounds/BackgroundMusic.mp3"))) {
+        std::cerr << "ERROR: can't load " << getResourcePath("sounds/BackgroundMusic.mp3") << std::endl;
+    } else {
+        backgroundMusicNormal.setVolume(30.f);
+        backgroundMusicNormal.setLooping(true);
+        backgroundMusicNormal.play();
+        backgroundLowpassActive = false;
+        backgroundMusicPrevVolume = 30.f;
+    }
+
+    if (!backgroundMusicLowpass.openFromFile(getResourcePath("sounds/BackgroundMusicLowPass.mp3"))) {
+        std::cerr << "WARNING: can't load " << getResourcePath("sounds/BackgroundMusicLowPass.mp3") << std::endl;
+    } else {
+        backgroundMusicLowpass.setVolume(30.f);
+        backgroundMusicLowpass.setLooping(true);
+    }
+
+    AudioManager::instance().init();
+    sf::SoundBuffer opendoorBuffer;
+    if (!opendoorBuffer.loadFromFile(getResourcePath("sounds/door_opening.mp3"))) {
+        std::cerr << "ERROR: can't load " << getResourcePath("sounds/door_opening.mp3") << std::endl;
+    } else {
+        AudioManager::instance().loadSound("OpenDoor", opendoorBuffer);
+    }
+
+    sf::SoundBuffer itempickupBuffer;
+    if (!itempickupBuffer.loadFromFile(getResourcePath("sounds/item_pickup.mp3"))) {
+        std::cerr << "ERROR: can't load " << getResourcePath("sounds/item_pickup.mp3") << std::endl;
+    } else {
+        AudioManager::instance().loadSound("CollectItem", itempickupBuffer);
+    }
 
     if (!glfwInit()) {
         std::cerr << "ERROR: failed to initialize GLFW" << std::endl;
@@ -357,6 +391,21 @@ void Application::drawDebugMenu() {
     ImGui::End();
 }
 
+void Application::setBackgroundLowpass(bool enable) {
+    if (enable == backgroundLowpassActive) return;
+    backgroundLowpassActive = enable;
+
+    if (enable) {
+        // salva volume corrente e abbassa la musica di sottofondo
+        backgroundMusicPrevVolume = backgroundMusicNormal.getVolume();
+        float lowered = std::max(5.f, backgroundMusicPrevVolume * 0.25f); // 25% o minimo 5
+        backgroundMusicNormal.setVolume(lowered);
+    } else {
+        // ripristina il volume salvato
+        backgroundMusicNormal.setVolume(backgroundMusicPrevVolume);
+    }
+}
+
 // Callback for closing the window
 void Application::windowCloseCallback(GLFWwindow *window) {
     glfwSetWindowShouldClose(window, true);
@@ -399,11 +448,12 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
         }
     }
     if (key == GLFW_KEY_F2 && action == GLFW_PRESS) {
-        auto status = backgroundMusic.getStatus();
+        auto &activeMusic = backgroundLowpassActive ? backgroundMusicLowpass : backgroundMusicNormal;
+        auto status = activeMusic.getStatus();
         if (status == sf::Sound::Status::Playing) {
-            backgroundMusic.pause();
-        } else if (backgroundMusic.getStatus() == sf::Sound::Status::Paused) {
-            backgroundMusic.play();
+            activeMusic.pause();
+        } else if (status == sf::Sound::Status::Paused) {
+            activeMusic.play();
         }
     }
     if (key == GLFW_KEY_F3 && action == GLFW_PRESS) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <SFML/Audio.hpp>
 
 class Game;
 class Renderer;
@@ -18,6 +19,8 @@ public:
     static float mouseSensitivity;
     static float fontSize;
 
+    static void setBackgroundLowpass(bool enable);
+
     void run();
 
 private:
@@ -29,6 +32,11 @@ private:
     static bool firstMouse;
     static float time;
     static float fps;
+
+    static sf::Music backgroundMusicNormal;
+    static sf::Music backgroundMusicLowpass;
+    static bool backgroundLowpassActive;
+    static float backgroundMusicPrevVolume;
 
     void init();
 
