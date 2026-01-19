@@ -101,7 +101,7 @@ void Game::update() {
                         roomObjIt = room.objs.erase(roomObjIt);
                         collectedItems++; // TODO: Add sound effect.
                         erased = true;
-                        
+
                         if (collectedItems >= 4) {
                             collectionTimer = 0.f; // Success
                         }
@@ -148,6 +148,13 @@ void Game::draw(int fbWidth, int fbHeight, float fbScale) {
         int id = renderer->readObjFromCursor(room);
         hoveredObj = findObject(id); // TODO: Display text hint if present.
 
+        //if (hoveredObj) {
+          //std::cout << "Hovered object: [" << hoveredObj->name << "]" << std::endl;
+        //}
+
+
+
+
         if (state == Canvas && canvasTex) renderer->updateTexture(*canvasTex, canvas);
         renderer->drawScene(room);
 
@@ -161,20 +168,71 @@ void Game::draw(int fbWidth, int fbHeight, float fbScale) {
             Align::Center
         );
 
+        if (hoveredObj && hoveredObj->name == "Easle") {
+            renderer->drawText(
+                "Look at venus in the right angle...",
+                static_cast<float>(fbWidth) * 0.65f,   // right side
+                static_cast<float>(fbHeight) * 0.06f,  // vertical placement
+                fbScale*0.5,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                Align::Left
+            );
+        }
+        if (hoveredObj && hoveredObj->name == "Key") {
+            renderer->drawText(
+                "Collect the key to go to the next room !",
+                static_cast<float>(fbWidth) * 0.72f,   // right side
+                static_cast<float>(fbHeight) * 0.45f,  // vertical placement
+                fbScale*0.5,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                Align::Right
+            );
+        }
+        if (hoveredObj && hoveredObj->name == "Palette") {
+            renderer->drawText(
+                "Collect all the brushes in time !",
+                static_cast<float>(fbWidth) * 0.72f,   // right side
+                static_cast<float>(fbHeight) * 0.35f,  // vertical placement
+                fbScale*0.5,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                Align::Right
+            );
+        }
+        if (hoveredObj && hoveredObj->name == "Safe Door") {
+            renderer->drawText(
+                "Find the code to open the safe door...",
+                static_cast<float>(fbWidth) * 0.72f,   // right side
+                static_cast<float>(fbHeight) * 0.35f,  // vertical placement
+                fbScale*0.5,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                Align:: Right
+            );
+        }
+        if (hoveredObj && hoveredObj->name == "Desk Drawer") {
+            renderer->drawText(
+                "Look inside...",
+                static_cast<float>(fbWidth) * 0.72f,   // right side
+                static_cast<float>(fbHeight) * 0.35f,  // vertical placement
+                fbScale*0.5,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                Align:: Right
+            );
+        }
+
         if (collectionTimer > 0.f) {
             renderer->drawText(
-                "Collect all the brushes (" + std::to_string(collectedItems) + "/4)",
+                "Brushes collected : (" + std::to_string(collectedItems) + "/4)",
                 25.0f,
-                60.0f,
+                100.0f,
                 fbScale,
                 glm::vec3(1.0f, 1.0f, 0.0f)
             );
             renderer->drawText(
-                "Time left: " + std::to_string(static_cast<int>(collectionTimer)) + "s",
-                25.0f,
-                120.0f,
+                "Time left : " + std::to_string(static_cast<int>(collectionTimer)) + "s",
+                1550.0f,
+                100.0f,
                 fbScale,
-                glm::vec3(1.0f, 0.0f, 0.0f)
+                glm::vec3(1.0f, 1.0f, 0.0f)
             );
         }
     } else if (state == Inventory) {
@@ -302,7 +360,7 @@ void Game::interact(Object *obj) {
         obj->animation.toggle();
         return;
     }
-    
+
     for (auto it = room.objs.begin(); it != room.objs.end(); ++it) {
         if (*it == obj) {
             inventory.objs.push_back(obj);
