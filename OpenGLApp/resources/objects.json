@@ -73,10 +73,10 @@
       "name": "Door",
       "model": "models/Door.obj",
       "position": [1.325, 0.0, -1.033],
-      "rotation": [0.0, -90.0, 0.0],
+      "rotation": [0.0, 90.0, 0.0],
       "scale": [1.0, 1.0, 1.0],
       "animation": {
-        "rotation": [0.0, 105.0, 0.0],
+        "rotation": [0.0, -105.0, 0.0],
         "pivot": [-0.427, 0.0, 0.0],
         "duration": 0.5
       }
