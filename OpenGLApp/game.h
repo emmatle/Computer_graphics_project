@@ -57,7 +57,7 @@ public:
     // Camera player{{2.24f, 0.93f, 1.17f}, {glm::radians(-5.2f), glm::radians(-50.f), 0.f}}; // Blender render cam
     Camera player{{0.0f, 1.75f, 0.0f}}; // Spawning point
     Camera inventoryView{{0.0f, 0.0f, 1.0f}};
-    Camera canvasView{{0.0f, 0.0f, 12.0f}};
+    Camera canvasView{{0.0f, 0.5f, 12.0f}, {}, glm::radians(45.f), 1.f, false, true};
 
     static constexpr glm::vec3 KEY_LIGHT = {1.0f, 0.82f, 0.62f}; // 4000K warm light
     static constexpr glm::vec3 BACK_LIGHT = {0.78f, 0.82, 1.0f}; // 8000K cool light
@@ -78,7 +78,7 @@ public:
         }
     };
     Scene canvas = {
-        {}, &canvasView
+        {}, &canvasView, {}, glm::vec3(1.f)
     };
 
     bool mouseDrag = false;
@@ -93,10 +93,12 @@ public:
     // Palette minigame
     float collectionTimer = 0.0f;
     int collectedItems = 0;
+    bool collectionCompleted = false;
 
     // Safe code entry
     std::string enteredCode;
-    std::string password = "4687391";
+    // Number of pictures (8) + Colored pencils in order (4687391) + Sum of red, green, blue pencils (20)
+    std::string password = "8468739120";
 
     glm::vec3 lastPos{};
     glm::vec3 lastRot{};
@@ -105,13 +107,11 @@ public:
 
     void update();
 
-    void draw(int fbWidth, int fbHeight, float fbScale);
+    void draw();
 
     Object *getObject(const std::string &name);
 
     Object *findObject(int id);
-
-    void viewCanvas(int index); // TODO
 
     void interact(Object *obj);
 

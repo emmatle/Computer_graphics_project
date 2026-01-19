@@ -101,6 +101,7 @@ protected:
     glm::vec3 _up;
 
     // Model and inverse model matrices cache
+    mutable glm::mat4 worldMatrix; // parent * model
     mutable glm::mat4 modelMatrix;
     mutable glm::mat4 inverseModelMatrix;
     mutable bool modelDirty = true;
@@ -135,15 +136,13 @@ public:
     constexpr static glm::vec3 WRLD_UP{0.f, 1.f, 0.f};
 
     Object(const glm::vec3 &pos = {}, const glm::vec3 &rot = {}, const glm::vec3 &scl = {1.f, 1.f, 1.f},
-           std::string path = "", int id = 0, std::string name = "");
+           std::string path = "", int id = 0, std::string name = "", Object *parent = nullptr);
 
     Object(const nlohmann::json &j);
 
     Object(const Object &other);
 
     virtual ~Object() = default;
-
-    virtual void updateLogic() {}
 
     // Copy Assignment Operator
     Object &operator=(const Object &other);
@@ -204,7 +203,6 @@ class Camera : public Object {
     mutable glm::mat4 projectionMatrix;
     mutable bool projectionDirty = true;
     mutable float lastDistance;
-    mutable bool lastMode;
 
 public:
     // Constraints and clipping planes
@@ -212,13 +210,15 @@ public:
     static constexpr float MAX_PITCH = 89.f;
     static constexpr float MIN_CLIPPING = 0.01f;
     static constexpr float MAX_CLIPPING = 30.f;
+    static constexpr float ORTHOGRAPHIC_SCALE = 4.f;
 
     const float &fov = _fov;
     const float &aspect = _aspect;
     bool costrain;
+    bool ortho;
 
     Camera(glm::vec3 pos = {}, glm::vec3 rot = {}, float fov = glm::radians(45.f), float asp = 1.f,
-           bool costrain = true);
+           bool costrain = true, bool ortho = false);
 
     void setScale(const glm::vec3 &scl) = delete;
 
@@ -237,31 +237,5 @@ public:
     // Object inverse matrix wrapper
     const glm::mat4 &getViewMatrix() const;
 
-    const glm::mat4 &getProjectionMatrix(float distance = MAX_CLIPPING, bool persp = true) const;
-};
-
-class Canvas : public Object {
-    static constexpr float POSITION_THRESHOLD = 0.1f;
-    static constexpr float ROTATION_THRESHOLD = glm::radians(5.f);
-    glm::vec3 correctPosition;
-    glm::vec3 correctRotation;
-
-public:
-    Camera *view = nullptr;
-    bool isSolved = false;
-
-    Canvas(const glm::vec3 &pos, const glm::vec3 &rot) : correctPosition(pos), correctRotation(rot) {};
-
-    void updateLogic() override {
-        if (!isSolved) {
-            float posOffest = glm::distance(position, correctPosition);
-            float rotOffset = glm::distance(rotation, correctRotation);
-            if (posOffest < POSITION_THRESHOLD && rotOffset < ROTATION_THRESHOLD) {
-                isSolved = true;
-                // TODO: Align the view to the canvas perfectly as transition.
-                view->setPosition(correctPosition);
-                view->setRotation(correctRotation);
-            }
-        }
-    }
+    const glm::mat4 &getProjectionMatrix(float distance = MAX_CLIPPING) const;
 };

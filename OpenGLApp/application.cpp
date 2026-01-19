@@ -231,7 +231,7 @@ void Application::run() {
 
         if (debug) drawDebugMenu();
 
-        game.draw(fbWidth, fbHeight, fbScale);
+        game.draw();
 
         // Render ImGui
         ImGui::Render();
