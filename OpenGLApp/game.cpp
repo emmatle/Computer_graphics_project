@@ -233,7 +233,7 @@ void Game::draw() {
             if (!doorUnlocked) {
                 if (equippedObj && equippedObj->name.find("Key") != std::string::npos) {
                     renderer->drawText(
-                        "Unlock the door.",
+                        "Unlock",
                         static_cast<float>(fbWidth) * 0.5f, // right side
                         static_cast<float>(fbHeight) * 0.95f, // vertical placement
                         1.0f,
@@ -242,7 +242,7 @@ void Game::draw() {
                     );
                 } else {
                     renderer->drawText(
-                        "Door is locked. Find a key to open it.",
+                        "Door is locked",
                         static_cast<float>(fbWidth) * 0.5f, // right side
                         static_cast<float>(fbHeight) * 0.95f, // vertical placement
                         1.0f,
