@@ -254,6 +254,15 @@
       "position": [0.0, 0.0, 0.0],
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 29,
+      "name": "Purple New Pencil",
+      "model": "models/purple_new.obj",
+      "position": [0.0, 5.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
     }
+
   ]
 }
