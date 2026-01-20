@@ -198,6 +198,62 @@
       "name": "ButtonEnter",
       "model": "models/ButtonEnter.obj",
       "parent": "Safe Door"
+    },
+    {
+      "id": 22,
+      "name": "Azure Pencil",
+      "model": "models/azure.obj",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 23,
+      "name": "Blue Pencil",
+      "model": "models/blue.obj",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 24,
+      "name": "Green Pencil",
+      "model": "models/green.obj",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 25,
+      "name": "Orange Pencil",
+      "model": "models/orange.obj",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 26,
+      "name": "Purple Pencil",
+      "model": "models/purple.obj",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 27,
+      "name": "Red Pencil",
+      "model": "models/red.obj",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 28,
+      "name": "Yellow Pencil",
+      "model": "models/yellow.obj",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
     }
   ]
 }
