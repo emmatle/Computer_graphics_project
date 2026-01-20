@@ -219,7 +219,7 @@
       "id": 24,
       "name": "Green Pencil",
       "model": "models/green.obj",
-      "position": [-0.74, 0.17, -2.50],
+      "position": [-0.74, 0.70, -2.50],
       "rotation": [-180.0, -90.0, -180.0],
       "scale": [1.0, 1.0, 1.0]
     },
