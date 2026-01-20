@@ -33,7 +33,7 @@
       "id": 0,
       "name": "Brush1",
       "model": "models/Brush.obj",
-      "position": [0.0, 2.0, -0.2],
+      "position": [1.5, 1.0, -1.0],
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0],
       "animation": {
@@ -46,7 +46,7 @@
       "id": 0,
       "name": "Brush2",
       "model": "models/Brush.obj",
-      "position": [0.0, 2.0, -0.2],
+      "position": [2.4, 1.3, -2.3],
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0],
       "animation": {
@@ -59,7 +59,7 @@
       "id": 0,
       "name": "Brush3",
       "model": "models/Brush.obj",
-      "position": [0.0, 2.0, -0.2],
+      "position": [5, 1.1, 1.7],
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0],
       "animation": {
