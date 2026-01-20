@@ -26,7 +26,7 @@ inline int fbHeight = 1080; // Framebuffer height
 inline float fbScale = 1.f; // Framebuffer scale
 inline float aspect = 16.f / 9.f; // Aspect Ratio
 inline float mouseSensitivity = 0.05f;
-inline bool debug = true; // Enables debug menu and flying camera
+inline bool debug = false; // Enables debug menu and flying camera
 
 namespace glm {
     inline void from_json(const nlohmann::json &j, vec3 &value) {

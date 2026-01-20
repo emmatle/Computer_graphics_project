@@ -88,7 +88,9 @@ public:
     int inventoryIndex = 0;
     Object* equippedObj = nullptr;
     float playerSpeed = 2.0f;
+
     bool doorUnlocked = false;
+    bool safeUnlocked = false;
 
     // Palette minigame
     float collectionTimer = 0.0f;

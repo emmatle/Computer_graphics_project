@@ -167,9 +167,7 @@ void Game::draw() {
         if (state == Canvas && canvasTex) renderer->updateTexture(*canvasTex, canvas);
         renderer->drawScene(room);
 
-        bool safeClosed = true;
-
-        if (safeClosed) {
+        if (!safeUnlocked) {
             auto textModel = glm::translate(glm::mat4(1.0f), glm::vec3(1.952, 1.39983, 0.82));
             textModel = glm::rotate(textModel, glm::radians(90.0f), glm::vec3(0, 1, 0));
 
@@ -261,16 +259,6 @@ void Game::draw() {
                 }
             }
         }
-        if (hoveredObj->name == "Safe Door") {
-            renderer->drawText(
-                "Find the code to open the safe door...",
-                static_cast<float>(fbWidth) * 0.5f, // right side
-                static_cast<float>(fbHeight) * 0.95f, // vertical placement
-                1.0f,
-                glm::vec3(1.0f, 1.0f, 1.0f),
-                Align::Center
-            );
-        }
         if (hoveredObj->name == "Desk Drawer") {
             // TODO: Add drawer or remove the hint.
             renderer->drawText(
@@ -347,13 +335,10 @@ void Game::interact(Object *obj) {
             }
             if (num == "Enter") {
                 if (enteredCode == password) {
-                    std::cout << "Correct code entered! Door unlocked." << std::endl;
+                    safeUnlocked = true;
                     if (auto door = getObject("Safe Door")) door->animation.play();
-                } else {
-                    // Incorrect code, reset entered code
-                    std::cout << "Incorrect code. Try again." << std::endl;
-                    enteredCode.clear();
                 }
+                enteredCode.clear();
             }
         }
         return;
@@ -408,9 +393,6 @@ void Game::interact(Object *obj) {
             doorUnlocked = true;
             obj->animation.play();
             AudioManager::instance().playSound("OpenDoor");
-            std::cout << "Door unlocked with " << equippedObj->name << "!" << std::endl;
-        } else {
-            std::cout << "The door is locked. You need a key." << std::endl;
         }
         return;
     }

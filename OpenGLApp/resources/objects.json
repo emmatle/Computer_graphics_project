@@ -20,7 +20,7 @@
       "id": 0,
       "name": "Brush0",
       "model": "models/Brush.obj",
-      "position": [0.0, 2.0, -0.2],
+      "position": [0.0, 1.5, -0.2],
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0],
       "animation": {
@@ -37,7 +37,7 @@
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0],
       "animation": {
-        "rotation": [0.0, 360.0, -0.2],
+        "rotation": [0.0, 360.0, 0.0],
         "speed": 0.1,
         "loop": true
       }
@@ -50,7 +50,7 @@
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0],
       "animation": {
-        "rotation": [0.0, 360.0, -0.2],
+        "rotation": [0.0, 360.0, 0.0],
         "speed": 0.1,
         "loop": true
       }
@@ -59,11 +59,11 @@
       "id": 0,
       "name": "Brush3",
       "model": "models/Brush.obj",
-      "position": [5, 1.1, 1.7],
+      "position": [5.6, 1.1, 0.5],
       "rotation": [0.0, 0.0, 0.0],
       "scale": [1.0, 1.0, 1.0],
       "animation": {
-        "rotation": [0.0, 360.0, -0.2],
+        "rotation": [0.0, 360.0, 0.0],
         "speed": 0.1,
         "loop": true
       }
