@@ -283,10 +283,9 @@ void Renderer::drawText(const std::string &text, float x, float y, float scale, 
     glEnable(GL_DEPTH_TEST);
 }
 
-void Renderer::drawText3D(const std::string &text, const glm::vec3 &position, const Camera &cam, float scale,
+void Renderer::drawText3D(const std::string &text, const glm::mat4 &model, const Camera &cam, float scale,
                           const glm::vec3 &color, Align align) const {
     std::string clean = convertUTF8toLatin1(text);
-    float scaleFactor = fbScale * scale;
     scale *= 0.002f; // Adjust this scale factor as needed
 
     // Compute total width for alignment in 3D space (same as 2D but in object space units)
@@ -296,20 +295,15 @@ void Renderer::drawText3D(const std::string &text, const glm::vec3 &position, co
         textWidth += static_cast<float>(ch.advance >> 6) * scale;
     }
 
-    glm::mat4 modelMatrix(1.0f);
-    modelMatrix[0] = glm::vec4(cam.right, 0.0f);
-    modelMatrix[1] = glm::vec4(cam.up, 0.0f);
-    modelMatrix[2] = glm::vec4(cam.front, 0.0f);
-    modelMatrix[3] = glm::vec4(position, 1.0f);
-
     text3DShader.use();
     text3DShader.set("textColor", color);
-    text3DShader.set("model", modelMatrix);
+    text3DShader.set("model", model);
     text3DShader.set("view", cam.getViewMatrix());
     text3DShader.set("projection", cam.getProjectionMatrix());
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_DEPTH_TEST);
     glBindVertexArray(textVAO3D);
 
     float penX = 0.0f;

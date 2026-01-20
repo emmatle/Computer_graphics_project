@@ -167,6 +167,16 @@ void Game::draw() {
         if (state == Canvas && canvasTex) renderer->updateTexture(*canvasTex, canvas);
         renderer->drawScene(room);
 
+        bool safeClosed = true;
+
+        if (safeClosed) {
+            // TODO: Adjusting to be on the safe door front panel and to render only if door is closed.
+            auto textModel = glm::translate(glm::mat4(1.0f), glm::vec3(1.965, 1.41, 0.83));
+            textModel = glm::rotate(textModel, glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+            renderer->drawText3D(enteredCode, textModel, player, 0.33f, glm::vec3(0.0f, 0.8f, 0.0f));
+        }
+
         // Crosshair
         renderer->drawText(
             ".",
