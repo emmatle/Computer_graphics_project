@@ -60,7 +60,6 @@ bool Game::loadObjects() {
             std::string objName = entry["name"];
             std::string parentName = entry["parent"];
             Object *parent = getObject(parentName);
-
         }
     }
 
@@ -94,7 +93,7 @@ void Game::update() {
             if (collectionTimer <= 0.f) {
                 collectionTimer = 0.f;
                 // Clear brushes from room if they weren't collected
-                for (auto it = room.objs.begin(); it != room.objs.end(); ) {
+                for (auto it = room.objs.begin(); it != room.objs.end();) {
                     if ((*it)->name.find("Brush") != std::string::npos) {
                         it = room.objs.erase(it);
                     } else {
@@ -106,7 +105,7 @@ void Game::update() {
 
         if (!debug) {
             for (auto roomObjIt = room.objs.begin(); roomObjIt != room.objs.end();) {
-                Object* obj = *roomObjIt;
+                Object *obj = *roomObjIt;
                 bool erased = false;
 
                 if (collectionTimer > 0 && obj->name.find("Brush") != std::string::npos) {
@@ -154,102 +153,155 @@ void Game::update() {
 
 void Game::draw() {
     static auto canvasTex = dynamic_cast<DynamicTexture *>(renderer->getTexture("#Canvas"));
-    if (canvasTex) renderer->updateTexture(*canvasTex, canvas);
-
+    if (collectionCompleted) {
+        renderer->updateTexture(*canvasTex, canvas);
+    } else {
+        // Render just the background as an empty scene
+        renderer->updateTexture(*canvasTex, {{}, canvas.cam, {}, canvas.clearColor});
+    }
     // Scene rendering
     if (state == InGame || state == Canvas) {
         int id = renderer->readObjFromCursor(room);
-        hoveredObj = findObject(id); // TODO: Display text hint if present.
+        hoveredObj = findObject(id);
 
         if (state == Canvas && canvasTex) renderer->updateTexture(*canvasTex, canvas);
         renderer->drawScene(room);
 
+        bool safeClosed = true;
+
+        if (safeClosed) {
+            auto textModel = glm::translate(glm::mat4(1.0f), glm::vec3(1.952, 1.39983, 0.82));
+            textModel = glm::rotate(textModel, glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+            renderer->drawText3D(enteredCode, textModel, player, 0.33f, glm::vec3(0.0f, 0.8f, 0.0f));
+        }
+
         // Crosshair
         renderer->drawText(
             ".",
-            static_cast<float>(fbWidth) / 2.0f,
-            static_cast<float>(fbHeight) / 2.0f,
-            fbScale,
+            static_cast<float>(fbWidth) * 0.5f,
+            static_cast<float>(fbHeight) * 0.5f,
+            1.0f,
             glm::vec3(0.8f, 0.8f, 0.8f),
             Align::Center
         );
 
-        if (hoveredObj && hoveredObj->name == "Canvas") {
+        if (collectionTimer > 0.f) {
             renderer->drawText(
-                "Look at venus in the right angle...",
-                static_cast<float>(fbWidth) * 0.65f,   // right side
-                static_cast<float>(fbHeight) * 0.06f,  // vertical placement
-                fbScale*0.5,
-                glm::vec3(1.0f, 1.0f, 1.0f),
-                Align::Left
+                "Brushes collected: (" + std::to_string(collectedItems) + "/4)",
+                static_cast<float>(fbWidth) * 0.05f, // ~50/1080
+                static_cast<float>(fbHeight) * 0.095f, // ~100/1080
+                1.0f,
+                glm::vec3(1.0f, 1.0f, 0.0f)
             );
-        }
-        if (hoveredObj && hoveredObj->name == "Key") {
             renderer->drawText(
-                "Collect the key to go to the next room !",
-                static_cast<float>(fbWidth) * 0.72f,   // right side
-                static_cast<float>(fbHeight) * 0.45f,  // vertical placement
-                fbScale*0.5,
-                glm::vec3(1.0f, 1.0f, 1.0f),
-                Align::Right
-            );
-        }
-        if (!collectionCompleted && hoveredObj && hoveredObj->name == "Palette") {
-            renderer->drawText(
-                "Collect all the brushes in time!",
-                static_cast<float>(fbWidth) * 0.72f,   // right side
-                static_cast<float>(fbHeight) * 0.35f,  // vertical placement
-                fbScale*0.5,
-                glm::vec3(1.0f, 1.0f, 1.0f),
-                Align::Right
-            );
-        }
-        if (hoveredObj && hoveredObj->name == "Safe Door") {
-            renderer->drawText(
-                "Find the code to open the safe door...",
-                static_cast<float>(fbWidth) * 0.72f,   // right side
-                static_cast<float>(fbHeight) * 0.35f,  // vertical placement
-                fbScale*0.5,
-                glm::vec3(1.0f, 1.0f, 1.0f),
-                Align:: Right
-            );
-        }
-        if (hoveredObj && hoveredObj->name == "Desk Drawer") {
-            renderer->drawText(
-                "Look inside...",
-                static_cast<float>(fbWidth) * 0.72f,   // right side
-                static_cast<float>(fbHeight) * 0.35f,  // vertical placement
-                fbScale*0.5,
-                glm::vec3(1.0f, 1.0f, 1.0f),
-                Align:: Right
+                "Time left: " + std::to_string(static_cast<int>(collectionTimer)) + "s",
+                static_cast<float>(fbWidth) * 0.7f, // ~750/1080
+                static_cast<float>(fbHeight) * 0.095f, // ~100/1080
+                1.0f,
+                glm::vec3(1.0f, 1.0f, 0.0f)
             );
         }
 
-        if (collectionTimer > 0.f) {
+        // Contextual hints
+        if (!hoveredObj) return;
+
+        if (collectionCompleted && hoveredObj->name == "Canvas") {
             renderer->drawText(
-                "Brushes collected : (" + std::to_string(collectedItems) + "/4)",
-                25.0f,
-                100.0f,
-                fbScale,
-                glm::vec3(1.0f, 1.0f, 0.0f)
+                "Look at Venus from the right angle...",
+                static_cast<float>(fbWidth) * 0.95f, // ~750/1080
+                static_cast<float>(fbHeight) * 0.095f, // ~100/1080
+                1.0f,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                Align::Right
             );
+        }
+
+        if (!collectionCompleted && hoveredObj->name == "Palette") {
             renderer->drawText(
-                "Time left : " + std::to_string(static_cast<int>(collectionTimer)) + "s",
-                1550.0f,
-                100.0f,
-                fbScale,
-                glm::vec3(1.0f, 1.0f, 0.0f)
+                "Collect all the brushes in time!",
+                static_cast<float>(fbWidth) * 0.5f, // right side
+                static_cast<float>(fbHeight) * 0.95f, // vertical placement
+                1.0f,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                Align::Center
+            );
+        }
+
+        if (hoveredObj->name == "Picture") {
+            renderer->drawText(
+                "Is that a capybara?",
+                static_cast<float>(fbWidth) * 0.5f, // right side
+                static_cast<float>(fbHeight) * 0.95f, // vertical placement
+                1.0f,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                Align::Center
+            );
+        }
+        if (hoveredObj->name == "Door") {
+            if (!doorUnlocked) {
+                if (equippedObj && equippedObj->name.find("Key") != std::string::npos) {
+                    renderer->drawText(
+                        "Unlock",
+                        static_cast<float>(fbWidth) * 0.5f, // right side
+                        static_cast<float>(fbHeight) * 0.95f, // vertical placement
+                        1.0f,
+                        glm::vec3(1.0f, 1.0f, 1.0f),
+                        Align::Center
+                    );
+                } else {
+                    renderer->drawText(
+                        "Door is locked",
+                        static_cast<float>(fbWidth) * 0.5f, // right side
+                        static_cast<float>(fbHeight) * 0.95f, // vertical placement
+                        1.0f,
+                        glm::vec3(1.0f, 1.0f, 1.0f),
+                        Align::Center
+                    );
+                }
+            }
+        }
+        if (hoveredObj->name == "Safe Door") {
+            renderer->drawText(
+                "Find the code to open the safe door...",
+                static_cast<float>(fbWidth) * 0.5f, // right side
+                static_cast<float>(fbHeight) * 0.95f, // vertical placement
+                1.0f,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                Align::Center
+            );
+        }
+        if (hoveredObj->name == "Desk Drawer") {
+            // TODO: Add drawer or remove the hint.
+            renderer->drawText(
+                "Look inside...",
+                static_cast<float>(fbWidth) * 0.05f, // right side
+                static_cast<float>(fbHeight) * 0.95f, // vertical placement
+                1.0f,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                Align::Right
             );
         }
     } else if (state == Inventory) {
         renderer->drawScene(inventory, false, inventoryIndex);
+
+        if (inventoryIndex != -1) {
+            renderer->drawText(
+                inventory.objs[inventoryIndex]->name,
+                static_cast<float>(fbWidth) * 0.5f,
+                static_cast<float>(fbHeight) * 0.95f,
+                1.0f,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                Align::Center
+            );
+        }
     } else if (state == Credits) {
         Renderer::clear();
         renderer->drawText(
             "Yippee, you are a star!",
-            static_cast<float>(fbWidth) / 2.0f,
-            static_cast<float>(fbHeight) / 2.0f,
-            fbScale,
+            static_cast<float>(fbWidth) * 0.5f,
+            static_cast<float>(fbHeight) * 0.5f,
+            1.0f,
             glm::vec3(1.0f, 1.0f, 0.0f),
             Align::Center
         );
@@ -314,12 +366,12 @@ void Game::interact(Object *obj) {
         collectedItems = 0;
 
         std::vector<std::string> brushNames = {"Brush0", "Brush1", "Brush2", "Brush3"};
-        for (const auto& name : brushNames) {
-            Object* brush = getObject(name);
+        for (const auto &name: brushNames) {
+            Object *brush = getObject(name);
             if (brush) {
                 // Check if it's already in the room
                 bool inRoom = false;
-                for (auto roomObj : room.objs) {
+                for (auto roomObj: room.objs) {
                     if (roomObj == brush) {
                         inRoom = true;
                         break;
@@ -336,6 +388,7 @@ void Game::interact(Object *obj) {
 
     pos = obj->name.find("Canvas");
     if (pos != std::string::npos) {
+        if (!collectionCompleted) return;
         lastPos = player.position;
         lastRot = player.rotation;
         player.setPosition(obj->position - obj->front * 1.5f);
@@ -391,7 +444,6 @@ void Game::onKey() {
             state = Inventory;
             Application::setBackgroundLowpass(true);
         }
-
     } else if (state == Inventory) {
         if (input.esc || input.tab) {
             state = InGame;

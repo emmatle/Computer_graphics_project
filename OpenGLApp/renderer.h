@@ -46,8 +46,8 @@ public:
     void drawText(const std::string &text, float x, float y, float scale, const glm::vec3 &color = glm::vec3(1.0f),
                   Align align = Align::Left) const;
 
-    void drawText3D(const std::string &text, const glm::vec3 &position, const Camera &cam, float scale = 1.f,
-                    const glm::vec3 &color = glm::vec3(1.f), Align align = Align::Left) const;
+    void drawText3D(const std::string &text, const glm::mat4 &model, const Camera &cam,
+                    float scale = 1.f, const glm::vec3 &color = glm::vec3(1.f), Align align = Align::Left) const;
 
     void updateTexture(const DynamicTexture &dyn, const Scene &scene) const;
 

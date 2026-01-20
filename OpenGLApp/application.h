@@ -36,7 +36,6 @@ private:
     static sf::Music backgroundMusicNormal;
     static sf::Music backgroundMusicLowpass;
     static bool backgroundLowpassActive;
-    static float backgroundMusicPrevVolume;
 
     void init();
 
