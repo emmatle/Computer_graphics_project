@@ -203,64 +203,56 @@
       "id": 22,
       "name": "Azure Pencil",
       "model": "models/azure.obj",
-      "position": [0.0, 0.0, 0.0],
-      "rotation": [0.0, 0.0, 0.0],
+      "position": [-0.88, 0.68, -1.52],
+      "rotation": [-180.0, -90.0, 28.0],
       "scale": [1.0, 1.0, 1.0]
     },
     {
       "id": 23,
       "name": "Blue Pencil",
       "model": "models/blue.obj",
-      "position": [0.0, 0.0, 0.0],
-      "rotation": [0.0, 0.0, 0.0],
+      "position": [2.24, 1.59, -1.97],
+      "rotation": [-180.0, -180.0, -90.0],
       "scale": [1.0, 1.0, 1.0]
     },
     {
       "id": 24,
       "name": "Green Pencil",
       "model": "models/green.obj",
-      "position": [0.0, 0.0, 0.0],
-      "rotation": [0.0, 0.0, 0.0],
+      "position": [-0.74, 0.17, -2.50],
+      "rotation": [-180.0, -90.0, -180.0],
       "scale": [1.0, 1.0, 1.0]
     },
     {
       "id": 25,
-      "name": "Orange Pencil",
-      "model": "models/orange.obj",
-      "position": [0.0, 0.0, 0.0],
-      "rotation": [0.0, 0.0, 0.0],
+      "name": "Red Pencil",
+      "model": "models/red.obj",
+      "position": [6.4, 0.75, 0.57],
+      "rotation": [-180.0, -90.0, 164.0],
       "scale": [1.0, 1.0, 1.0]
     },
     {
       "id": 26,
       "name": "Purple Pencil",
       "model": "models/purple.obj",
-      "position": [0.0, 0.0, 0.0],
-      "rotation": [0.0, 0.0, 0.0],
+      "position": [3.99, 0.91, -0.70],
+      "rotation": [-203.0, -89.0, 174.0],
       "scale": [1.0, 1.0, 1.0]
     },
     {
       "id": 27,
-      "name": "Red Pencil",
-      "model": "models/red.obj",
-      "position": [0.0, 0.0, 0.0],
-      "rotation": [0.0, 0.0, 0.0],
+      "name": "Orange Pencil",
+      "model": "models/orange.obj",
+      "position": [-0.82, 0.68, -1.41],
+      "rotation": [-180.0, -90.0, 28.0],
       "scale": [1.0, 1.0, 1.0]
     },
     {
       "id": 28,
       "name": "Yellow Pencil",
       "model": "models/yellow.obj",
-      "position": [0.0, 0.0, 0.0],
-      "rotation": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
-    },
-    {
-      "id": 29,
-      "name": "Purple New Pencil",
-      "model": "models/purple_new.obj",
-      "position": [0.0, 5.0, 0.0],
-      "rotation": [0.0, 0.0, 0.0],
+      "position": [6.74, 1.76, 1.18],
+      "rotation": [-180.0, -181.0, 180.0],
       "scale": [1.0, 1.0, 1.0]
     }
 
