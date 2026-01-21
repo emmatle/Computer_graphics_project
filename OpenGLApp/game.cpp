@@ -67,6 +67,7 @@ bool Game::loadObjects() {
 }
 
 void Game::update() {
+    if (state == Credits) return;
     time += deltaTime;
 
     if (state == InGame) {
@@ -284,15 +285,48 @@ void Game::draw() {
             );
         }
     } else if (state == Credits) {
+        static float creditTime = 0.f;
+        float progress = 0.05f * creditTime;
         Renderer::clear();
         renderer->drawText(
-            "Yippee, you are a star!",
+            "Escape Room",
             static_cast<float>(fbWidth) * 0.5f,
-            static_cast<float>(fbHeight) * 0.5f,
+            static_cast<float>(fbHeight) * (0.5f - progress),
+            2.0f,
+            glm::vec3(1.0f, 1.0f, 0.0f),
+            Align::Center
+        );
+        renderer->drawText(
+          "Congratulations!",
+          static_cast<float>(fbWidth) * 0.5f,
+          static_cast<float>(fbHeight) * (0.6f - progress),
+          1.0f,
+          glm::vec3(1.0f, 1.0f, 0.0f),
+          Align::Center
+        );
+        renderer->drawText(
+            "Time: " + std::to_string(static_cast<int>(time)) + "s",
+            static_cast<float>(fbWidth) * 0.5f,
+            static_cast<float>(fbHeight) * (0.7f - progress),
             1.0f,
             glm::vec3(1.0f, 1.0f, 0.0f),
             Align::Center
         );
+        renderer->drawText("Developed by Salvatore Martorana, Emma Toutel, Mattia Briguglio",
+            static_cast<float>(fbWidth) * 0.5f,
+            static_cast<float>(fbHeight) * (1.0f - progress),
+            1.0f,
+            glm::vec3(1.0f, 1.0f, 0.0f),
+            Align::Center
+        );
+        renderer->drawText("Thank you for playing!",
+            static_cast<float>(fbWidth) * 0.5f,
+            static_cast<float>(fbHeight) * (1.4f - progress),
+            1.0f,
+            glm::vec3(1.0f, 1.0f, 0.0f),
+            Align::Center
+        );
+        creditTime += deltaTime;
     }
 }
 
@@ -394,6 +428,11 @@ void Game::interact(Object *obj) {
             obj->animation.play();
             AudioManager::instance().playSound("OpenDoor");
         }
+        return;
+    }
+    pos = obj->name.find("MacGuffin");
+    if (pos != std::string::npos) {
+        state = Credits;
         return;
     }
 

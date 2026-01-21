@@ -2,19 +2,19 @@
   "objects": [
     {
       "id": 0,
+      "name": "Collisions",
+      "model": "models/Collisions.obj"
+    },
+    {
+      "id": 0,
       "name": "Background",
       "model": "models/Background.obj",
-      "position": [0.0, 0.0, 0.0],
-      "rotation": [0.0, 250.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
+      "rotation": [0.0, 250.0, 0.0]
     },
     {
       "id": 0,
       "name": "Room",
-      "model": "models/ArtStudio.obj",
-      "position": [0.0, 0.0, 0.0],
-      "rotation": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
+      "model": "models/ArtStudio.obj"
     },
     {
       "id": 0,
@@ -114,8 +114,15 @@
       "id": 6,
       "name": "Picture",
       "model": "models/Picture.obj",
-      "position": [5.36, 1.16, 1.72],
+      "position": [2.439, 1.702, 1.719],
       "rotation": [0.0, 180.0, 0.0]
+    },
+    {
+      "id": 7,
+      "name": "MacGuffin",
+      "model": "models/MacGuffin.obj",
+      "position": [1.32, 1.282, 0.87],
+      "rotation": [-20.0, 45.0, 0.0]
     },
     {
       "id": 9,
