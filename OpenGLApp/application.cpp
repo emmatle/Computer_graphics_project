@@ -157,6 +157,7 @@ void Application::init() {
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwSetCursorPosCallback(window, cursorPosCallback);
     glfwSetScrollCallback(window, scrollCallback);
+    glfwSetCharCallback(window, charCallback);
 
     // ImGui Setup
     IMGUI_CHECKVERSION();
@@ -538,10 +539,23 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
         if (action == GLFW_PRESS) game.input.esc = true;
         if (action == GLFW_RELEASE) game.input.esc = false;
     }
+    if (key == GLFW_KEY_ENTER) {
+        if (action == GLFW_PRESS) game.input.enter = true;
+        if (action == GLFW_RELEASE) game.input.enter = false;
+    }
+    if (key == GLFW_KEY_BACKSPACE) {
+        if (action == GLFW_PRESS) game.input.backspace = true;
+        if (action == GLFW_RELEASE) game.input.backspace = false;
+    }
     if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9) {
-        int index = key - GLFW_KEY_1;
+        int index = key - GLFW_KEY_0;
         if (action == GLFW_PRESS) game.input.nums[index] = true;
         if (action == GLFW_RELEASE) game.input.nums[index] = false;
+    }
+    if (key >= GLFW_KEY_A && key <= GLFW_KEY_Z) {
+        int index = key - GLFW_KEY_A;
+        if (action == GLFW_PRESS) game.input.keys[index] = true;
+        if (action == GLFW_RELEASE) game.input.keys[index] = false;
     }
 
     game.onKey();
@@ -586,6 +600,11 @@ void Application::cursorPosCallback(GLFWwindow *, double xpos, double ypos) {
 // Callback for mouse scroll
 void Application::scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
     if (gameFocus) game.onMouseScroll(static_cast<float>(yoffset));
+}
+
+void Application::charCallback(GLFWwindow *window, unsigned int codepoint) {
+    if (!gameFocus) return;
+    game.onChar(codepoint);
 }
 
 int main() {

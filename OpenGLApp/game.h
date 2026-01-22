@@ -23,6 +23,7 @@ public:
         Inventory,
         Canvas,
         GameOver,
+        LeaderboardEntry,
         Credits,
     } state = Splashscreen;
 
@@ -47,10 +48,17 @@ public:
         bool space = false;
         bool tab = false;
         bool esc = false;
+        bool enter = false;
+        bool backspace = false;
 
         // Numeric keys 0-9
         bool nums[10] = {};
+
+        // All common letters A-Z
+        bool keys[26] = {};
     } input;
+
+    std::string playerName;
 
     std::vector<std::shared_ptr<Object> > objects;
     Object *hoveredObj = nullptr;
@@ -132,4 +140,5 @@ public:
     void onMouseScroll(float yoffset);
 
     void onResize(int width, int height);
+    void onChar(unsigned int codepoint);
 };

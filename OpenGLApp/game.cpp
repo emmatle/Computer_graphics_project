@@ -175,6 +175,14 @@ void Game::draw() {
     renderer->drawText("Press space to start...", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.95f, 1.0f, glm::vec3(0.8f));
     return;
   }
+  if (state == LeaderboardEntry) {
+      Renderer::clear();
+      renderer->drawText("CONGRATULATIONS!", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.25f, 1.5f, glm::vec3(1.0f, 0.8f, 0.2f), Align::Center);
+      renderer->drawText("Enter your name:", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.4f, 1.0f, glm::vec3(0.8f), Align::Center);
+      renderer->drawText(playerName + "_", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.5f, 1.2f, glm::vec3(1.0f), Align::Center);
+      renderer->drawText("Press Enter to save", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.75f, 1.0f, glm::vec3(0.8f), Align::Center);
+      return;
+  }
     static auto canvasTex = dynamic_cast<DynamicTexture *>(renderer->getTexture("#Canvas"));
     if (collectionCompleted) {
         renderer->updateTexture(*canvasTex, canvas);
@@ -461,18 +469,23 @@ void Game::interact(Object *obj) {
     if (obj->name == "Door") {
         if (doorUnlocked) {
             obj->animation.play();
+            state = LeaderboardEntry;
+            playerName = "";
             return;
         }
         if (equippedObj && equippedObj->name.find("Key") != std::string::npos) {
             doorUnlocked = true;
             obj->animation.play();
             AudioManager::instance().playSound("OpenDoor");
+            state = LeaderboardEntry;
+            playerName = "";
         }
         return;
     }
     pos = obj->name.find("MacGuffin");
     if (pos != std::string::npos) {
-        state = Credits;
+        state = LeaderboardEntry;
+        playerName = "";
         return;
     }
 
@@ -525,6 +538,37 @@ void Game::onKey() {
             state = InGame;
             player.setPosition(lastPos);
             player.setRotation(lastRot);
+        }
+    } else if (state == LeaderboardEntry) {
+        if (input.backspace && !playerName.empty()) {
+            playerName.pop_back();
+            input.backspace = false; // Prevent multiple pops per press if not careful, though keyCallback handles it
+        }
+        if (input.enter) {
+            using json = nlohmann::json;
+            // Save to leaderboard.json
+            json leaderboard;
+            std::ifstream f(getResourcePath("leaderboard.json"));
+            if (f.is_open() && f.peek() != std::ifstream::traits_type::eof()) {
+                f >> leaderboard;
+                f.close();
+            }
+
+            if (!leaderboard.is_array()) {
+                leaderboard = nlohmann::json::array();
+            }
+
+            leaderboard.push_back({
+                {"name", playerName.empty() ? "Anonymous" : playerName},
+                {"score", static_cast<int>(remainingTime)}
+            });
+
+            std::ofstream o(getResourcePath("leaderboard.json"));
+            o << leaderboard.dump(4) << std::endl;
+            o.close();
+
+            state = Credits;
+            input.enter = false;
         }
     }
 }
@@ -596,4 +640,12 @@ void Game::onResize(int width, int height) {
     float aspect = static_cast<float>(width) / static_cast<float>(height);
     player.setAspect(aspect);
     inventoryView.setAspect(aspect);
+}
+
+void Game::onChar(unsigned int codepoint) {
+    if (state == LeaderboardEntry) {
+        if (codepoint < 128) {
+            playerName += static_cast<char>(codepoint);
+        }
+    }
 }

@@ -64,4 +64,5 @@ private:
     static void cursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 
     static void scrollCallback(GLFWwindow *window, double xoffset, double yoffset);
+    static void charCallback(GLFWwindow *window, unsigned int codepoint);
 };
