@@ -54,7 +54,7 @@ public:
         // Numeric keys 0-9
         bool nums[10] = {};
 
-        // All common letters A-Z
+        // All common letters A-Z (leaderboard)
         bool keys[26] = {};
     } input;
 
@@ -93,6 +93,8 @@ public:
 
     bool mouseDrag = false;
 
+    std::vector<std::pair<std::string, int>> leaderboard;
+
     // In game stats
     float time = 0.0f;
     float maxTime = 10 * 60.0f; // 10 minutes
@@ -118,6 +120,10 @@ public:
     glm::vec3 lastRot{};
 
     bool loadObjects();
+
+    void loadLeaderboard();
+    void drawLeaderboard();
+    void drawCredits(float scroll = 0.f);
 
     void update();
 

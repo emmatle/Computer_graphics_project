@@ -78,6 +78,67 @@ bool Game::loadObjects() {
     return true;
 }
 
+void Game::loadLeaderboard() {
+  using json = nlohmann::json;
+  leaderboard.clear();
+  std::ifstream f(getResourcePath("leaderboard.json", true));
+  if (!f.is_open()) return;
+  json j;
+  if (f.peek() != std::ifstream::traits_type::eof()) {
+      f >> j;
+  }
+  f.close();
+
+  if (!j.is_array()) j = nlohmann::json::array();
+
+  for (const auto &entry : j) {
+    std::string name = entry.value("name", std::string("Anonymous"));
+    int score = entry.value("score", 0);
+    leaderboard.emplace_back(name, score);
+  }
+  std::sort(leaderboard.begin(), leaderboard.end(), [](const std::pair<std::string, int> &a, const std::pair<std::string, int> &b) {
+    return a.second > b.second;
+  });
+}
+
+void Game::drawLeaderboard() {
+  renderer->drawText("Leaderboard:", static_cast<float>(fbWidth) * 0.05f, static_cast<float>(fbHeight) * 0.2f, 1.0f,
+                glm::vec3(0.95f));
+  for (int i = 0; i < leaderboard.size(); i++) {
+    auto &entry = leaderboard[i];
+    renderer->drawText(entry.first + ":", static_cast<float>(fbWidth) * 0.05f, static_cast<float>(fbHeight) * (0.28f + i * 0.08f), 0.8f, glm::vec3(0.8f));
+    renderer->drawText(std::to_string(entry.second), static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * (0.28f + i * 0.08f), 0.8f, glm::vec3(1.0f, 1.0f, 0.0f));
+
+  }
+}
+
+void Game::drawCredits(float scroll) {
+  const char *credits[] = {
+                            "Programming",
+                            "Graphics & Core - Salvatore Martorana",
+                            "Text - Emma Toutel",
+                            "Audio - Mattia Briguglio",
+                            "",
+                            "3D Models",
+                            "Room - Salvatore Martorana",
+                            "Furniture & Props - Emma Toutel",
+                            "Furniture & Props - Mattia Briguglio",
+                            "",
+                            "Textures & Materials",
+                            "ambientCG",
+                            "Poly Haven",
+                            "Texture Labs",
+                            "Sketchfab",
+                            "",
+                            "",
+                            "Thank you for playing!"
+  };
+  renderer->drawText("Escape Room", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * (0.25f - scroll), 1.5f, glm::vec3(1.0f, 1.0f, 0.0f), Align::Center);
+  for (int i = 0; i < sizeof(credits) / sizeof(credits[0]); i++) {
+    renderer->drawText(credits[i], static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * (0.5f + i * 0.08f - scroll), 0.8f, glm::vec3(0.8f), Align::Center);
+  }
+}
+
 void Game::update() {
     if (state == Splashscreen || state == GameOver || state == Credits) return;
 
@@ -170,14 +231,13 @@ void Game::update() {
 void Game::draw() {
   if (state == Splashscreen) {
     Renderer::clear();
-    renderer->drawText("Leaderboard", static_cast<float>(fbWidth) * 0.05f, static_cast<float>(fbHeight) * 0.95f, 1.0f,
-                      glm::vec3(0.8f));
-    renderer->drawText("Press space to start...", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.95f, 1.0f, glm::vec3(0.8f));
+    drawLeaderboard();
+    renderer->drawText("Press any key to start...", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.95f, 1.0f, glm::vec3(0.8f));
     return;
   }
   if (state == LeaderboardEntry) {
       Renderer::clear();
-      renderer->drawText("CONGRATULATIONS!", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.25f, 1.5f, glm::vec3(1.0f, 0.8f, 0.2f), Align::Center);
+      renderer->drawText("CONGRATULATIONS!", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.25f, 1.5f, glm::vec3(1.0f, 1.0f, 0.0f), Align::Center);
       renderer->drawText("Enter your name:", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.4f, 1.0f, glm::vec3(0.8f), Align::Center);
       renderer->drawText(playerName + "_", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.5f, 1.2f, glm::vec3(1.0f), Align::Center);
       renderer->drawText("Press Enter to save", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.75f, 1.0f, glm::vec3(0.8f), Align::Center);
@@ -334,46 +394,9 @@ void Game::draw() {
         }
     } else if (state == Credits) {
         static float creditTime = 0.f;
-        float progress = 0.05f * creditTime;
+        float scroll = 0.05f * creditTime;
         Renderer::clear();
-        renderer->drawText(
-            "Escape Room",
-            static_cast<float>(fbWidth) * 0.5f,
-            static_cast<float>(fbHeight) * (0.5f - progress),
-            2.0f,
-            glm::vec3(1.0f, 1.0f, 0.0f),
-            Align::Center
-        );
-        renderer->drawText(
-          "Congratulations!",
-          static_cast<float>(fbWidth) * 0.5f,
-          static_cast<float>(fbHeight) * (0.6f - progress),
-          1.0f,
-          glm::vec3(1.0f, 1.0f, 0.0f),
-          Align::Center
-        );
-        renderer->drawText(
-            "Time: " + std::to_string(static_cast<int>(time)) + "s",
-            static_cast<float>(fbWidth) * 0.5f,
-            static_cast<float>(fbHeight) * (0.7f - progress),
-            1.0f,
-            glm::vec3(1.0f, 1.0f, 0.0f),
-            Align::Center
-        );
-        renderer->drawText("Developed by Salvatore Martorana, Emma Toutel, Mattia Briguglio",
-            static_cast<float>(fbWidth) * 0.5f,
-            static_cast<float>(fbHeight) * (1.0f - progress),
-            1.0f,
-            glm::vec3(1.0f, 1.0f, 0.0f),
-            Align::Center
-        );
-        renderer->drawText("Thank you for playing!",
-            static_cast<float>(fbWidth) * 0.5f,
-            static_cast<float>(fbHeight) * (1.4f - progress),
-            1.0f,
-            glm::vec3(1.0f, 1.0f, 0.0f),
-            Align::Center
-        );
+        drawCredits(scroll);
         creditTime += deltaTime;
     }
 }
@@ -467,18 +490,10 @@ void Game::interact(Object *obj) {
     if (obj->name == "Safe Door") return; // Do not open the door
 
     if (obj->name == "Door") {
-        if (doorUnlocked) {
-            obj->animation.play();
-            state = LeaderboardEntry;
-            playerName = "";
-            return;
-        }
-        if (equippedObj && equippedObj->name.find("Key") != std::string::npos) {
+        if (!doorUnlocked && equippedObj && equippedObj->name.find("Key") != std::string::npos) {
             doorUnlocked = true;
             obj->animation.play();
             AudioManager::instance().playSound("OpenDoor");
-            state = LeaderboardEntry;
-            playerName = "";
         }
         return;
     }
@@ -514,7 +529,7 @@ void Game::interact(Object *obj) {
 
 void Game::onKey() {
     if (state == Splashscreen) {
-      if (input.space) state = InGame;
+      for (auto k : input.keys) if (k) state = InGame;
     }
     if (state == InGame) {
         if (input.tab) {
@@ -547,24 +562,24 @@ void Game::onKey() {
         if (input.enter) {
             using json = nlohmann::json;
             // Save to leaderboard.json
-            json leaderboard;
-            std::ifstream f(getResourcePath("leaderboard.json"));
+            json j;
+            std::ifstream f(getResourcePath("leaderboard.json"), true);
             if (f.is_open() && f.peek() != std::ifstream::traits_type::eof()) {
-                f >> leaderboard;
-                f.close();
+                f >> j;
+            }
+            f.close();
+
+            if (!j.is_array()) {
+                j = nlohmann::json::array();
             }
 
-            if (!leaderboard.is_array()) {
-                leaderboard = nlohmann::json::array();
-            }
-
-            leaderboard.push_back({
+            j.push_back({
                 {"name", playerName.empty() ? "Anonymous" : playerName},
                 {"score", static_cast<int>(remainingTime)}
             });
 
             std::ofstream o(getResourcePath("leaderboard.json"));
-            o << leaderboard.dump(4) << std::endl;
+            o << j.dump(4) << std::endl;
             o.close();
 
             state = Credits;
@@ -643,7 +658,7 @@ void Game::onResize(int width, int height) {
 }
 
 void Game::onChar(unsigned int codepoint) {
-    if (state == LeaderboardEntry) {
+    if (state == LeaderboardEntry && playerName.size() < 20) {
         if (codepoint < 128) {
             playerName += static_cast<char>(codepoint);
         }

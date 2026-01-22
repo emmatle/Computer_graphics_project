@@ -196,6 +196,8 @@ void Application::run() {
 
     if (!game.loadObjects()) exit(EXIT_FAILURE);
 
+    game.loadLeaderboard();
+
     // TODO: free up allocated resources before exiting.
     if (!renderer.genBuffers()) exit(EXIT_FAILURE);
 
