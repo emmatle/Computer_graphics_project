@@ -57,18 +57,33 @@ bool Game::loadObjects() {
 
     for (const auto &entry: s) {
         if (entry.contains("parent")) {
-            std::string objName = entry["name"];
-            std::string parentName = entry["parent"];
-            Object *parent = getObject(parentName);
+          std::string objName = entry["name"];
+          std::string sceneName = entry.value("scene", "room");
+          std::string parentName = entry["parent"];
+          if (!parentName.empty() && parentName != objName && sceneName == "room") {
+            for (auto &obj: room.objs) {
+              if (obj->name == objName) {
+                for (auto &parent: room.objs) {
+                  if (parent->name == parentName) {
+                    obj->parent = parent;
+                    break;
+                  }
+                }
+                break;
+              }
+            }
+          }
         }
     }
-
     return true;
 }
 
 void Game::update() {
-    if (state == Credits) return;
+    if (state == Splashscreen || state == GameOver || state == Credits) return;
+
     time += deltaTime;
+    remainingTime -= deltaTime;
+    if (remainingTime <= 0.f) state = GameOver;
 
     if (state == InGame) {
         // Calculate the amount of the movement considering sprint (SHIFT)
@@ -153,6 +168,13 @@ void Game::update() {
 }
 
 void Game::draw() {
+  if (state == Splashscreen) {
+    Renderer::clear();
+    renderer->drawText("Leaderboard", static_cast<float>(fbWidth) * 0.05f, static_cast<float>(fbHeight) * 0.95f, 1.0f,
+                      glm::vec3(0.8f));
+    renderer->drawText("Press space to start...", static_cast<float>(fbWidth) * 0.5f, static_cast<float>(fbHeight) * 0.95f, 1.0f, glm::vec3(0.8f));
+    return;
+  }
     static auto canvasTex = dynamic_cast<DynamicTexture *>(renderer->getTexture("#Canvas"));
     if (collectionCompleted) {
         renderer->updateTexture(*canvasTex, canvas);
@@ -175,30 +197,48 @@ void Game::draw() {
             renderer->drawText3D(enteredCode, textModel, player, 0.33f, glm::vec3(0.0f, 0.8f, 0.0f));
         }
 
+        // --- HUD ---
+
         // Crosshair
         renderer->drawText(
             ".",
             static_cast<float>(fbWidth) * 0.5f,
             static_cast<float>(fbHeight) * 0.5f,
             1.0f,
-            glm::vec3(0.8f, 0.8f, 0.8f),
+            glm::vec3(0.8f),
             Align::Center
         );
+
+      glm::vec3 remainingTimeColor = glm::vec3(0.8f);
+
+      // After 5 minutes make text more red
+      if (remainingTime <= 0.5f * maxTime) {
+        float progress = 1.f - glm::clamp((remainingTime) / (0.5f * maxTime), 0.f, 1.f);
+        remainingTimeColor = (1 - progress) * glm::vec3(0.8f) + progress * glm::vec3(0.f, 0.8f, 0.f); // From -4 to +2 semitones
+      }
+
+        renderer->drawText(
+          "Police: " + std::to_string(static_cast<int>(remainingTime) / 60) + "min " + std::to_string(static_cast<int>(remainingTime) % 60) + "s",
+          static_cast<float>(fbWidth) * 0.05f,
+          static_cast<float>(fbHeight) * 0.1f,
+          1.0f,
+          remainingTimeColor
+          );
 
         if (collectionTimer > 0.f) {
             renderer->drawText(
                 "Brushes collected: (" + std::to_string(collectedItems) + "/4)",
-                static_cast<float>(fbWidth) * 0.05f, // ~50/1080
-                static_cast<float>(fbHeight) * 0.095f, // ~100/1080
+                static_cast<float>(fbWidth) * 0.05f,
+                static_cast<float>(fbHeight) * 0.2f,
                 1.0f,
-                glm::vec3(1.0f, 1.0f, 0.0f)
+                glm::vec3(0.8f)
             );
             renderer->drawText(
                 "Time left: " + std::to_string(static_cast<int>(collectionTimer)) + "s",
-                static_cast<float>(fbWidth) * 0.7f, // ~750/1080
-                static_cast<float>(fbHeight) * 0.095f, // ~100/1080
+                static_cast<float>(fbWidth) * 0.7f,
+                static_cast<float>(fbHeight) * 0.2f,
                 1.0f,
-                glm::vec3(1.0f, 1.0f, 0.0f)
+                glm::vec3(0.8f)
             );
         }
 
@@ -208,11 +248,11 @@ void Game::draw() {
         if (collectionCompleted && hoveredObj->name == "Canvas") {
             renderer->drawText(
                 "Look at Venus from the right angle...",
-                static_cast<float>(fbWidth) * 0.95f, // ~750/1080
-                static_cast<float>(fbHeight) * 0.095f, // ~100/1080
+                static_cast<float>(fbWidth) * 0.5f,
+                static_cast<float>(fbHeight) * 0.95f,
                 1.0f,
-                glm::vec3(1.0f, 1.0f, 1.0f),
-                Align::Right
+                glm::vec3(0.8f),
+                Align::Center
             );
         }
 
@@ -222,7 +262,7 @@ void Game::draw() {
                 static_cast<float>(fbWidth) * 0.5f, // right side
                 static_cast<float>(fbHeight) * 0.95f, // vertical placement
                 1.0f,
-                glm::vec3(1.0f, 1.0f, 1.0f),
+                glm::vec3(0.8f),
                 Align::Center
             );
         }
@@ -233,7 +273,7 @@ void Game::draw() {
                 static_cast<float>(fbWidth) * 0.5f, // right side
                 static_cast<float>(fbHeight) * 0.95f, // vertical placement
                 1.0f,
-                glm::vec3(1.0f, 1.0f, 1.0f),
+                glm::vec3(0.8f),
                 Align::Center
             );
         }
@@ -245,7 +285,7 @@ void Game::draw() {
                         static_cast<float>(fbWidth) * 0.5f, // right side
                         static_cast<float>(fbHeight) * 0.95f, // vertical placement
                         1.0f,
-                        glm::vec3(1.0f, 1.0f, 1.0f),
+                        glm::vec3(0.8f),
                         Align::Center
                     );
                 } else {
@@ -254,7 +294,7 @@ void Game::draw() {
                         static_cast<float>(fbWidth) * 0.5f, // right side
                         static_cast<float>(fbHeight) * 0.95f, // vertical placement
                         1.0f,
-                        glm::vec3(1.0f, 1.0f, 1.0f),
+                        glm::vec3(0.8f),
                         Align::Center
                     );
                 }
@@ -267,7 +307,7 @@ void Game::draw() {
                 static_cast<float>(fbWidth) * 0.05f, // right side
                 static_cast<float>(fbHeight) * 0.95f, // vertical placement
                 1.0f,
-                glm::vec3(1.0f, 1.0f, 1.0f),
+                glm::vec3(0.8f),
                 Align::Right
             );
         }
@@ -280,7 +320,7 @@ void Game::draw() {
                 static_cast<float>(fbWidth) * 0.5f,
                 static_cast<float>(fbHeight) * 0.95f,
                 1.0f,
-                glm::vec3(1.0f, 1.0f, 1.0f),
+                glm::vec3(0.8f),
                 Align::Center
             );
         }
@@ -460,6 +500,9 @@ void Game::interact(Object *obj) {
 // --- Callbacks ---
 
 void Game::onKey() {
+    if (state == Splashscreen) {
+      if (input.space) state = InGame;
+    }
     if (state == InGame) {
         if (input.tab) {
             state = Inventory;

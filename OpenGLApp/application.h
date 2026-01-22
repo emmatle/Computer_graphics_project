@@ -33,7 +33,7 @@ private:
     static float time;
     static float fps;
 
-    static sf::Music backgroundMusicNormal;
+    static sf::Music backgroundMusic;
     static sf::Music backgroundMusicLowpass;
     static bool backgroundLowpassActive;
 

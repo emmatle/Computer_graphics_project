@@ -15,7 +15,7 @@
 #include <nlohmann/json.hpp>
 
 #include "audio_manager.h"
-sf::Music Application::backgroundMusicNormal;
+sf::Music Application::backgroundMusic;
 sf::Music Application::backgroundMusicLowpass;
 bool Application::backgroundLowpassActive = false;
 
@@ -27,7 +27,7 @@ std::string Application::title = "Escape Room";
 int Application::width = 1024;
 int Application::height = 768;
 
-bool Application::fullscreen = true; // Overrides width and height if true
+bool Application::fullscreen = false; // Overrides width and height if true
 bool Application::vsync = false;
 float Application::mouseSensitivity = 0.1f;
 float Application::fontSize = 16.f;
@@ -72,12 +72,13 @@ void Application::updateTime() {
 void Application::init() {
     loadSettings();
 
-    if (!backgroundMusicNormal.openFromFile(getResourcePath("sounds/BackgroundMusic.mp3"))) {
+    if (!backgroundMusic.openFromFile(getResourcePath("sounds/BackgroundMusic.mp3"))) {
         std::cerr << "ERROR: can't load " << getResourcePath("sounds/BackgroundMusic.mp3") << std::endl;
     } else {
-        backgroundMusicNormal.setVolume(30.f);
-        backgroundMusicNormal.setLooping(true);
-        backgroundMusicNormal.play();
+        backgroundMusic.setVolume(30.f);
+        backgroundMusic.setPitch(8/12.f); // -4 semitones
+        backgroundMusic.setLooping(true);
+        backgroundMusic.play();
         backgroundLowpassActive = false;
     }
 
@@ -85,6 +86,7 @@ void Application::init() {
         std::cerr << "WARNING: can't load " << getResourcePath("sounds/BackgroundMusicLowPass.mp3") << std::endl;
     } else {
         backgroundMusicLowpass.setVolume(15.f);
+        backgroundMusicLowpass.setPitch(8/12.f); // -4 semitones
         backgroundMusicLowpass.setLooping(true);
     }
 
@@ -178,6 +180,8 @@ void Application::init() {
 void Application::run() {
     init();
 
+    game.setRenderer(&renderer);
+
     if (!renderer.compileShaders()) exit(EXIT_FAILURE);
 
     if (!renderer.loadFont("fonts/Antonio-Bold.ttf")) exit(EXIT_FAILURE);
@@ -186,12 +190,10 @@ void Application::run() {
     glfwPollEvents();
     Renderer::clear();
     renderer.drawText("Loading...", static_cast<float>(fbWidth) * 0.05f, static_cast<float>(fbHeight) * 0.95f, 1.0f,
-                      glm::vec3(1.0f, 1.0f, 0.0f));
+                      glm::vec3(0.8f));
     glfwSwapBuffers(window);
 
     if (!game.loadObjects()) exit(EXIT_FAILURE);
-
-    game.setRenderer(&renderer);
 
     // TODO: free up allocated resources before exiting.
     if (!renderer.genBuffers()) exit(EXIT_FAILURE);
@@ -205,6 +207,14 @@ void Application::run() {
         updateTime();
 
         game.update();
+
+        // After 5 minutes make music faster
+        if (game.remainingTime <= 0.5f * game.maxTime) {
+          float progress = 1.f - glm::clamp((game.remainingTime) / (0.5f * game.maxTime), 0.f, 1.f);
+          float pitch = (1 - progress) * 8/12.f + progress * 14/12.f; // From -4 to +2 semitones
+          backgroundMusic.setPitch(pitch);
+          backgroundMusicLowpass.setPitch(pitch);
+        }
 
         // Begin new ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -331,7 +341,7 @@ void Application::drawDebugMenu() {
     ImGui::BulletText("Mouse Wheel: Change Zoom");
     ImGui::BulletText("Left Shift: Sprint");
     // ImGui::BulletText("0-9: Equip Slot 0-9"); // TODO
-    // ImGui::BulletText("Tab: Open Inventory"); // TODO
+    ImGui::BulletText("Tab: Open Inventory");
     // ImGui::BulletText("Esc: Pause The Game"); // TODO
 
     ImGui::SeparatorText("Camera");
@@ -393,26 +403,26 @@ void Application::setBackgroundLowpass(bool enable) {
     if (enable == backgroundLowpassActive) return;
 
     if (enable) {
-        if (backgroundMusicNormal.getStatus() == sf::Sound::Status::Playing) {
-            sf::Time offset = backgroundMusicNormal.getPlayingOffset();
-            backgroundMusicNormal.stop();
+        if (backgroundMusic.getStatus() == sf::Sound::Status::Playing) {
+            sf::Time offset = backgroundMusic.getPlayingOffset();
+            backgroundMusic.stop();
             backgroundMusicLowpass.setPlayingOffset(offset);
             backgroundMusicLowpass.play();
         } else {
             // If paused, just sync the offset without starting it
-            sf::Time offset = backgroundMusicNormal.getPlayingOffset();
+            sf::Time offset = backgroundMusic.getPlayingOffset();
             backgroundMusicLowpass.setPlayingOffset(offset);
         }
     } else {
         if (backgroundMusicLowpass.getStatus() == sf::Sound::Status::Playing) {
             sf::Time offset = backgroundMusicLowpass.getPlayingOffset();
             backgroundMusicLowpass.stop();
-            backgroundMusicNormal.setPlayingOffset(offset);
-            backgroundMusicNormal.play();
+            backgroundMusic.setPlayingOffset(offset);
+            backgroundMusic.play();
         } else {
             // Se in pausa, sincronizza solo l'offset senza farla partire
             sf::Time offset = backgroundMusicLowpass.getPlayingOffset();
-            backgroundMusicNormal.setPlayingOffset(offset);
+            backgroundMusic.setPlayingOffset(offset);
         }
     }
     backgroundLowpassActive = enable;
@@ -467,10 +477,10 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
                 backgroundMusicLowpass.play();
             }
         } else {
-            if (backgroundMusicNormal.getStatus() == sf::Sound::Status::Playing) {
-                backgroundMusicNormal.pause();
+            if (backgroundMusic.getStatus() == sf::Sound::Status::Playing) {
+                backgroundMusic.pause();
             } else {
-                backgroundMusicNormal.play();
+                backgroundMusic.play();
             }
         }
     }

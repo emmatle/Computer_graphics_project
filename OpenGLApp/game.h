@@ -18,11 +18,13 @@ class Game {
 public:
     void setRenderer(Renderer* r) { renderer = r; }
     enum State {
+        Splashscreen,
         InGame,
         Inventory,
         Canvas,
-        Credits
-    } state = InGame;
+        GameOver,
+        Credits,
+    } state = Splashscreen;
 
     struct Input {
         // Mouse buttons
@@ -85,6 +87,8 @@ public:
 
     // In game stats
     float time = 0.0f;
+    float maxTime = 10 * 60.0f; // 10 minutes
+    float remainingTime = maxTime;
     int inventoryIndex = 0;
     Object* equippedObj = nullptr;
     float playerSpeed = 2.0f;
