@@ -101,7 +101,7 @@ public:
     float remainingTime = maxTime;
     float score = 100.f; // Final score = score + time
 
-    int inventoryIndex = 0;
+    int inventoryIndex = -1; // -1 = no selection / empty inventory
     Object* equippedObj = nullptr;
     float playerSpeed = 2.0f;
 

@@ -181,6 +181,15 @@ bool Game::loadObjects() {
       }
     }
   }
+
+  // Ensure inventoryIndex reflects actual inventory contents
+  if (inventory.objs.empty()) {
+    inventoryIndex = -1;
+  } else {
+    // default to first item
+    inventoryIndex = 0;
+  }
+
   return true;
 }
 
@@ -326,6 +335,10 @@ void Game::update() {
     float amount = glm::radians(90.f) * deltaTime;
 
     if (inventory.objs.empty()) return;
+
+    if (inventoryIndex < 0 || inventoryIndex >= (int)inventory.objs.size()) {
+      inventoryIndex = 0;
+    }
 
     if (input.w)
       inventory.objs[inventoryIndex]->rotate(Object::WRLD_RIGHT, -amount, true);
@@ -662,6 +675,7 @@ void Game::interact(Object *obj) {
   obj->setPosition();
   obj->setRotation();
   inventoryIndex = static_cast<int>(inventory.objs.size()) - 1;
+  if (inventoryIndex < 0) inventoryIndex = -1;
   state = Inventory;
   Application::setBackgroundLowpass(true);
 }
@@ -734,29 +748,43 @@ void Game::onMouseButton() {
   if (state == InGame) {
     if (input.rmb) {
       if (equippedObj) {
-        // Unequip
+        // Unequip: put equipped object into inventory
         equippedObj->setPosition();
         equippedObj->setRotation();
         inventory.objs.push_back(equippedObj);
 
-        // Remove from room
-        for (auto it = room.objs.begin(); it != room.objs.end(); ++it) {
+        // Remove from room if present
+        for (auto it = room.objs.begin(); it != room.objs.end();) {
           if (*it == equippedObj) {
-            room.objs.erase(it);
+            it = room.objs.erase(it);
             break;
+          } else {
+            ++it;
           }
         }
 
         equippedObj = nullptr;
+        // new item becomes selected
         inventoryIndex = static_cast<int>(inventory.objs.size()) - 1;
+        if (inventoryIndex < 0) inventoryIndex = -1;
       } else if (!inventory.objs.empty()) {
-        // Equip
+        // Ensure inventoryIndex is valid
+        if (inventoryIndex < 0 || inventoryIndex >= (int)inventory.objs.size()) {
+          inventoryIndex = 0;
+        }
+
+        // Equip selected inventory item
         equippedObj = inventory.objs[inventoryIndex];
         room.objs.push_back(equippedObj);
         inventory.objs.erase(inventory.objs.begin() + inventoryIndex);
-        if (inventoryIndex >= inventory.objs.size())
-          inventoryIndex = (int)inventory.objs.size() - 1;
-        if (inventoryIndex < 0) inventoryIndex = 0;
+
+        // Adjust inventoryIndex after erase
+        if (inventory.objs.empty()) {
+          inventoryIndex = -1;
+        } else {
+          if (inventoryIndex >= (int)inventory.objs.size())
+            inventoryIndex = static_cast<int>(inventory.objs.size()) - 1;
+        }
       }
     } else if (input.lmb) {
       if (hoveredObj) {
@@ -771,10 +799,14 @@ void Game::onMouseMovement(float xdelta, float ydelta) {
     player.yaw(glm::radians(mouseSensitivity * xdelta));
     player.pitch(glm::radians(mouseSensitivity * ydelta));
   } else if (state == Inventory && input.lmb) {
-    inventory.objs[inventoryIndex]->rotate(
-        inventoryView.up, -glm::radians(mouseSensitivity * xdelta), true);
-    inventory.objs[inventoryIndex]->rotate(
-        inventoryView.right, -glm::radians(mouseSensitivity * ydelta), true);
+    // Guard accesses: do nothing if inventory is empty / no selection
+    if (!inventory.objs.empty() && inventoryIndex != -1 &&
+        inventoryIndex < (int)inventory.objs.size()) {
+      inventory.objs[inventoryIndex]->rotate(
+          inventoryView.up, -glm::radians(mouseSensitivity * xdelta), true);
+      inventory.objs[inventoryIndex]->rotate(
+          inventoryView.right, -glm::radians(mouseSensitivity * ydelta), true);
+    }
   } else if (state == Canvas) {
     player.yaw(0.1f * glm::radians(mouseSensitivity * xdelta));
     player.pitch(0.1f * glm::radians(mouseSensitivity * ydelta));
