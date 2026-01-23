@@ -39,12 +39,12 @@
     {
         "id": 0,
         "name": "Statue0",
-        "model": "models/VenusPuzzle.obj"
+        "model": "models/Venus1.obj"
     },
     {
         "id": 0,
         "name": "Statue1",
-        "model": "models/VenusPuzzle.obj"
+        "model": "models/Venus2.obj"
     },
     {
       "id": 0,
@@ -127,15 +127,6 @@
       "model": "models/Canvas.obj",
       "position": [3.91076, 1.31257, -1.08523],
       "rotation": [-15.0, -30.0, 0.0]
-    },
-    {
-      "id": 5,
-      "name": "Venus",
-      "model": "models/VenusPuzzle.obj",
-      "position": [0.0, 0.0, 0.0],
-      "rotation": [270.0, 0.0, 60.0],
-      "scale": [1.0, 1.0, 1.0],
-      "scene": "canvas"
     },
     {
       "id": 6,

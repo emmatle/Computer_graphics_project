@@ -36,13 +36,13 @@ bool Game::loadObjects() {
   std::shuffle(pencilOrder.begin(), pencilOrder.end(), gen);
 
   int pictureSet = d2(gen);
-  int b = 2;  // Black = number of pictures
+  int b = 1;  // Black = number of pictures
   if (pictureSet == 1) {
-    b = 6;
+    b = 5;
   } else if (pictureSet == 2) {
-    b = 9;
+    b = 8;
   } else if (pictureSet == 3) {
-    b = 12;
+    b = 11;
   }
   password += std::to_string(b);
 
