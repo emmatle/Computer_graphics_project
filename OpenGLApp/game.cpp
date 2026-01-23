@@ -88,40 +88,88 @@ bool Game::loadObjects() {
       obj->animation = entry["animation"].get<Animation>();
     }
 
-    if (entry.value("name", "").find("Statue") != std::string::npos) {
+    std::string sceneName = entry.value("scene", "room");
+    std::string name = entry.value("name", "");
+
+    // Handle statues: both are created (pushed in objects), but only the chosen one is placed on canvas.
+    if (name.find("Statue") != std::string::npos) {
       if ((statue == 0 && obj->name == "Statue0") ||
           (statue == 1 && obj->name == "Statue1")) {
         obj->setRotation(angle);
         canvas.objs.push_back(obj.get());
-        objects.push_back(obj); // only selected statue exists
-          }
-      continue; // discard the other statue entirely
+      }
+      // Always keep track  existing objects, but ignore room/inventory.
+      objects.push_back(obj);
+      continue;
     }
-    if (entry.value("name", "").find("Pictures") != std::string::npos) {
+
+    // Load only the selected pictures according to pictureSet
+    if (name.find("Pictures") != std::string::npos) {
       if (pictureSet >= 1 && obj->name == "Pictures1") {
-        room.objs.push_back(obj.get());
+        if (sceneName == "room")
+          room.objs.push_back(obj.get());
+        else if (sceneName == "canvas")
+          canvas.objs.push_back(obj.get());
+        else if (sceneName == "inventory")
+          inventory.objs.push_back(obj.get());
       }
       if (pictureSet >= 2 && obj->name == "Pictures2") {
-        room.objs.push_back(obj.get());
+        if (sceneName == "room")
+          room.objs.push_back(obj.get());
+        else if (sceneName == "canvas")
+          canvas.objs.push_back(obj.get());
+        else if (sceneName == "inventory")
+          inventory.objs.push_back(obj.get());
       }
       if (pictureSet >= 3 && obj->name == "Pictures3") {
-        room.objs.push_back(obj.get());
+        if (sceneName == "room")
+          room.objs.push_back(obj.get());
+        else if (sceneName == "canvas")
+          canvas.objs.push_back(obj.get());
+        else if (sceneName == "inventory")
+          inventory.objs.push_back(obj.get());
       }
-    } else if (obj->name.find("Brush") == std::string::npos) {
+      objects.push_back(obj);
+      continue;
+    }
+
+    // Brushes: if they belong to the room we intentionally DON'T add them now (they spawn later).
+    if (obj->name.find("Brush") != std::string::npos && sceneName == "room") {
+      // skip adding to room (but keep in objects)
+      objects.push_back(obj);
+      continue;
+    }
+
+    // General case: place into the scene indicated by sceneName (default room).
+    if (sceneName == "room") {
+      room.objs.push_back(obj.get());
+    } else if (sceneName == "inventory") {
+      inventory.objs.push_back(obj.get());
+    } else if (sceneName == "canvas") {
+      canvas.objs.push_back(obj.get());
+    } else {
+      // Fallback: put in room
       room.objs.push_back(obj.get());
     }
+
     objects.push_back(obj);
   }
 
+  // Re-assign parents, searching in the correct scene collection according to entry["scene"]
   for (const auto &entry : s) {
     if (entry.contains("parent")) {
       std::string objName = entry["name"];
       std::string sceneName = entry.value("scene", "room");
       std::string parentName = entry["parent"];
-      if (!parentName.empty() && parentName != objName && sceneName == "room") {
-        for (auto &obj : room.objs) {
+      if (!parentName.empty() && parentName != objName) {
+        // choose the scene vector to search
+        std::vector<Object*> *sceneObjs = &room.objs;
+        if (sceneName == "inventory") sceneObjs = &inventory.objs;
+        else if (sceneName == "canvas") sceneObjs = &canvas.objs;
+
+        for (auto &obj : *sceneObjs) {
           if (obj->name == objName) {
-            for (auto &parent : room.objs) {
+            for (auto &parent : *sceneObjs) {
               if (parent->name == parentName) {
                 obj->parent = parent;
                 break;
