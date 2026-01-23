@@ -14,7 +14,37 @@
     {
       "id": 0,
       "name": "Room",
-      "model": "models/ArtStudio.obj"
+      "model": "models/Room.obj"
+    },
+    {
+      "id": 0,
+      "name": "Furniture",
+      "model": "models/Furniture.obj"
+    },
+    {
+      "id": 0,
+      "name": "Pictures1",
+      "model": "models/Pictures1.obj"
+    },
+    {
+      "id": 0,
+      "name": "Pictures2",
+      "model": "models/Pictures2.obj"
+    },
+    {
+      "id": 0,
+      "name": "Pictures3",
+      "model": "models/Pictures3.obj"
+    },
+    {
+        "id": 0,
+        "name": "Statue0",
+        "model": "models/VenusPuzzle.obj"
+    },
+    {
+        "id": 0,
+        "name": "Statue1",
+        "model": "models/VenusPuzzle.obj"
     },
     {
       "id": 0,
@@ -89,10 +119,7 @@
     {
       "id": 3,
       "name": "Palette",
-      "model": "models/Cube.obj",
-      "position": [0.0, 1.5, -2.0],
-      "rotation": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
+      "model": "models/Palette.obj"
     },
     {
       "id": 4,
@@ -209,7 +236,7 @@
     {
       "id": 22,
       "name": "Azure Pencil",
-      "model": "models/azure.obj",
+      "model": "models/AzurePencil.obj",
       "position": [-0.88, 0.68, -1.52],
       "rotation": [-180.0, -90.0, 28.0],
       "scale": [1.0, 1.0, 1.0]
@@ -217,7 +244,7 @@
     {
       "id": 23,
       "name": "Blue Pencil",
-      "model": "models/blue.obj",
+      "model": "models/BluePencil.obj",
       "position": [2.24, 1.59, -1.97],
       "rotation": [-180.0, -180.0, -90.0],
       "scale": [1.0, 1.0, 1.0]
@@ -225,7 +252,7 @@
     {
       "id": 24,
       "name": "Green Pencil",
-      "model": "models/green.obj",
+      "model": "models/GreenPencil.obj",
       "position": [-0.74, 0.70, -2.50],
       "rotation": [-180.0, -90.0, -180.0],
       "scale": [1.0, 1.0, 1.0]
@@ -233,7 +260,7 @@
     {
       "id": 25,
       "name": "Red Pencil",
-      "model": "models/red.obj",
+      "model": "models/RedPencil.obj",
       "position": [6.4, 0.75, 0.57],
       "rotation": [-180.0, -90.0, 164.0],
       "scale": [1.0, 1.0, 1.0]
@@ -241,7 +268,7 @@
     {
       "id": 26,
       "name": "Purple Pencil",
-      "model": "models/purple.obj",
+      "model": "models/PurplePencil.obj",
       "position": [3.99, 0.91, -0.70],
       "rotation": [-203.0, -89.0, 174.0],
       "scale": [1.0, 1.0, 1.0]
@@ -249,7 +276,7 @@
     {
       "id": 27,
       "name": "Orange Pencil",
-      "model": "models/orange.obj",
+      "model": "models/OrangePencil.obj",
       "position": [-0.82, 0.68, -1.41],
       "rotation": [-180.0, -90.0, 28.0],
       "scale": [1.0, 1.0, 1.0]
@@ -257,11 +284,17 @@
     {
       "id": 28,
       "name": "Yellow Pencil",
-      "model": "models/yellow.obj",
+      "model": "models/YellowPencil.obj",
       "position": [6.74, 1.76, 1.18],
       "rotation": [-180.0, -181.0, 180.0],
       "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": 29,
+      "name": "Red Pencil_Placeholder",
+      "model": "models/PencilPlaceholder.obj",
+      "position": [0.0, 1.0, 0.0],
+      "rotation": [90.0, 0.0, 0.0]
     }
-
   ]
 }

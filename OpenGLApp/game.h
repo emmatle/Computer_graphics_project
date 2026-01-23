@@ -99,6 +99,8 @@ public:
     float time = 0.0f;
     float maxTime = 10 * 60.0f; // 10 minutes
     float remainingTime = maxTime;
+    float score = 100.f; // Final score = score + time
+
     int inventoryIndex = 0;
     Object* equippedObj = nullptr;
     float playerSpeed = 2.0f;
@@ -110,11 +112,24 @@ public:
     float collectionTimer = 0.0f;
     int collectedItems = 0;
     bool collectionCompleted = false;
+    int collectionCounter = 0;
+
+    enum Pencil {
+        Red,
+        Orange,
+        Yellow,
+        Green,
+        Azure,
+        Blue,
+        Purple,
+    };
+
+    std::vector<Pencil> pencilOrder = {Red, Green, Blue, Yellow, Orange, Purple, Azure};
 
     // Safe code entry
     std::string enteredCode;
     // Number of pictures (8) + Colored pencils in order (4687391) + Sum of red, green, blue pencils (20)
-    std::string password = "8468739120";
+    std::string password;
 
     glm::vec3 lastPos{};
     glm::vec3 lastRot{};

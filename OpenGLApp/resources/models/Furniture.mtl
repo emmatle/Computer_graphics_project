@@ -1,0 +1,393 @@
+# Blender 5.0.1 MTL File: 'ArtStudio_20-01-2026.blend'
+# www.blender.org
+
+newmtl 3DModel_Custom.001
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd textures/3DModel_Custom.jpg
+map_Ns textures/3DModel_Custom_Roughness.jpg
+map_refl textures/3DModel_Custom_Metallic.jpg
+map_Bump -bm 1.000000 textures/3DModel_Custom_Normal.jpg
+
+newmtl 3DModel_Retopo
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd textures/3DModel_Retopo.jpg
+map_Ns textures/3DModel_Retopo_Roughness.jpg
+
+newmtl Acier_noir_mat
+Ns 178.698654
+Ka 1.000000 1.000000 1.000000
+Kd 0.012582 0.012582 0.012582
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+
+newmtl Black_Matte
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.003936 0.003936 0.003936
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Brown_Skin
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Texturelabs_Fabric_155M.jpg
+
+newmtl Brushed_Metal
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Metal019_1K-JPG_Color.jpg
+map_Ns textures/Metal019_1K-JPG_Roughness.jpg
+map_refl textures/Metal019_1K-JPG_Metalness.jpg
+map_Bump -bm 1.000000 textures/Metal019_1K-JPG_NormalGL.jpg
+
+newmtl Curtains
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Curtains_1K-JPG_Color.png
+map_Ns textures/Curtains_1K-JPG_Roughness.png
+map_Bump -bm 1.000000 textures/Curtains_1K-JPG_Normal.png
+
+newmtl Dark_Wood
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Wood029_1K-JPG_Color.jpg
+map_Ns textures/Wood029_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Wood029_1K-JPG_NormalGL.jpg
+
+newmtl Easle
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Texturelabs_Wood_292M.jpg
+
+newmtl Glass
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Material
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Marble021_1K-JPG_Color.jpg
+map_Ns textures/Marble021_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Marble021_1K-JPG_NormalGL.jpg
+
+newmtl Material.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd carpet beige.png
+
+newmtl Material.003
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Ns textures/storage_box_01_roughness-4K.jpg
+map_refl textures/storage_box_01_metallic-4K.jpg
+
+newmtl Material.005
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Marble021_1K-JPG_Color.jpg
+map_Ns textures/Marble021_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Marble021_1K-JPG_NormalGL.jpg
+
+newmtl Material.008
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Marble021_1K-JPG_Color.jpg
+map_Ns textures/Marble021_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Marble021_1K-JPG_NormalGL.jpg
+
+newmtl Material.013
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/texture_chiave.jpg
+
+newmtl Material.015
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Texturelabs_Wood_293M.jpg
+
+newmtl Material.016
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Texturelabs_Wood_293M.jpg
+
+newmtl Material.018
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Texturelabs_Wood_261M.jpg
+
+newmtl Material.022
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.015209 0.015209 0.015209
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Material.039
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Texturelabs_Wood_293M.jpg
+
+newmtl Material.041
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Marble009_1K-JPG_Color.jpg
+map_Ns textures/Marble009_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Marble009_1K-JPG_NormalGL.jpg
+
+newmtl Material.042
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Marble009_1K-JPG_Color.jpg
+map_Ns textures/Marble009_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Marble009_1K-JPG_NormalGL.jpg
+
+newmtl Material.047
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Texturelabs_Wood_292M.jpg
+
+newmtl Pillow
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Fabric040_1K-JPG_Color.jpg
+map_Ns textures/Fabric040_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Fabric040_1K-JPG_NormalGL.jpg
+
+newmtl Rod
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.015929 0.003853 0.002900
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Rug_Material
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd textures/chinese_carpet_texture_082023.jpg
+map_d textures/chinese_carpet_texture_082023.jpg
+
+newmtl Skin
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Leather027_1K-JPG_Color.jpg
+map_Ns textures/Leather027_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Leather027_1K-JPG_NormalGL.jpg
+
+newmtl Slab
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Marble021_1K-JPG_Color.jpg
+map_Ns textures/Marble021_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Marble021_1K-JPG_NormalGL.jpg
+
+newmtl White_Matte
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.603831 0.603831 0.603831
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl White_Wood
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/WhiteWood_1K-JPG_Color.jpg
+map_Ns textures/WhiteWood_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/WhiteWood_1K-JPG_NormalGL.jpg
+
+newmtl books
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /Users/salvatore/Downloads/variety-of-books/textures/books_Base_color.png
+map_Ns /Users/salvatore/Downloads/variety-of-books/textures/books_Roughness.png
+map_Bump -bm 1.000000 /Users/salvatore/Downloads/variety-of-books/textures/books_Normal_OpenGL.png
+
+newmtl books.001
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /Users/salvatore/Downloads/variety-of-books/textures/books_Base_color.png
+map_Ns /Users/salvatore/Downloads/variety-of-books/textures/books_Roughness.png
+map_Bump -bm 1.000000 /Users/salvatore/Downloads/variety-of-books/textures/books_Normal_OpenGL.png
+
+newmtl case
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.454979 0.451112 0.314993
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl jar_Brass_polished
+Ns 250.000000
+Ka 0.300000 0.300000 0.300000
+Kd 0.178861 0.094292 0.026549
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+
+newmtl jar_White_Marble_Texture
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/Diffuse.jpg
+map_Ns textures/Roughness.jpg
+map_Bump -bm 0.100000 textures/Normal.jpg
+
+newmtl jar_white_marble
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/white_marble_albedo.jpg
+map_Ns textures/white_marble_roughness.jpg
+map_refl textures/white_marble_metallic.jpg
+map_Bump -bm 1.000000 textures/white_marble_normal.jpg

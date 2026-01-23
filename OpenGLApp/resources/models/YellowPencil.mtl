@@ -1,0 +1,33 @@
+# Blender 5.0.1 MTL File: 'Pencil.blend'
+# www.blender.org
+
+newmtl Wood
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Wood048_1K-JPG_Color.jpg
+map_Ns textures/Wood048_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Wood048_1K-JPG_NormalGL.jpg
+
+newmtl Yellow_Lead
+Ns 62.500000
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 0.863157 0.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Yellow_Shaft
+Ns 600.625000
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 0.863157 0.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2

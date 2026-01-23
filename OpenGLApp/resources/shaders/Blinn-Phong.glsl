@@ -49,8 +49,8 @@ out vec4 FragColor;
 // --- Material uniforms ---
 
 // Illumination model: 0 No shading (Base color), 1 Ambient + Diffuse (Lambert), 2 Ambient + Diffuse + Specular (Blinn-Phong)
-uniform vec3 ambientLight = vec3(1.0, 0.82, 0.62); // 4000K white;
-vec3 k_a = vec3(0.4); // No ambient reflectivity uniform for simplicity, workaround for baked lighting
+uniform vec3 ambientLight = vec3(1.0, 0.95, 0.9); // A bit warm ambient light
+vec3 k_a = vec3(0.8); // No ambient reflectivity uniform for simplicity, workaround for baked lighting
 uniform vec3 k_d = vec3(1.0);
 uniform vec3 k_s = vec3(0.5);
 uniform int illum = 2;
@@ -82,16 +82,17 @@ uniform int numLights;
 uniform vec3 viewPos;
 
 void main() {
+    float gamma = 2.2;
     vec3 V = normalize(viewPos - FragPos);
 
-    vec3 baseColor = hasDiffuseMap ? texture(diffuseMap, TexCoords).rgb: k_d;
+    vec3 baseColor = hasDiffuseMap ? pow(texture(diffuseMap, TexCoords).rgb, vec3(gamma)) : pow(k_d, vec3(gamma));
     vec3 ambientColor = hasAmbientOcclusionMap ? vec3(texture(ambientOcclusionMap, TexCoords).r) * ambientLight: ambientLight;
     vec3 normal = hasNormalMap ? texture(normalMap, TexCoords).rgb : vec3(0.5, 0.5, 1.0);
-    float roughness = hasRoughnessMap ? texture(roughnessMap, TexCoords).r : 0.125;
+    float roughness = hasRoughnessMap ? texture(roughnessMap, TexCoords).r : 0.5;
     float metalness = hasMetalnessMap ? texture(metalnessMap, TexCoords).r : 0.0;
 
     if (illum == 0) {
-        FragColor = vec4(baseColor, 1.0);
+        FragColor = vec4(pow(baseColor, vec3(1.0 / 2.2)), 1.0);
         return;
     }
 
@@ -130,10 +131,15 @@ void main() {
     }
 
     vec3 ambient = k_a * baseColor * ambientColor; // Basic global ambient
-    vec3 diffuse = k_d * totalDiffuse * diffuseColor;
+    vec3 diffuse = totalDiffuse * diffuseColor; // k_d is used just for basColor;
     vec3 specular = k_s * totalSpecular * specularColor;
 
-    FragColor = vec4(ambient + diffuse + specular, 1.0);
+    vec3 color = ambient + diffuse + specular;
+    
+    // Gamma correction
+    color = pow(color, vec3(1.0 / gamma));
+
+    FragColor = vec4(color, 1.0);
 }
 
 #endif
