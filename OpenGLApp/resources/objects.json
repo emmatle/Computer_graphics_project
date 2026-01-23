@@ -295,6 +295,48 @@
       "model": "models/PencilPlaceholder.obj",
       "position": [0.0, 1.0, 0.0],
       "rotation": [90.0, 0.0, 0.0]
+    },
+    {
+      "id": 30,
+      "name": "Orange Pencil_Placeholder",
+      "model": "models/PencilPlaceholder.obj",
+      "position": [0.0, 1.0, 0.0],
+      "rotation": [90.0, 0.0, 0.0]
+    },
+    {
+      "id": 31,
+      "name": "Yellow Pencil_Placeholder",
+      "model": "models/PencilPlaceholder.obj",
+      "position": [0.0, 1.0, 0.0],
+      "rotation": [90.0, 0.0, 0.0]
+    },
+    {
+      "id": 32,
+      "name": "Green Pencil_Placeholder",
+      "model": "models/PencilPlaceholder.obj",
+      "position": [0.0, 1.0, 0.0],
+      "rotation": [90.0, 0.0, 0.0]
+    },
+    {
+      "id": 33,
+      "name": "Azure Pencil_Placeholder",
+      "model": "models/PencilPlaceholder.obj",
+      "position": [0.0, 1.0, 0.0],
+      "rotation": [90.0, 0.0, 0.0]
+    },
+    {
+      "id": 34,
+      "name": "Blue Pencil_Placeholder",
+      "model": "models/PencilPlaceholder.obj",
+      "position": [0.0, 1.0, 0.0],
+      "rotation": [90.0, 0.0, 0.0]
+    },
+    {
+      "id": 35,
+      "name": "Purple Pencil_Placeholder",
+      "model": "models/PencilPlaceholder.obj",
+      "position": [0.0, 1.0, 0.0],
+      "rotation": [90.0, 0.0, 0.0]
     }
   ]
 }

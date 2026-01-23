@@ -15,6 +15,16 @@
 bool Game::loadObjects() {
   AudioManager::instance().init();
 
+  glm::vec3 placeholderPositions[] = {
+    {-0.82238, 0.586187, -1.21612},
+    {-0.82238, 0.586187, -1.25784},
+    {-0.82238, 0.586187, -1.29852},
+    {-0.82238, 0.586187, -1.34151},
+    {-0.82238, 0.586187, -1.38418},
+    {-0.82238, 0.586187, -1.42456},
+    {-0.82238, 0.586187, -1.46557}
+  };
+
   // Generate safe password
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -138,6 +148,26 @@ bool Game::loadObjects() {
       // skip adding to room (but keep in objects)
       objects.push_back(obj);
       continue;
+    }
+
+    if (name.find("_Placeholder") != std::string::npos) {
+      std::string pencilName = name.substr(0, name.find("_Placeholder"));
+      Pencil p;
+      if (pencilName == "Red Pencil") p = Red;
+      else if (pencilName == "Orange Pencil") p = Orange;
+      else if (pencilName == "Yellow Pencil") p = Yellow;
+      else if (pencilName == "Green Pencil") p = Green;
+      else if (pencilName == "Azure Pencil") p = Azure;
+      else if (pencilName == "Blue Pencil") p = Blue;
+      else if (pencilName == "Purple Pencil") p = Purple;
+
+      for (int i = 0; i < 7; i++) {
+        if (pencilOrder[i] == p) {
+          obj->setPosition(placeholderPositions[i]);
+          obj->setRotation(glm::radians(glm::vec3(-90, 90, 0)));
+          break;
+        }
+      }
     }
 
     // General case: place into the scene indicated by sceneName (default room).
