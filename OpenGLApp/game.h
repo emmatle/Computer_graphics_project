@@ -107,6 +107,7 @@ public:
 
     bool doorUnlocked = false;
     bool safeUnlocked = false;
+    bool pencilsCorrect = false;
 
     // Palette minigame
     float collectionTimer = 0.0f;
@@ -149,6 +150,11 @@ public:
     Object *findObject(int id);
 
     void interact(Object *obj);
+    void checkPencils();
+
+    void equip(Object* obj);
+    void pick(Object* obj);
+    void place(Object* obj, Object* placeholder);
 
     // --- Callbacks ---
 

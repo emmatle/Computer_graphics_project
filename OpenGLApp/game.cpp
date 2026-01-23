@@ -665,42 +665,94 @@ void Game::interact(Object *obj) {
     obj->animation.toggle();
     return;
   }
-  pos = obj->name.find("_Placeholder");
+
+  pos = obj->name.find("_Placed_On_");
   if (pos != std::string::npos) {
-    std::string objName = obj->name.substr(0, pos);
-    if (equippedObj && equippedObj->name == objName) {
-      // Place equipped object
-      equippedObj->setPosition(obj->position);
-      equippedObj->setRotation(obj->rotation);
-      equippedObj->name = objName + "_Placed";
-      room.objs.push_back(equippedObj);  // TODO: Test if this works correctly.
-      room.objs.erase(std::remove(room.objs.begin(), room.objs.end(), obj),
-                      room.objs.end());
-      inventory.objs.erase(std::remove(inventory.objs.begin(),
-                                       inventory.objs.end(), equippedObj),
-                           inventory.objs.end());
-      equippedObj = nullptr;
+    std::string pencilName = obj->name.substr(0, pos);
+    std::string placeholderName = obj->name.substr(pos + 11);
+    Object *placeholder = getObject(placeholderName);
+
+    if (!equippedObj) {
+      // Pick item and restore placeholder
+      placeholder->setPosition(obj->position);
+      placeholder->setRotation(obj->rotation);
+      room.objs.push_back(placeholder);
+
+      obj->name = pencilName;
+      pick(obj);
+    } else if (equippedObj->name.find("Pencil") != std::string::npos) {
+      // Swap
+      Object *equipped = equippedObj;
+      std::string newPencilName = equipped->name;
+
+      // Pick the one on the table
+      obj->name = pencilName;
+      pick(obj);
+
+      // Place the equipped one
+      place(equipped, placeholder);
     }
     return;
   }
 
-  pos = obj->name.find("_Placed");
+  pos = obj->name.find("_Placeholder");
   if (pos != std::string::npos) {
-    obj->name = obj->name.substr(0, pos);
-    Object *placeholder = getObject(obj->name + "_Placeholder");
-    room.objs.push_back(placeholder);
-    room.objs.erase(std::remove(room.objs.begin(), room.objs.end(), obj),
-                    room.objs.end());
-    inventory.objs.push_back(obj);
+    if (equippedObj && equippedObj->name.find("Pencil") != std::string::npos) {
+      place(equippedObj, obj);
+    }
+    return;
   }
 
-  for (auto it = room.objs.begin(); it != room.objs.end(); ++it) {
-    if (*it == obj) {
-      inventory.objs.push_back(obj);
-      room.objs.erase(it);
-      break;
+  pick(obj);
+}
+
+// --- Callbacks ---
+
+void Game::equip(Object *obj) {
+  if (!obj) {
+    // Unequip current
+    if (equippedObj) {
+      equippedObj->setPosition();
+      equippedObj->setRotation();
+      inventory.objs.push_back(equippedObj);
+
+      // Remove from room if present
+      room.objs.erase(
+          std::remove(room.objs.begin(), room.objs.end(), equippedObj),
+          room.objs.end());
+
+      equippedObj = nullptr;
+      inventoryIndex = static_cast<int>(inventory.objs.size()) - 1;
+      if (inventoryIndex < 0) inventoryIndex = -1;
+    }
+  } else {
+    // Equip new
+    if (equippedObj) equip(nullptr);
+
+    equippedObj = obj;
+    room.objs.push_back(equippedObj);
+    inventory.objs.erase(
+        std::remove(inventory.objs.begin(), inventory.objs.end(), obj),
+        inventory.objs.end());
+
+    if (inventory.objs.empty()) {
+      inventoryIndex = -1;
+    } else {
+      if (inventoryIndex >= (int)inventory.objs.size())
+        inventoryIndex = static_cast<int>(inventory.objs.size()) - 1;
     }
   }
+}
+
+void Game::pick(Object *obj) {
+  if (!obj) return;
+
+  // Add to inventory
+  inventory.objs.push_back(obj);
+
+  // Remove from room
+  room.objs.erase(std::remove(room.objs.begin(), room.objs.end(), obj),
+                  room.objs.end());
 
   obj->setPosition();
   obj->setRotation();
@@ -710,7 +762,50 @@ void Game::interact(Object *obj) {
   Application::setBackgroundLowpass(true);
 }
 
-// --- Callbacks ---
+void Game::place(Object *obj, Object *placeholder) {
+  if (!obj || !placeholder) return;
+
+  std::string pencilName = obj->name;
+  obj->setPosition(placeholder->position);
+  obj->setRotation(placeholder->rotation);
+  obj->name = pencilName + "_Placed_On_" + placeholder->name;
+
+  room.objs.push_back(obj);
+
+  // Remove placeholder from room
+  room.objs.erase(std::remove(room.objs.begin(), room.objs.end(), placeholder),
+                  room.objs.end());
+
+  // Remove object from inventory or equipped
+  inventory.objs.erase(
+      std::remove(inventory.objs.begin(), inventory.objs.end(), obj),
+      inventory.objs.end());
+
+  if (equippedObj == obj) equippedObj = nullptr;
+
+  checkPencils();
+}
+
+void Game::checkPencils() {
+  int correct = 0;
+  for (auto &obj : objects) {
+    size_t pos = obj->name.find("_Placed_On_");
+    if (pos != std::string::npos) {
+      std::string pencilName = obj->name.substr(0, pos);
+      std::string placeholderName = obj->name.substr(pos + 11);
+      if (placeholderName == pencilName + "_Placeholder") {
+        correct++;
+      }
+    }
+  }
+  if (correct == 7) {
+    pencilsCorrect = true;
+    std::cout << "All pencils placed correctly!" << std::endl;
+    std::cout << "Safe code: " << password << std::endl;
+  } else {
+    pencilsCorrect = false;
+  }
+}
 
 void Game::onKey() {
   if (state == Splashscreen) {
@@ -778,43 +873,14 @@ void Game::onMouseButton() {
   if (state == InGame) {
     if (input.rmb) {
       if (equippedObj) {
-        // Unequip: put equipped object into inventory
-        equippedObj->setPosition();
-        equippedObj->setRotation();
-        inventory.objs.push_back(equippedObj);
-
-        // Remove from room if present
-        for (auto it = room.objs.begin(); it != room.objs.end();) {
-          if (*it == equippedObj) {
-            it = room.objs.erase(it);
-            break;
-          } else {
-            ++it;
-          }
-        }
-
-        equippedObj = nullptr;
-        // new item becomes selected
-        inventoryIndex = static_cast<int>(inventory.objs.size()) - 1;
-        if (inventoryIndex < 0) inventoryIndex = -1;
+        equip(nullptr);
       } else if (!inventory.objs.empty()) {
         // Ensure inventoryIndex is valid
         if (inventoryIndex < 0 || inventoryIndex >= (int)inventory.objs.size()) {
           inventoryIndex = 0;
         }
 
-        // Equip selected inventory item
-        equippedObj = inventory.objs[inventoryIndex];
-        room.objs.push_back(equippedObj);
-        inventory.objs.erase(inventory.objs.begin() + inventoryIndex);
-
-        // Adjust inventoryIndex after erase
-        if (inventory.objs.empty()) {
-          inventoryIndex = -1;
-        } else {
-          if (inventoryIndex >= (int)inventory.objs.size())
-            inventoryIndex = static_cast<int>(inventory.objs.size()) - 1;
-        }
+        equip(inventory.objs[inventoryIndex]);
       }
     } else if (input.lmb) {
       if (hoveredObj) {
