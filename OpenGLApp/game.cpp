@@ -255,12 +255,25 @@ void Game::drawLeaderboard() {
     auto &entry = leaderboard[i];
     renderer->drawText(entry.first + ":", static_cast<float>(fbWidth) * 0.05f,
                        static_cast<float>(fbHeight) * (0.28f + i * 0.08f), 0.8f,
-                       glm::vec3(0.8f));
+                       glm::vec3(1.0f));
     renderer->drawText(std::to_string(entry.second),
                        static_cast<float>(fbWidth) * 0.5f,
                        static_cast<float>(fbHeight) * (0.28f + i * 0.08f), 0.8f,
                        glm::vec3(1.0f, 1.0f, 0.0f));
   }
+}
+
+void Game::drawGameOver() {
+  renderer->drawText("GAME OVER", static_cast<float>(fbWidth) * 0.5f,
+                     static_cast<float>(fbHeight) * 0.4f, 2.0f,
+                     glm::vec3(1.0f, 0.0f, 0.0f), Align::Center);
+  renderer->drawText("The police caught you!", static_cast<float>(fbWidth) * 0.5f,
+                     static_cast<float>(fbHeight) * 0.55f, 1.2f,
+                     glm::vec3(1.0f), Align::Center);
+  renderer->drawText("Press any key to try again",
+                     static_cast<float>(fbWidth) * 0.5f,
+                     static_cast<float>(fbHeight) * 0.8f, 1.0f,
+                     glm::vec3(0.6f), Align::Center);
 }
 
 void Game::drawCredits(float scroll) {
@@ -289,7 +302,7 @@ void Game::drawCredits(float scroll) {
     renderer->drawText(
         credits[i], static_cast<float>(fbWidth) * 0.5f,
         static_cast<float>(fbHeight) * (0.5f + i * 0.08f - scroll), 0.8f,
-        glm::vec3(0.8f), Align::Center);
+        glm::vec3(1.0f), Align::Center);
   }
 }
 
@@ -398,7 +411,12 @@ void Game::draw() {
     drawLeaderboard();
     renderer->drawText(
         "Press any key to start...", static_cast<float>(fbWidth) * 0.5f,
-        static_cast<float>(fbHeight) * 0.95f, 1.0f, glm::vec3(0.8f));
+        static_cast<float>(fbHeight) * 0.95f, 1.0f, glm::vec3(1.0f));
+    return;
+  }
+  if (state == GameOver) {
+    Renderer::clear();
+    drawGameOver();
     return;
   }
   if (state == LeaderboardEntry) {
@@ -408,14 +426,14 @@ void Game::draw() {
                        glm::vec3(1.0f, 1.0f, 0.0f), Align::Center);
     renderer->drawText("Enter your name:", static_cast<float>(fbWidth) * 0.5f,
                        static_cast<float>(fbHeight) * 0.4f, 1.0f,
-                       glm::vec3(0.8f), Align::Center);
+                       glm::vec3(1.0f), Align::Center);
     renderer->drawText(playerName + "_", static_cast<float>(fbWidth) * 0.5f,
                        static_cast<float>(fbHeight) * 0.5f, 1.2f,
                        glm::vec3(1.0f), Align::Center);
     renderer->drawText("Press Enter to save",
                        static_cast<float>(fbWidth) * 0.5f,
                        static_cast<float>(fbHeight) * 0.75f, 1.0f,
-                       glm::vec3(0.8f), Align::Center);
+                       glm::vec3(1.0f), Align::Center);
     return;
   }
   static auto canvasTex =
@@ -451,17 +469,17 @@ void Game::draw() {
     // Crosshair
     renderer->drawText(".", static_cast<float>(fbWidth) * 0.5f,
                        static_cast<float>(fbHeight) * 0.5f, 1.0f,
-                       glm::vec3(0.8f), Align::Center);
+                       glm::vec3(1.0f), Align::Center);
 
-    glm::vec3 remainingTimeColor = glm::vec3(0.8f);
+    glm::vec3 remainingTimeColor = glm::vec3(1.0f);
 
     // After 5 minutes make text more red
     if (remainingTime <= 0.5f * maxTime) {
       float progress =
           1.f - glm::clamp((remainingTime) / (0.5f * maxTime), 0.f, 1.f);
       remainingTimeColor =
-          (1 - progress) * glm::vec3(0.8f) +
-          progress * glm::vec3(0.f, 0.8f, 0.f);  // From -4 to +2 semitones
+          (1 - progress) * glm::vec3(1.0f) +
+          progress * glm::vec3(0.8f, 0.0f, 0.f);  // From -4 to +2 semitones
     }
 
     renderer->drawText(
@@ -474,38 +492,48 @@ void Game::draw() {
       renderer->drawText(
           "Brushes collected: (" + std::to_string(collectedItems) + "/4)",
           static_cast<float>(fbWidth) * 0.05f,
-          static_cast<float>(fbHeight) * 0.2f, 1.0f, glm::vec3(0.8f));
+          static_cast<float>(fbHeight) * 0.2f, 1.0f, glm::vec3(1.0f));
       renderer->drawText(
           "Time left: " + std::to_string(static_cast<int>(collectionTimer)) +
               "s",
           static_cast<float>(fbWidth) * 0.7f,
-          static_cast<float>(fbHeight) * 0.2f, 1.0f, glm::vec3(0.8f));
+          static_cast<float>(fbHeight) * 0.2f, 1.0f, glm::vec3(1.0f));
     }
 
     // Contextual hints
     if (!hoveredObj) return;
 
     if (collectionCompleted && hoveredObj->name == "Canvas") {
-      renderer->drawText("Look at Venus from the right angle...",
+      renderer->drawText("Align",
                          static_cast<float>(fbWidth) * 0.5f,
-                         static_cast<float>(fbHeight) * 0.95f, 1.0f,
-                         glm::vec3(0.8f), Align::Center);
+                         static_cast<float>(fbHeight) * 0.95f, 1.2f,
+                         glm::vec3(1.0f, 1.0f, 0.0f), Align::Center);
     }
 
     if (!collectionCompleted && hoveredObj->name == "Palette") {
       renderer->drawText(
-          "Collect all the brushes in time!",
+          "Collect all brushes in time!",
+          static_cast<float>(fbWidth) * 0.5f,    // right side
+          static_cast<float>(fbHeight) * 0.8f,  // vertical placement
+          1.0f, glm::vec3(1.0f), Align::Center);
+      renderer->drawText(
+          "Start",
           static_cast<float>(fbWidth) * 0.5f,    // right side
           static_cast<float>(fbHeight) * 0.95f,  // vertical placement
-          1.0f, glm::vec3(0.8f), Align::Center);
+          1.2f, glm::vec3(1.0f, 1.0f, 0.0f), Align::Center);
     }
 
     if (hoveredObj->name == "Picture") {
       renderer->drawText(
           "Is that a capybara?",
           static_cast<float>(fbWidth) * 0.5f,    // right side
+          static_cast<float>(fbHeight) * 0.8f,  // vertical placement
+          1.0f, glm::vec3(1.0f), Align::Center);
+      renderer->drawText(
+          "Pick",
+          static_cast<float>(fbWidth) * 0.5f,    // right side
           static_cast<float>(fbHeight) * 0.95f,  // vertical placement
-          1.0f, glm::vec3(0.8f), Align::Center);
+          1.2f, glm::vec3(1.0f, 1.0f, 0.0f), Align::Center);
     }
     if (hoveredObj->name == "Door") {
       if (!doorUnlocked) {
@@ -514,23 +542,46 @@ void Game::draw() {
               "Unlock",
               static_cast<float>(fbWidth) * 0.5f,    // right side
               static_cast<float>(fbHeight) * 0.95f,  // vertical placement
-              1.0f, glm::vec3(0.8f), Align::Center);
+              1.2f, glm::vec3(1.0f, 1.0f, 0.0f), Align::Center);
         } else {
           renderer->drawText(
               "Door is locked",
               static_cast<float>(fbWidth) * 0.5f,    // right side
               static_cast<float>(fbHeight) * 0.95f,  // vertical placement
-              1.0f, glm::vec3(0.8f), Align::Center);
+              1.0f, glm::vec3(1.0f), Align::Center);
         }
       }
     }
     if (hoveredObj->name == "Desk Drawer") {
       // TODO: Add drawer or remove the hint.
       renderer->drawText(
-          "Look inside...",
+          "Look inside",
           static_cast<float>(fbWidth) * 0.05f,   // right side
           static_cast<float>(fbHeight) * 0.95f,  // vertical placement
-          1.0f, glm::vec3(0.8f), Align::Right);
+          1.2f, glm::vec3(1.0f, 1.0f, 0.0f), Align::Right);
+    }
+
+    // Contextual Action hints
+    std::string hint = "";
+    if (hoveredObj->name.find("_Placed_On_") != std::string::npos) {
+      if (!equippedObj) {
+        hint = "Pick";
+      } else if (equippedObj->name.find("Pencil") != std::string::npos) {
+        hint = "Swap";
+      }
+    } else if (hoveredObj->name.find("_Placeholder") != std::string::npos) {
+      if (equippedObj && equippedObj->name.find("Pencil") != std::string::npos) {
+        hint = "Place";
+      }
+    } else if (hoveredObj->name.find("Pencil") != std::string::npos ||
+               hoveredObj->name.find("Key") != std::string::npos) {
+      hint = "Pick";
+    }
+
+    if (!hint.empty()) {
+      renderer->drawText(hint, static_cast<float>(fbWidth) * 0.5f,
+                         static_cast<float>(fbHeight) * 0.95f, 1.2f,
+                         glm::vec3(1.0f, 1.0f, 0.0f), Align::Center);
     }
   } else if (state == Inventory) {
     renderer->drawScene(inventory, false, inventoryIndex);
@@ -539,7 +590,14 @@ void Game::draw() {
       renderer->drawText(inventory.objs[inventoryIndex]->name,
                          static_cast<float>(fbWidth) * 0.5f,
                          static_cast<float>(fbHeight) * 0.95f, 1.0f,
-                         glm::vec3(0.8f), Align::Center);
+                         glm::vec3(1.0f), Align::Center);
+
+      if (inventory.objs.size() > 1) {
+        renderer->drawText("[Q] Previous       [E] Next",
+                           static_cast<float>(fbWidth) * 0.5f,
+                           static_cast<float>(fbHeight) * 0.1f, 0.8f,
+                           glm::vec3(0.6f), Align::Center);
+      }
     }
   } else if (state == Credits) {
     static float creditTime = 0.f;
@@ -811,6 +869,16 @@ void Game::onKey() {
   if (state == Splashscreen) {
     for (auto k : input.keys)
       if (k) state = InGame;
+  }
+  if (state == GameOver) {
+    for (auto k : input.keys) {
+      if (k) {
+        remainingTime = maxTime;
+        state = InGame;
+        // Optionally reset player position or other state if needed,
+        // but simple restart of time and state is a good start.
+      }
+    }
   }
   if (state == InGame) {
     if (input.tab) {

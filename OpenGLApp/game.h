@@ -139,6 +139,7 @@ public:
 
     void loadLeaderboard();
     void drawLeaderboard();
+    void drawGameOver();
     void drawCredits(float scroll = 0.f);
 
     void update();
