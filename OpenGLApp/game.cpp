@@ -25,6 +25,40 @@ bool Game::loadObjects() {
     {-0.82238, 0.586187, -1.46557}
   };
 
+  glm::vec3 pencilPositions[14] = {
+    {-0.769108, 0.427767, -1.27026},
+    {-1.03855, 0.673286, -0.761964},
+    {-0.738341, 1.81706, -1.39378},
+    {1.6047, 0.822633, -2.02193},
+    {3.95431, 0.712525, -0.941276},
+    {6.14804, 0.519597, 0.528832},
+    {4.56654, 1.36895, 1.22153},
+    {6.66232, 0.36859, -1.29101},
+    {6.74951, 1.50641, 1.18258},
+    {6.74073, 0.547545, 1.35594},
+    {1.60812, 0.323185, -2.41071},
+    {-0.497238, 0.427767, -2.60119},
+    {4.38636, 0.007796, -0.685579},
+    {3.74331, 0.763184, 1.6281}
+  };
+
+  glm::vec3 pencilRotations[14] = {
+    { 90, 60, 0 },
+    { 90, 180, 0 },
+    { 90, 0, 0 },
+    { 0, 0, 0 },
+    { 78, 60, -14.6 },
+    { 90, 60, 0 },
+    { 90, 120, 0 },
+    { 183, -95, 200 },
+    { 180, -90, 13 },
+    { -200, 232, -176 },
+    { 70, 34, 41 },
+    { 90, -165, 0 },
+    { 90, 0, 0 },
+    { 90, 75, 0 }
+  };
+
   // Generate safe password
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -34,6 +68,11 @@ bool Game::loadObjects() {
   std::uniform_real_distribution d4(0.f, 360.f);
 
   std::shuffle(pencilOrder.begin(), pencilOrder.end(), gen);
+
+  std::vector<int> posIndices(14);
+  std::iota(posIndices.begin(), posIndices.end(), 0);
+  std::shuffle(posIndices.begin(), posIndices.end(), gen);
+  int pencilPosIdx = 0;
 
   int pictureSet = d2(gen);
   int b = 1;  // Black = number of pictures
@@ -143,6 +182,17 @@ bool Game::loadObjects() {
       continue;
     }
 
+    // Handle random pencil positions
+    if (name.find("Pencil") != std::string::npos &&
+        name.find("_Placeholder") == std::string::npos &&
+        name.find("_Placed_On_") == std::string::npos) {
+      if (pencilPosIdx < posIndices.size()) {
+        int idx = posIndices[pencilPosIdx++];
+        obj->setPosition(pencilPositions[idx]);
+        obj->setRotation(glm::radians(pencilRotations[idx]));
+      }
+    }
+
     // Brushes: if they belong to the room we intentionally DON'T add them now (they spawn later).
     if (obj->name.find("Brush") != std::string::npos && sceneName == "room") {
       // skip adding to room (but keep in objects)
@@ -152,17 +202,10 @@ bool Game::loadObjects() {
 
     if (name.find("_Placeholder") != std::string::npos) {
       std::string pencilName = name.substr(0, name.find("_Placeholder"));
-      Pencil p;
-      if (pencilName == "Red Pencil") p = Red;
-      else if (pencilName == "Orange Pencil") p = Orange;
-      else if (pencilName == "Yellow Pencil") p = Yellow;
-      else if (pencilName == "Green Pencil") p = Green;
-      else if (pencilName == "Azure Pencil") p = Azure;
-      else if (pencilName == "Blue Pencil") p = Blue;
-      else if (pencilName == "Purple Pencil") p = Purple;
-
+      const std::string colorNames[] = {"Red", "Orange", "Yellow", "Green", "Azure", "Blue", "Purple"};
+      
       for (int i = 0; i < 7; i++) {
-        if (pencilOrder[i] == p) {
+        if (pencilName.find(colorNames[pencilOrder[i]]) != std::string::npos) {
           obj->setPosition(placeholderPositions[i]);
           obj->setRotation(glm::radians(glm::vec3(-90, 90, 0)));
           break;
@@ -410,8 +453,9 @@ void Game::draw() {
     Renderer::clear();
     drawLeaderboard();
     renderer->drawText(
-        "Press any key to start...", static_cast<float>(fbWidth) * 0.5f,
-        static_cast<float>(fbHeight) * 0.95f, 1.0f, glm::vec3(1.0f));
+        "Press any key to start...", static_cast<float>(fbWidth) * 0.95f,
+        static_cast<float>(fbHeight) * 0.95f, 1.2f, glm::vec3(1.0f, 1.0f, 0.0f),
+        Align::Right);
     return;
   }
   if (state == GameOver) {
@@ -587,10 +631,26 @@ void Game::draw() {
     renderer->drawScene(inventory, false, inventoryIndex);
 
     if (inventoryIndex != -1) {
-      renderer->drawText(inventory.objs[inventoryIndex]->name,
-                         static_cast<float>(fbWidth) * 0.5f,
+      Object *selected = inventory.objs[inventoryIndex];
+      renderer->drawText(selected->name, static_cast<float>(fbWidth) * 0.5f,
                          static_cast<float>(fbHeight) * 0.95f, 1.0f,
                          glm::vec3(1.0f), Align::Center);
+
+      if (selected->name == "Picture") {
+        std::string colors[] = {"Red", "Orange", "Yellow", "Green", "Azure", "Blue", "Purple"};
+
+        // Put text behind the picture TODO
+        static Object text;
+        text.setPosition(selected->position + selected->front * +0.015f);
+        text.setRotation(selected->rotation);
+        text.setScale(glm::vec3(-1.0f, 1.0f, 1.0f));
+
+        for (int i = 0; i < 7; i++) {
+          text.setPosition(selected->position + selected->front * +0.015f + selected->up * (0.05f * (3 - i)));
+          renderer->drawText3D(colors[i] + " = " + password[i], text.getModelMatrix(), inventoryView, 0.33f,
+                               glm::vec3(1.0f), Align::Center);
+        }
+      }
 
       if (inventory.objs.size() > 1) {
         renderer->drawText("[Q] Previous       [E] Next",
