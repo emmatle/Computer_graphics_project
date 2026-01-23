@@ -111,10 +111,10 @@
     {
       "id": 2,
       "name": "Key",
-      "model": "models/key.obj",
+      "model": "models/Key.obj",
       "position": [0.0, 1.0, -2.0],
       "rotation": [0.0, 0.0, 0.0],
-      "scale": [0.5, 0.5, 0.5]
+      "scale": [1.0, 1.0, 1.0]
     },
     {
       "id": 3,

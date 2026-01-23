@@ -1,0 +1,12 @@
+# Blender 5.0.1 MTL File: 'Key.blend'
+# www.blender.org
+
+newmtl blinn6SG
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd /Users/salvatore/Documents/Blender/ArtStudio/textures/KEY_DIFF.png
+map_Ks /Users/salvatore/Documents/Blender/ArtStudio/textures/KEY_SPEC.png

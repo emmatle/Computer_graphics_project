@@ -285,8 +285,8 @@ void Game::update() {
     }
 
     if (equippedObj) {
-      equippedObj->setPosition(player.position + player.front * 0.5f +
-                               player.right * 0.3f - player.up * 0.2f);
+      equippedObj->setPosition(player.position + player.front * 0.8f +
+                               player.right * 0.2f - player.up * 0.2f);
       equippedObj->setRotation(player.orientation);
     }
 

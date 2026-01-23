@@ -126,7 +126,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd carpet beige.png
+map_Kd textures/carpet beige.png
 
 newmtl Material.003
 Ka 1.000000 1.000000 1.000000
@@ -306,6 +306,18 @@ map_Kd textures/Marble021_1K-JPG_Color.jpg
 map_Ns textures/Marble021_1K-JPG_Roughness.jpg
 map_Bump -bm 1.000000 textures/Marble021_1K-JPG_NormalGL.jpg
 
+newmtl Tools
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Tools_BaseColor.png
+map_Ns textures/Tools_Roughness.png
+map_refl textures/Tools_Metalness.png
+map_Bump -bm 1.000000 textures/Tools_Normal.png
+
 newmtl White_Matte
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
@@ -334,9 +346,9 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd /Users/salvatore/Downloads/variety-of-books/textures/books_Base_color.png
-map_Ns /Users/salvatore/Downloads/variety-of-books/textures/books_Roughness.png
-map_Bump -bm 1.000000 /Users/salvatore/Downloads/variety-of-books/textures/books_Normal_OpenGL.png
+map_Kd textures/books_Base_color.png
+map_Ns textures/books_Roughness.png
+map_Bump -bm 1.000000 textures/books_Normal_OpenGL.png
 
 newmtl books.001
 Ka 1.000000 1.000000 1.000000
@@ -345,9 +357,9 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd /Users/salvatore/Downloads/variety-of-books/textures/books_Base_color.png
-map_Ns /Users/salvatore/Downloads/variety-of-books/textures/books_Roughness.png
-map_Bump -bm 1.000000 /Users/salvatore/Downloads/variety-of-books/textures/books_Normal_OpenGL.png
+map_Kd textures/books_Base_color.png
+map_Ns textures/books_Roughness.png
+map_Bump -bm 1.000000 textures/books_Normal_OpenGL.png
 
 newmtl case
 Ns 250.000000
