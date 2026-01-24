@@ -113,7 +113,7 @@
       "name": "Key",
       "model": "models/Key.obj",
       "position": [-0.21508, 0.42757, -2.47684],
-      "rotation": [-30.0, 0.0, 0.0]
+      "rotation": [-30.0, 0.0, 90.0]
     },
     {
       "id": 3,

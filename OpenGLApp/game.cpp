@@ -498,6 +498,33 @@ void Game::draw() {
       renderer->updateTexture(*canvasTex, canvas);
     renderer->drawScene(room);
 
+    // --- Object-specific 3D Hints ---
+    std::string colorNames[] = {"Red", "Orange", "Yellow", "Green", "Azure", "Blue", "Purple"};
+    if (auto pic = getObject("Picture")) {
+      static Object text;
+      text.setPosition(pic->position + pic->front * +0.015f);
+      text.setRotation(pic->rotation);
+      text.setScale(glm::vec3(-1.0f, 1.0f, 1.0f));
+
+      for (int i = 0; i < 7; i++) {
+        text.setPosition(pic->position + pic->front * +0.015f + pic->up * (0.05f * (3 - i)));
+        renderer->drawText3D(colorNames[i] + " = " + password[i], text.getModelMatrix(), player, 0.33f,
+                             glm::vec3(1.0f), Align::Center);
+      }
+    }
+    if (auto paper = getObject("Paper")) {
+      static Object text;
+      text.setPosition(paper->position + paper->front * -0.015f);
+      text.setRotation(paper->rotation);
+      text.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
+
+      for (int i = 0; i < 7; i++) {
+        text.setPosition(paper->position + paper->front * -0.015f + paper->up * (0.05f * (3 - i)));
+        renderer->drawText3D(std::to_string(i + 1) + ". " + colorNames[pencilOrder[i]], text.getModelMatrix(), player,
+                             0.33f, glm::vec3(0.1f, 0.1f, 0.1f), Align::Center);
+      }
+    }
+
     if (!safeUnlocked) {
       auto textModel =
           glm::translate(glm::mat4(1.0f), glm::vec3(1.952, 1.39983, 0.82));
@@ -636,9 +663,8 @@ void Game::draw() {
                          static_cast<float>(fbHeight) * 0.95f, 1.0f,
                          glm::vec3(1.0f), Align::Center);
 
+      std::string colorNames[] = {"Red", "Orange", "Yellow", "Green", "Azure", "Blue", "Purple"};
       if (selected->name == "Picture") {
-        std::string colors[] = {"Red", "Orange", "Yellow", "Green", "Azure", "Blue", "Purple"};
-
         // Put text behind the picture TODO
         static Object text;
         text.setPosition(selected->position + selected->front * +0.015f);
@@ -647,8 +673,22 @@ void Game::draw() {
 
         for (int i = 0; i < 7; i++) {
           text.setPosition(selected->position + selected->front * +0.015f + selected->up * (0.05f * (3 - i)));
-          renderer->drawText3D(colors[i] + " = " + password[i], text.getModelMatrix(), inventoryView, 0.33f,
+          renderer->drawText3D(colorNames[i] + " = " + password[i], text.getModelMatrix(), inventoryView, 0.33f,
                                glm::vec3(1.0f), Align::Center);
+        }
+      }
+
+      if (selected->name == "Paper") {
+        // Put text in front of the paper
+        static Object text;
+        text.setPosition(selected->position + selected->front * -0.015f);
+        text.setRotation(selected->rotation);
+        text.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
+
+        for (int i = 0; i < 7; i++) {
+          text.setPosition(selected->position + selected->front * -0.015f + selected->up * (0.05f * (3 - i)));
+          renderer->drawText3D(std::to_string(i + 1) + ". " + colorNames[pencilOrder[i]], text.getModelMatrix(),
+                               inventoryView, 0.33f, glm::vec3(0.1f, 0.1f, 0.1f), Align::Center);
         }
       }
 
