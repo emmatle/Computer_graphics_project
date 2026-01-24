@@ -92,6 +92,7 @@ public:
     };
 
     bool mouseDrag = false;
+    bool paperIsNotPicked = true;
 
     std::vector<std::pair<std::string, int>> leaderboard;
 

@@ -453,6 +453,22 @@ void Game::draw() {
     Renderer::clear();
     drawLeaderboard();
     renderer->drawText(
+    "Steal the beautiful painting", static_cast<float>(fbWidth) * 0.95f,
+    static_cast<float>(fbHeight) * 0.3f, 1.0f, glm::vec3(1.0f),
+    Align::Right);
+    renderer->drawText(
+    "before time runs out", static_cast<float>(fbWidth) * 0.95f,
+    static_cast<float>(fbHeight) * 0.4f, 1.0f, glm::vec3(1.0f),
+    Align::Right);
+    renderer->drawText(
+    "Put all pencils correctly", static_cast<float>(fbWidth) * 0.95f,
+    static_cast<float>(fbHeight) * 0.6f, 1.0f, glm::vec3(1.0f),
+    Align::Right);
+    renderer->drawText(
+  "to get a bonus score", static_cast<float>(fbWidth) * 0.95f,
+  static_cast<float>(fbHeight) * 0.7f, 1.0f, glm::vec3(1.0f),
+  Align::Right);
+    renderer->drawText(
         "Press any key to start...", static_cast<float>(fbWidth) * 0.95f,
         static_cast<float>(fbHeight) * 0.95f, 1.2f, glm::vec3(1.0f, 1.0f, 0.0f),
         Align::Right);
@@ -498,31 +514,16 @@ void Game::draw() {
       renderer->updateTexture(*canvasTex, canvas);
     renderer->drawScene(room);
 
-    // --- Object-specific 3D Hints ---
-    std::string colorNames[] = {"Red", "Orange", "Yellow", "Green", "Azure", "Blue", "Purple"};
-    if (auto pic = getObject("Picture")) {
-      static Object text;
-      text.setPosition(pic->position + pic->front * +0.015f);
-      text.setRotation(pic->rotation);
-      text.setScale(glm::vec3(-1.0f, 1.0f, 1.0f));
+    // --- 3D Text ---
 
-      for (int i = 0; i < 7; i++) {
-        text.setPosition(pic->position + pic->front * +0.015f + pic->up * (0.05f * (3 - i)));
-        renderer->drawText3D(colorNames[i] + " = " + password[i], text.getModelMatrix(), player, 0.33f,
-                             glm::vec3(1.0f), Align::Center);
-      }
-    }
-    if (auto paper = getObject("Paper")) {
-      static Object text;
-      text.setPosition(paper->position + paper->front * -0.015f);
-      text.setRotation(paper->rotation);
-      text.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
+    if (paperIsNotPicked) { // TODO
+      auto textModel =
+    glm::translate(glm::mat4(1.0f), glm::vec3(-0.21508, 0.43257, -2.6));
+      textModel =
+          glm::rotate(textModel, glm::radians(-90.0f), glm::vec3(1, 0, 0));
 
-      for (int i = 0; i < 7; i++) {
-        text.setPosition(paper->position + paper->front * -0.015f + paper->up * (0.05f * (3 - i)));
-        renderer->drawText3D(std::to_string(i + 1) + ". " + colorNames[pencilOrder[i]], text.getModelMatrix(), player,
-                             0.33f, glm::vec3(0.1f, 0.1f, 0.1f), Align::Center);
-      }
+      renderer->drawText3D("Click me!", textModel, player, 0.4f,
+                           glm::vec3(1.0f, 1.0f, 0.0f), Align::Center);
     }
 
     if (!safeUnlocked) {
@@ -665,30 +666,48 @@ void Game::draw() {
 
       std::string colorNames[] = {"Red", "Orange", "Yellow", "Green", "Azure", "Blue", "Purple"};
       if (selected->name == "Picture") {
-        // Put text behind the picture TODO
         static Object text;
         text.setPosition(selected->position + selected->front * +0.015f);
         text.setRotation(selected->rotation);
         text.setScale(glm::vec3(-1.0f, 1.0f, 1.0f));
 
         for (int i = 0; i < 7; i++) {
-          text.setPosition(selected->position + selected->front * +0.015f + selected->up * (0.05f * (3 - i)));
+          text.setPosition(selected->position + selected->front * 0.01f + selected->up * (0.038f * (4 - i)));
           renderer->drawText3D(colorNames[i] + " = " + password[i], text.getModelMatrix(), inventoryView, 0.33f,
-                               glm::vec3(1.0f), Align::Center);
+                               glm::vec3(0.8f), Align::Center);
         }
+        text.setPosition(selected->position + selected->front * 0.01f + selected->up * (0.038f * -3));
+        renderer->drawText3D("White is last", text.getModelMatrix(), inventoryView, 0.33f,
+                             glm::vec3(0.8f), Align::Center);
+        text.setPosition(selected->position + selected->front * 0.01f + selected->up * (0.038f * -4));
+        renderer->drawText3D("Black is second-last", text.getModelMatrix(), inventoryView, 0.33f,
+                             glm::vec3(0.8f), Align::Center);
       }
 
       if (selected->name == "Paper") {
-        // Put text in front of the paper
         static Object text;
-        text.setPosition(selected->position + selected->front * -0.015f);
+
+        // Front side
+        text.setPosition(selected->position);
         text.setRotation(selected->rotation);
         text.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
 
+        std::string frontStrings[] = {"Controls:", "WASD: Move", "LMB: Interact", "RMB: Equip", "TAB: Inventory", "Black = #Pictures", "White = Color Sum"};
+
         for (int i = 0; i < 7; i++) {
-          text.setPosition(selected->position + selected->front * -0.015f + selected->up * (0.05f * (3 - i)));
-          renderer->drawText3D(std::to_string(i + 1) + ". " + colorNames[pencilOrder[i]], text.getModelMatrix(),
-                               inventoryView, 0.33f, glm::vec3(0.1f, 0.1f, 0.1f), Align::Center);
+          text.setPosition(selected->position + selected->front * -0.002f + selected->up * (0.04f * (3 - i)));
+          renderer->drawText3D(frontStrings[i], text.getModelMatrix(), inventoryView, 0.33f, glm::vec3(0.1f), Align::Center);
+        }
+
+        // Back side
+        text.setPosition(selected->position);
+        text.setRotation(selected->rotation);
+        text.setScale(glm::vec3(-1.0f, 1.0f, 1.0f));
+
+        for (int i = 0; i < 7; i++) {
+          text.setPosition(selected->position + selected->front * 0.002f + selected->up * (0.04f * (3 - i)));
+          renderer->drawText3D("#" + std::to_string(i + 1) + " " + colorNames[pencilOrder[i]], text.getModelMatrix(),
+                               inventoryView, 0.33f, glm::vec3(0.1f), Align::Center);
         }
       }
 
@@ -905,6 +924,10 @@ void Game::equip(Object *obj) {
 void Game::pick(Object *obj) {
   if (!obj) return;
 
+  if (obj->name == "Paper") {
+    paperIsNotPicked = false;
+  }
+
   // Add to inventory
   inventory.objs.push_back(obj);
 
@@ -958,8 +981,6 @@ void Game::checkPencils() {
   }
   if (correct == 7) {
     pencilsCorrect = true;
-    std::cout << "All pencils placed correctly!" << std::endl;
-    std::cout << "Safe code: " << password << std::endl;
   } else {
     pencilsCorrect = false;
   }
