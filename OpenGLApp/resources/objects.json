@@ -112,9 +112,8 @@
       "id": 2,
       "name": "Key",
       "model": "models/Key.obj",
-      "position": [0.0, 1.0, -2.0],
-      "rotation": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0]
+      "position": [-0.21508, 0.42757, -2.47684],
+      "rotation": [-30.0, 0.0, 0.0]
     },
     {
       "id": 3,
@@ -127,6 +126,13 @@
       "model": "models/Canvas.obj",
       "position": [3.91076, 1.31257, -1.08523],
       "rotation": [-15.0, -30.0, 0.0]
+    },
+    {
+      "id": 5,
+      "name": "Paper",
+      "model": "models/Cube.obj",
+      "position": [-0.21508, 0.42757, -2.47684],
+      "scale": [1.0, 1.0, 0.01]
     },
     {
       "id": 6,
