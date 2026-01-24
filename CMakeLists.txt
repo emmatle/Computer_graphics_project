@@ -24,9 +24,7 @@ if (APPLE)
 elseif (WIN32)
     add_executable(${APP_NAME} ${APP_SOURCES} OpenGLApp OpenGLApp/app_icon.rc)
 else ()
-    add_executable(${APP_NAME} ${APP_SOURCES} OpenGLApp
-            OpenGLApp/audio_manager.h
-            OpenGLApp/audio_manager.cpp)
+    add_executable(${APP_NAME} ${APP_SOURCES} OpenGLApp)
 endif ()
 
 # === Include local libraries ===
@@ -118,5 +116,4 @@ message(STATUS "OpenGL: ${OPENGL_LIBRARIES}")
 message(STATUS "FreeType: ${FREETYPE_LIBRARIES}")
 message(STATUS "Assimp: ${ASSIMP_LIBRARIES}")
 message(STATUS "GLFW: ${GLFW_LIBRARIES}")
-message(STATUS "SndFile: ${SNDFILE_LIBRARIES}")
 message(STATUS "-----------------------------")

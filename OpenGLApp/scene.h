@@ -128,7 +128,7 @@ public:
 
     Animation animation;
 
-    Object *parent; // TODO: Optimize by keeping track of childs and invalidate their matrices when the parent moves.
+    Object *parent; // TODO: Optimize by keeping track of childs and invalidate their matrices when the parent moves
 
     // World Constants
     constexpr static glm::vec3 WRLD_FRONT{0.f, 0.f, -1.f};
@@ -155,8 +155,6 @@ public:
     void setRotation(const glm::vec3 &radians = {}, bool safe = false, const glm::vec3 &pivot = glm::vec3(0.f));
 
     void setScale(const glm::vec3 &scl = {1.f, 1.f, 1.f});
-
-    const glm::quat &getOrientation() const { return _orientation; } // TODO: Remove and use orientation
 
     void move(const glm::vec3 &dir, float amount, bool walk = false);
 

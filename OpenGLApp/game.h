@@ -25,6 +25,7 @@ public:
         GameOver,
         LeaderboardEntry,
         Credits,
+        ExitDialog
     } state = Splashscreen;
 
     struct Input {
@@ -100,7 +101,7 @@ public:
     float time = 0.0f;
     float maxTime = 10 * 60.0f; // 10 minutes
     float remainingTime = maxTime;
-    float score = 100.f; // Final score = score + time
+    int score = 0;
 
     int inventoryIndex = -1; // -1 = no selection / empty inventory
     Object* equippedObj = nullptr;
@@ -109,12 +110,15 @@ public:
     bool doorUnlocked = false;
     bool safeUnlocked = false;
     bool pencilsCorrect = false;
+    bool close = false;
 
-    // Palette minigame
-    float collectionTimer = 0.0f;
-    int collectedItems = 0;
-    bool collectionCompleted = false;
-    int collectionCounter = 0;
+    // Brushes minigame
+    float brushesTimer = 0.0f;
+    int collectedBrushes = 0;
+    bool brushesCompleted = false;
+    int brushesTries = 0;
+
+    int safeTries = 0;
 
     enum Pencil {
         Red,
@@ -130,8 +134,11 @@ public:
 
     // Safe code entry
     std::string enteredCode;
-    // Number of pictures (8) + Colored pencils in order (4687391) + Sum of red, green, blue pencils (20)
+    // Colored pencils in order + Sum of RGB or YAP + Black + White
     std::string password;
+
+    int white = 0; // Sum of either of red, green, blue or yellow, azure, purple digits
+    int black = 0; // Number of frames hanged on the wall (1, 5, 8, 10)
 
     glm::vec3 lastPos{};
     glm::vec3 lastRot{};
@@ -169,5 +176,6 @@ public:
     void onMouseScroll(float yoffset);
 
     void onResize(int width, int height);
+
     void onChar(unsigned int codepoint);
 };

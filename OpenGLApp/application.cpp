@@ -70,7 +70,6 @@ void Application::updateTime() {
 
 // Initializes GLFW, GLAD, and ImGui
 void Application::init() {
-    loadSettings();
 
     if (!backgroundMusic.openFromFile(getResourcePath("sounds/BackgroundMusic.mp3"))) {
         std::cerr << "ERROR: can't load " << getResourcePath("sounds/BackgroundMusic.mp3") << std::endl;
@@ -174,10 +173,6 @@ void Application::init() {
     ImGui::GetIO().Fonts->AddFontFromFileTTF(font, fontSize);
 }
 
-/* TODO: abstract rendering and game logic from application class:
- *  - all OpenGL gl*() functions should be wrapped inside the Renderer class
- *  - game state should be modified by the Game class methods and members are accessed only if needed
- */
 void Application::run() {
     init();
 
@@ -187,7 +182,6 @@ void Application::run() {
 
     if (!renderer.loadFont("fonts/Antonio-Bold.ttf")) exit(EXIT_FAILURE);
 
-    // TODO: Add a splashscreen.
     glfwPollEvents();
     Renderer::clear();
     renderer.drawText("Loading...", static_cast<float>(fbWidth) * 0.05f, static_cast<float>(fbHeight) * 0.95f, 1.0f,
@@ -198,7 +192,7 @@ void Application::run() {
 
     game.loadLeaderboard();
 
-    // TODO: free up allocated resources before exiting.
+    // TODO: free up allocated resources before exiting
     if (!renderer.genBuffers()) exit(EXIT_FAILURE);
 
     if (!renderer.loadModels(game.objects)) exit(EXIT_FAILURE);
@@ -210,6 +204,8 @@ void Application::run() {
         updateTime();
 
         game.update();
+
+        if (game.close) glfwSetWindowShouldClose(window, true);
 
         // After 5 minutes make music faster
         if (game.remainingTime <= 0.5f * game.maxTime) {
@@ -248,71 +244,6 @@ void Application::terminate() {
 
     glfwDestroyWindow(window);
     glfwTerminate();
-
-    storeSettings();
-}
-
-// TODO: implement settings and change path.
-void Application::loadSettings() {
-    std::filesystem::path file = getResourcePath("data.json", true);
-    return;
-
-    using json = nlohmann::json;
-    std::ifstream in(file);
-    if (!in) {
-        std::cout << "Settings file " << file << " not found, using defaults" << std::endl; // Not an error
-        return;
-    }
-
-    in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    json j;
-
-    try {
-        in >> j;
-    } catch (std::exception &e) {
-        std::cerr << "ERROR: failed to read settings from " << file << ": " << e.what() << std::endl;
-        return;
-    }
-
-    if (!j.contains("settings")) return;
-    const json &s = j["settings"];
-
-    if (s.contains("width")) width = s["width"];
-    if (s.contains("height")) height = s["height"];
-    if (s.contains("fullscreen")) fullscreen = s["fullscreen"];
-    if (s.contains("vsync")) vsync = s["vsync"];
-    if (s.contains("mouseSensitivity")) mouseSensitivity = s["mouseSensitivity"];
-    if (s.contains("fontSize")) fontSize = s["fontSize"];
-}
-
-// TODO: implement settings and change path.
-void Application::storeSettings() {
-    std::filesystem::path file = getResourcePath("data.json", true);
-    return;
-    using ojson = nlohmann::ordered_json;
-
-    std::ofstream out(file);
-    if (!out) {
-        std::cerr << "ERROR: cannot open file " << file << " for writing" << std::endl;
-        return;
-    }
-
-    ojson j;
-    j["settings"] = ojson{
-        {"width", width},
-        {"height", height},
-        {"fullscreen", fullscreen},
-        {"vsync", vsync},
-        {"mouseSensitivity", mouseSensitivity},
-        {"fontSize", fontSize},
-    };
-
-    try {
-        out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-        out << j.dump(4);
-    } catch (std::exception &e) {
-        std::cerr << "ERROR: failed to write settings to " << file << ": " << e.what() << std::endl;
-    }
 }
 
 // Debug UI with camera and object controls
@@ -326,26 +257,25 @@ void Application::drawDebugMenu() {
     if (game.state == Game::InGame && game.selectedObj) obj = game.selectedObj.get();
 
     ImGui::SetNextWindowPos(ImVec2(40.0f, 40.0f), ImGuiCond_Once);
-    ImGui::SetNextWindowSize(ImVec2(240.0f, 600.0f), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(240.0f, 620.0f), ImGuiCond_Once);
 
     ImGui::Begin("Debug Menu");
 
-    ImGui::Text("Time: %.2f    FPS: %.2f", game.time, fps);
+    ImGui::Text("Time: %.2f        FPS: %.2f", game.time, fps);
 
     ImGui::SeparatorText("Controls");
-    ImGui::BulletText("F1: Toggle Window Focus");
-    ImGui::BulletText("F2: Toggle Background Music");
-    ImGui::BulletText("F3: Toggle Debug Menu");
-    ImGui::BulletText("F4: Quit Application");
+    ImGui::BulletText("[F1] Toggle Window Focus");
+    ImGui::BulletText("[F2] Toggle Background Music");
+    ImGui::BulletText("[F3] Toggle Debug Menu");
+    ImGui::BulletText("[F4] Quit Application");
 
-    ImGui::BulletText("W/A/S/D: Move/Inspect");
-    ImGui::BulletText("Mouse Movement: Look Around");
-    ImGui::BulletText("Left Mouse Button: Interact");
-    ImGui::BulletText("Mouse Wheel: Change Zoom");
-    ImGui::BulletText("Left Shift: Sprint");
-    // ImGui::BulletText("0-9: Equip Slot 0-9"); // TODO
-    ImGui::BulletText("Tab: Open Inventory");
-    // ImGui::BulletText("Esc: Pause The Game"); // TODO
+    ImGui::BulletText("[WASD] Move/Inspect");
+    ImGui::BulletText("[Mouse Movement] Look Around");
+    ImGui::BulletText("[Left Mouse Button] Interact");
+    ImGui::BulletText("[Right Mouse Button] Equip");
+    ImGui::BulletText("[Mouse Wheel] Change Zoom");
+    ImGui::BulletText("[Left Shift] Sprint");
+    ImGui::BulletText("[Tab] Open Inventory");
 
     ImGui::SeparatorText("Camera");
     glm::vec3 camPos = cam.position;
@@ -358,8 +288,6 @@ void Application::drawDebugMenu() {
         game.player.setRotation(glm::radians(camDegrees)); // Updates the camera
     }
 
-    ImGui::Checkbox("Constrain", &cam.costrain);
-
     float fovDegrees = glm::degrees(cam.fov);
     if (ImGui::SliderFloat("FOV", &fovDegrees, 1.f, 120.f)) {
         cam.setFov(glm::radians(fovDegrees));
@@ -367,19 +295,20 @@ void Application::drawDebugMenu() {
 
     ImGui::SliderFloat("Speed", &game.playerSpeed, 0.1f, 5.f);
 
-    ImGui::SeparatorText("Game Mode");
+  ImGui::Checkbox("Constrain", &cam.costrain);
 
-    const char *modes[] = {"Menu", "Explore", "Inspect"};
+  ImGui::SeparatorText("Game Progress");
+
+  const char *modes[] = {"Splashscreen","InGame","Inventory","Canvas","GameOver","LeaderboardEntry","Credits","ExitDialog"};
     int modeIndex = game.state;
-    if (ImGui::Combo("##Game Mode", &modeIndex, modes, 3)) {
+    if (ImGui::Combo("State", &modeIndex, modes, 7)) {
         game.state = static_cast<Game::State>(modeIndex);
     }
 
-    ImGui::SeparatorText("Game Progress");
-    ImGui::Text("Brushes Collected: %d/%d", game.collectedItems, 4);
-    if (game.collectionTimer > 0) ImGui::Text("Timer: %.2fs", game.collectionTimer);
-    ImGui::Text("Entered: %s", game.enteredCode.c_str());
+    ImGui::Text("Brushes Collected: %d/%d", game.collectedBrushes, 4);
     ImGui::Text("Password: %s", game.password.c_str());
+    ImGui::Text("Entered: %s", game.enteredCode.c_str());
+    ImGui::Text("White: %d        Black: %d", game.white, game.black);
 
     if (obj) {
         ImGui::SeparatorText(obj->name.c_str());
@@ -454,7 +383,6 @@ void Application::framebufferSizeCallback(GLFWwindow *, int width, int height) {
 
 // Callback for keyboard key presses
 void Application::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    // TODO: Implement a menu for loading, saving and closing the game.
     // Toggle UI focus mode (cursor visibility)
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
         if (gameFocus) {

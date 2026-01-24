@@ -75,40 +75,46 @@ bool Game::loadObjects() {
   int pencilPosIdx = 0;
 
   int pictureSet = d2(gen);
-  int b = 1;  // Black = number of pictures
+  black = 1;  // Black = number of pictures
   if (pictureSet == 1) {
-    b = 5;
+    black = 5;
   } else if (pictureSet == 2) {
-    b = 8;
+    black = 8;
   } else if (pictureSet == 3) {
-    b = 11;
+    black = 10;
   }
-  password += std::to_string(b);
 
   int statue = d1(gen);
-  int w = 0;
+  white = 0;
+  int rgbSum = 0;
+  int yapSum = 0;
+  password = "";
   for (int i = 0; i < 7; i++) {
     int n = d3(gen);
-    if (statue == 0 && (i == Red || i == Green || i == Blue)) {
-      w += n;  // Sum of red, green, blue pencils
-    } else if (statue == 1 && (i == Yellow || i == Azure || i == Purple)) {
-      w += n;  // Sum of yellow, azure, purple pencils
+    Pencil color = static_cast<Pencil>(pencilOrder[i]);
+    if (color == Red || color == Green || color == Blue) {
+      rgbSum += n;
+    } else if (i == Yellow || i == Azure || i == Purple) {
+      yapSum += n;
     }
     password += std::to_string(n);
-    std::cout << password[i] << std::endl;
   }
-  password += std::to_string(w);
+
+  if (statue == 0) white = rgbSum;
+  else white = yapSum;
+
+  password += std::to_string(black) + std::to_string(white);
 
   glm::vec3 angle;
   for (int i = 0; i < 3; i++) angle[i] = glm::radians(d4(gen));
 
-  std::cout << std::endl;
-  for (int i = 0; i < 7; i++) {
-    std::cout << pencilOrder[i] << " ";
+  sf::SoundBuffer correctBuffer, failBuffer;
+  if (correctBuffer.loadFromFile(getResourcePath("sounds/correct.mp3"))) {
+    AudioManager::instance().loadSound("correct", correctBuffer);
   }
-  std::cout << std::endl;
-  std::cout << "w: " << w << " b: " << b << std::endl;
-  std::cout << std::endl;
+  if (failBuffer.loadFromFile(getResourcePath("sounds/fail.mp3"))) {
+    AudioManager::instance().loadSound("fail", failBuffer);
+  }
 
   std::filesystem::path file = getResourcePath("objects.json");
   if (file.empty()) return false;
@@ -306,19 +312,6 @@ void Game::drawLeaderboard() {
   }
 }
 
-void Game::drawGameOver() {
-  renderer->drawText("GAME OVER", static_cast<float>(fbWidth) * 0.5f,
-                     static_cast<float>(fbHeight) * 0.4f, 2.0f,
-                     glm::vec3(1.0f, 0.0f, 0.0f), Align::Center);
-  renderer->drawText("The police caught you!", static_cast<float>(fbWidth) * 0.5f,
-                     static_cast<float>(fbHeight) * 0.55f, 1.2f,
-                     glm::vec3(1.0f), Align::Center);
-  renderer->drawText("Press any key to try again",
-                     static_cast<float>(fbWidth) * 0.5f,
-                     static_cast<float>(fbHeight) * 0.8f, 1.0f,
-                     glm::vec3(0.6f), Align::Center);
-}
-
 void Game::drawCredits(float scroll) {
   const char *credits[] = {"Programming",
                            "Graphics & Core - Salvatore Martorana",
@@ -354,7 +347,10 @@ void Game::update() {
 
   time += deltaTime;
   remainingTime -= deltaTime;
-  if (remainingTime <= 0.f) state = GameOver;
+  if (remainingTime <= 0.f) {
+    AudioManager::instance().playSound("fail");
+    state = GameOver;
+  }
 
   if (state == InGame) {
     // Calculate the amount of the movement considering sprint (SHIFT)
@@ -376,10 +372,10 @@ void Game::update() {
       equippedObj->setRotation(player.orientation);
     }
 
-    if (collectionTimer > 0.f) {
-      collectionTimer -= deltaTime;
-      if (collectionTimer <= 0.f) {
-        collectionTimer = 0.f;
+    if (brushesTimer > 0.f) {
+      brushesTimer -= deltaTime;
+      if (brushesTimer <= 0.f) {
+        brushesTimer = 0.f;
         // Clear brushes from room if they weren't collected
         for (auto it = room.objs.begin(); it != room.objs.end();) {
           if ((*it)->name.find("Brush") != std::string::npos) {
@@ -396,17 +392,17 @@ void Game::update() {
         Object *obj = *roomObjIt;
         bool erased = false;
 
-        if (collectionTimer > 0 &&
+        if (brushesTimer > 0 &&
             obj->name.find("Brush") != std::string::npos) {
           if (obj->checkCollision(player)) {
             roomObjIt = room.objs.erase(roomObjIt);
-            collectedItems++;  // TODO: Add sound effect.
+            collectedBrushes++;
             AudioManager::instance().playSound("CollectItem", 80.f, false);
             erased = true;
 
-            if (collectedItems >= 4) {
-              collectionTimer = 0.f;  // Success
-              collectionCompleted = true;
+            if (collectedBrushes >= 4) {
+              brushesTimer = 0.f;  // Success
+              brushesCompleted = true;
             }
           }
         }
@@ -476,7 +472,16 @@ void Game::draw() {
   }
   if (state == GameOver) {
     Renderer::clear();
-    drawGameOver();
+    renderer->drawText("GAME OVER", static_cast<float>(fbWidth) * 0.5f,
+                     static_cast<float>(fbHeight) * 0.4f, 2.0f,
+                     glm::vec3(1.0f, 0.0f, 0.0f), Align::Center);
+    renderer->drawText("The police caught you!", static_cast<float>(fbWidth) * 0.5f,
+                       static_cast<float>(fbHeight) * 0.55f, 1.2f,
+                       glm::vec3(1.0f), Align::Center);
+    renderer->drawText("Press [Esc] to quit",
+                       static_cast<float>(fbWidth) * 0.5f,
+                       static_cast<float>(fbHeight) * 0.8f, 1.0f,
+                       glm::vec3(0.6f), Align::Center);
     return;
   }
   if (state == LeaderboardEntry) {
@@ -490,7 +495,7 @@ void Game::draw() {
     renderer->drawText(playerName + "_", static_cast<float>(fbWidth) * 0.5f,
                        static_cast<float>(fbHeight) * 0.5f, 1.2f,
                        glm::vec3(1.0f), Align::Center);
-    renderer->drawText("Press Enter to save",
+    renderer->drawText("Press [Enter] to save",
                        static_cast<float>(fbWidth) * 0.5f,
                        static_cast<float>(fbHeight) * 0.75f, 1.0f,
                        glm::vec3(1.0f), Align::Center);
@@ -498,7 +503,7 @@ void Game::draw() {
   }
   static auto canvasTex =
       dynamic_cast<DynamicTexture *>(renderer->getTexture("#Canvas"));
-  if (collectionCompleted) {
+  if (brushesCompleted) {
     renderer->updateTexture(*canvasTex, canvas);
   } else {
     // Render just the background as an empty scene
@@ -516,7 +521,7 @@ void Game::draw() {
 
     // --- 3D Text ---
 
-    if (paperIsNotPicked) { // TODO
+    if (paperIsNotPicked) {
       auto textModel =
     glm::translate(glm::mat4(1.0f), glm::vec3(-0.21508, 0.43257, -2.6));
       textModel =
@@ -560,13 +565,13 @@ void Game::draw() {
         static_cast<float>(fbWidth) * 0.05f,
         static_cast<float>(fbHeight) * 0.1f, 1.0f, remainingTimeColor);
 
-    if (collectionTimer > 0.f) {
+    if (brushesTimer > 0.f) {
       renderer->drawText(
-          "Brushes collected: (" + std::to_string(collectedItems) + "/4)",
+          "Brushes collected: (" + std::to_string(collectedBrushes) + "/4)",
           static_cast<float>(fbWidth) * 0.05f,
           static_cast<float>(fbHeight) * 0.2f, 1.0f, glm::vec3(1.0f));
       renderer->drawText(
-          "Time left: " + std::to_string(static_cast<int>(collectionTimer)) +
+          "Time left: " + std::to_string(static_cast<int>(brushesTimer)) +
               "s",
           static_cast<float>(fbWidth) * 0.7f,
           static_cast<float>(fbHeight) * 0.2f, 1.0f, glm::vec3(1.0f));
@@ -575,14 +580,14 @@ void Game::draw() {
     // Contextual hints
     if (!hoveredObj) return;
 
-    if (collectionCompleted && hoveredObj->name == "Canvas") {
+    if (brushesCompleted && hoveredObj->name == "Canvas") {
       renderer->drawText("Align",
                          static_cast<float>(fbWidth) * 0.5f,
                          static_cast<float>(fbHeight) * 0.95f, 1.2f,
                          glm::vec3(1.0f, 1.0f, 0.0f), Align::Center);
     }
 
-    if (!collectionCompleted && hoveredObj->name == "Palette") {
+    if (!brushesCompleted && hoveredObj->name == "Palette") {
       renderer->drawText(
           "Collect all brushes in time!",
           static_cast<float>(fbWidth) * 0.5f,    // right side
@@ -624,17 +629,9 @@ void Game::draw() {
         }
       }
     }
-    if (hoveredObj->name == "Desk Drawer") {
-      // TODO: Add drawer or remove the hint.
-      renderer->drawText(
-          "Look inside",
-          static_cast<float>(fbWidth) * 0.05f,   // right side
-          static_cast<float>(fbHeight) * 0.95f,  // vertical placement
-          1.2f, glm::vec3(1.0f, 1.0f, 0.0f), Align::Right);
-    }
 
     // Contextual Action hints
-    std::string hint = "";
+    std::string hint;
     if (hoveredObj->name.find("_Placed_On_") != std::string::npos) {
       if (!equippedObj) {
         hint = "Pick";
@@ -672,9 +669,14 @@ void Game::draw() {
         text.setScale(glm::vec3(-1.0f, 1.0f, 1.0f));
 
         for (int i = 0; i < 7; i++) {
-          text.setPosition(selected->position + selected->front * 0.01f + selected->up * (0.038f * (4 - i)));
-          renderer->drawText3D(colorNames[i] + " = " + password[i], text.getModelMatrix(), inventoryView, 0.33f,
-                               glm::vec3(0.8f), Align::Center);
+          for (int j = 0; j < 7; j++) {
+            if (i == pencilOrder[j]) {
+              text.setPosition(selected->position + selected->front * 0.01f + selected->up * (0.038f * (4 - i)));
+              renderer->drawText3D(colorNames[i] + " = " + password[j], text.getModelMatrix(), inventoryView, 0.33f,
+                                   glm::vec3(0.8f), Align::Center);
+              break;
+            }
+          }
         }
         text.setPosition(selected->position + selected->front * 0.01f + selected->up * (0.038f * -3));
         renderer->drawText3D("White is last", text.getModelMatrix(), inventoryView, 0.33f,
@@ -692,7 +694,7 @@ void Game::draw() {
         text.setRotation(selected->rotation);
         text.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
 
-        std::string frontStrings[] = {"Controls:", "WASD: Move", "LMB: Interact", "RMB: Equip", "TAB: Inventory", "Black = #Pictures", "White = Color Sum"};
+        std::string frontStrings[] = {"Controls:", "[WASD] Move", "[Left Mouse] Interact", "[Right Mouse] Equip", "[Tab] Inventory", "Black = #Frames", "White = Color Sum"};
 
         for (int i = 0; i < 7; i++) {
           text.setPosition(selected->position + selected->front * -0.002f + selected->up * (0.04f * (3 - i)));
@@ -718,6 +720,15 @@ void Game::draw() {
                            glm::vec3(0.6f), Align::Center);
       }
     }
+  } else if (state == ExitDialog) {
+    Renderer::clear();
+    renderer->drawText("Are you sure you want to exit?", static_cast<float>(fbWidth) * 0.5f,
+                       static_cast<float>(fbHeight) * 0.4f, 1.2f,
+                       glm::vec3(1.0f), Align::Center);
+    renderer->drawText("[Enter] Yes          [Esc] No", static_cast<float>(fbWidth) * 0.5f,
+                       static_cast<float>(fbHeight) * 0.6f, 1.0f,
+                       glm::vec3(0.8f, 0.8f, 0.0f), Align::Center);
+    return;
   } else if (state == Credits) {
     static float creditTime = 0.f;
     float scroll = 0.05f * creditTime;
@@ -769,7 +780,7 @@ void Game::interact(Object *obj) {
           safeUnlocked = true;
           if (auto door = getObject("Safe Door")) door->animation.play();
         } else {
-          score -= 10;
+          safeTries++;
         }
         enteredCode.clear();
       }
@@ -779,12 +790,11 @@ void Game::interact(Object *obj) {
 
   pos = obj->name.find("Palette");
   if (pos != std::string::npos) {
-    if (collectionCompleted) return;
+    if (brushesCompleted) return;
 
-    collectionTimer = 10.f;
-    collectedItems = 0;
-    if (collectionCounter) score -= 10;
-    collectionCounter++;
+    brushesTimer = 10.f;
+    collectedBrushes = 0;
+    brushesTries++;
 
     std::vector<std::string> brushNames = {"Brush0", "Brush1", "Brush2",
                                            "Brush3"};
@@ -810,7 +820,7 @@ void Game::interact(Object *obj) {
 
   pos = obj->name.find("Canvas");
   if (pos != std::string::npos) {
-    if (!collectionCompleted) return;
+    if (!brushesCompleted) return;
     lastPos = player.position;
     lastRot = player.rotation;
     player.setPosition(obj->position - obj->front * 1.5f);
@@ -832,8 +842,10 @@ void Game::interact(Object *obj) {
   }
   pos = obj->name.find("MacGuffin");
   if (pos != std::string::npos) {
-    state = LeaderboardEntry;
     playerName = "";
+    score = static_cast<int>(remainingTime * 100) + pencilsCorrect * 1000 - safeTries * 100;
+    if (brushesTries > 1) score -= brushesTries * 100;
+    state = LeaderboardEntry;
     return;
   }
 
@@ -982,6 +994,7 @@ void Game::checkPencils() {
     }
   }
   if (correct == 7) {
+    AudioManager::instance().playSound("correct");
     pencilsCorrect = true;
   } else {
     pencilsCorrect = false;
@@ -994,19 +1007,15 @@ void Game::onKey() {
       if (k) state = InGame;
   }
   if (state == GameOver) {
-    for (auto k : input.keys) {
-      if (k) {
-        remainingTime = maxTime;
-        state = InGame;
-        // Optionally reset player position or other state if needed,
-        // but simple restart of time and state is a good start.
-      }
-    }
+      if (input.esc) close = true;
   }
   if (state == InGame) {
     if (input.tab) {
       state = Inventory;
       Application::setBackgroundLowpass(true);
+    }
+    if (input.esc) {
+      state = ExitDialog;
     }
   } else if (state == Inventory) {
     if (input.esc || input.tab) {
@@ -1026,6 +1035,13 @@ void Game::onKey() {
       state = InGame;
       player.setPosition(lastPos);
       player.setRotation(lastRot);
+    }
+  } else if (state == ExitDialog) {
+    if (input.esc) {
+      state = InGame;
+    }
+    if (input.enter) {
+      close = true;
     }
   } else if (state == LeaderboardEntry) {
     if (input.backspace && !playerName.empty()) {
@@ -1048,7 +1064,7 @@ void Game::onKey() {
       }
 
       j.push_back({{"name", playerName.empty() ? "Anonymous" : playerName},
-                   {"score", static_cast<int>(remainingTime)}});
+                   {"score",score}});
 
       std::ofstream o(getResourcePath("leaderboard.json"));
       o << j.dump(4) << std::endl;
@@ -1056,6 +1072,11 @@ void Game::onKey() {
 
       state = Credits;
       input.enter = false;
+    }
+  }
+  if (state == Credits) {
+    if (input.esc) {
+      close = true;
     }
   }
 }

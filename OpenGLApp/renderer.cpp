@@ -1,7 +1,7 @@
 #include "renderer.h"
 #include "scene.h"
 
-// Asset manager implementations (unchanged logic, simplified)
+// Asset manager implementations
 Texture *Renderer::getTexture(const std::string &path) {
     std::string name = path;
     int width = 512, height = 512;
@@ -79,7 +79,6 @@ bool Renderer::compileShaders() {
     }
     return true;
 }
-
 
 bool Renderer::loadFont(const std::string &path, int size) {
     FT_Library ft;
@@ -210,7 +209,7 @@ void Renderer::drawScene(const Scene &scene, bool picking, int activeIndex) cons
         shader.set("viewPos", scene.cam->position);
     } else {
         // TODO: Optimize by caching projection matrix
-        glm::mat4 projectionMatrix = glm::perspective(scene.cam->fov, scene.cam->aspect, Camera::MIN_CLIPPING, 2.0f);
+        glm::mat4 projectionMatrix = glm::perspective(scene.cam->fov, scene.cam->aspect, Camera::MIN_CLIPPING, 2.2f);
         shader.set("projection", projectionMatrix);
     }
     for (int i = 0; i < scene.objs.size(); ++i) {

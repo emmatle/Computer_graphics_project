@@ -8,8 +8,7 @@
     {
       "id": 0,
       "name": "Background",
-      "model": "models/Background.obj",
-      "rotation": [0.0, 250.0, 0.0]
+      "model": "models/Background.obj"
     },
     {
       "id": 0,
@@ -133,7 +132,7 @@
       "model": "models/Cube.obj",
       "position": [-0.21508, 0.42757, -2.5],
       "rotation": [90.0, 0.0, 0.0],
-      "scale": [1.0, 1.6, 0.01]
+      "scale": [1.2, 1.6, 0.01]
     },
     {
       "id": 6,
@@ -150,7 +149,7 @@
       "rotation": [-20.0, 45.0, 0.0]
     },
     {
-      "id": 9,
+      "id": 8,
       "name": "Safe Door",
       "model": "models/SafeDoor.obj",
       "animation": {

@@ -230,7 +230,6 @@ private:
             return;
         }
 
-        // TODO: Handle the different cases.
         if (nameLow.find("glass") != std::string::npos) return; // Skip glass for now
 
         // Assign correct preloaded material pointer

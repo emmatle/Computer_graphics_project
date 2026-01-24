@@ -66,7 +66,7 @@ void Animation::reset() {
 void Animation::apply(Object &obj) {
     if (!originInitialized) {
         originPosition = obj.position;
-        originOrientation = obj.getOrientation();
+        originOrientation = obj.orientation;
         originInitialized = true;
     }
 
@@ -127,7 +127,7 @@ Object &Object::operator=(const Object &other) {
     _scale = other._scale;
     _orientation = other._orientation;
     id = other.id;
-    name = other.name; // TODO: Check if it's working correctly.
+    name = other.name;
     modelPath = other.modelPath;
     collisions = other.collisions;
     model = other.model;
