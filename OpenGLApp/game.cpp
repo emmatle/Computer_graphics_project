@@ -903,6 +903,8 @@ void Game::equip(Object *obj) {
       if (inventoryIndex < 0) inventoryIndex = -1;
     }
   } else {
+    if (obj->name == "Paper" || obj->name == "Picture") return; // Cannot be equipped
+
     // Equip new
     if (equippedObj) equip(nullptr);
 
