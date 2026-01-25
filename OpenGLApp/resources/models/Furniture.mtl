@@ -1,4 +1,4 @@
-# Blender 5.0.1 MTL File: 'ArtStudio_20-01-2026.blend'
+# Blender 5.0.0 MTL File: 'ArtStudio_20-01-2026-Export.blend'
 # www.blender.org
 
 newmtl 3DModel_Custom.001
@@ -60,7 +60,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Metal019_1K-JPG_Color.jpg
+map_Kd textures/Texturelabs_Metal_242M.jpg
 map_Ns textures/Metal019_1K-JPG_Roughness.jpg
 map_refl textures/Metal019_1K-JPG_Metalness.jpg
 map_Bump -bm 1.000000 textures/Metal019_1K-JPG_NormalGL.jpg
@@ -130,12 +130,12 @@ map_Kd textures/carpet beige.png
 
 newmtl Material.003
 Ka 1.000000 1.000000 1.000000
-Kd 0.800000 0.800000 0.800000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
+map_Kd textures/storage_box_01_basecolor-4K.jpg
 map_Ns textures/storage_box_01_roughness-4K.jpg
 map_refl textures/storage_box_01_metallic-4K.jpg
 
@@ -160,16 +160,6 @@ illum 2
 map_Kd textures/Marble021_1K-JPG_Color.jpg
 map_Ns textures/Marble021_1K-JPG_Roughness.jpg
 map_Bump -bm 1.000000 textures/Marble021_1K-JPG_NormalGL.jpg
-
-newmtl Material.013
-Ns 250.000000
-Ka 1.000000 1.000000 1.000000
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
-map_Kd textures/texture_chiave.jpg
 
 newmtl Material.015
 Ns 250.000000
@@ -260,7 +250,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Fabric040_1K-JPG_Color.jpg
+map_Kd textures/Pillow.Diffuse_1024.jpg
 map_Ns textures/Fabric040_1K-JPG_Roughness.jpg
 map_Bump -bm 1.000000 textures/Fabric040_1K-JPG_NormalGL.jpg
 
@@ -291,7 +281,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Leather027_1K-JPG_Color.jpg
+map_Kd textures/Sofa.Diffuse_1024.jpg
 map_Ns textures/Leather027_1K-JPG_Roughness.jpg
 map_Bump -bm 1.000000 textures/Leather027_1K-JPG_NormalGL.jpg
 
@@ -328,14 +318,14 @@ Ni 1.500000
 d 1.000000
 illum 2
 
-newmtl White_Wood
+newmtl White_Wood.006
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd textures/WhiteWood_1K-JPG_Color.jpg
+map_Kd textures/Chair.Diffuse_1024.jpg
 map_Ns textures/WhiteWood_1K-JPG_Roughness.jpg
 map_Bump -bm 1.000000 textures/WhiteWood_1K-JPG_NormalGL.jpg
 
