@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils.h"
+#include "scene.h"
 
 #include <string>
 #include <vector>
@@ -8,9 +9,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <nlohmann/json_fwd.hpp>
-
-#include "scene.h"
-
 
 class Object;
 class Camera;

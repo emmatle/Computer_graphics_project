@@ -1,5 +1,4 @@
-#ifndef AUDIO_MANAGER_H
-#define AUDIO_MANAGER_H
+#pragma once
 
 #include <SFML/Audio.hpp>
 #include <string>
@@ -24,5 +23,3 @@ private:
     std::unordered_map<std::string, sf::SoundBuffer> buffers;
     std::unordered_map<std::string, std::unique_ptr<sf::Sound>> sounds;
 };
-
-#endif // AUDIO_MANAGER_H

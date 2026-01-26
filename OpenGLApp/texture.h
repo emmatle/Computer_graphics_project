@@ -4,9 +4,7 @@
 #include <glad/glad.h>
 #include <stb_image.h>
 
-/**
- * @brief Utility class for loading, managing, and binding OpenGL 2D textures.
- */
+// Utility class for loading, managing, and binding OpenGL 2D textures
 class Texture {
 public:
     static constexpr int N_TYPES = 5;
@@ -15,7 +13,7 @@ public:
 
     enum Type {
         Diffuse,
-        Ambient,
+        AmbientOcclusion,
         Normal,
         Roughness,
         Metalness
@@ -28,9 +26,7 @@ public:
 
     virtual ~Texture() = default;
 
-    /**
-     * @brief Loads image, generates texture object, and sets parameters.
-     */
+    // Loads image, generates texture object, and sets parameters
     virtual bool load() {
         static bool flipVertically = false;
 
@@ -42,8 +38,7 @@ public:
         }
         std::string fullPath = getResourcePath(path);
 
-        // OpenGL expects the 0.0 coordinate on the Y-axis to be the bottom,
-        // but images usually load with 0.0 at the top. This flips it to match.
+        // To match OpenGL Y-axis coordinates
         if (!flipVertically) {
             stbi_set_flip_vertically_on_load(true);
             flipVertically = true;
@@ -90,9 +85,7 @@ public:
         }
     }
 
-    /**
-     * @brief Activates the specific texture unit and binds this texture.
-     */
+    // Activates the specific texture unit and binds this texture
     void use(unsigned int unit = 0) const {
         if (unit >= 16) {
             std::cerr << "WARNING: texture unit " << unit << " might be out of range" << std::endl;
@@ -102,9 +95,7 @@ public:
     }
 
 private:
-    /**
-     * @brief Helper to categorize texture based on common naming conventions.
-     */
+    // Helper to categorize texture based on common naming conventions
     Type determineType(const std::string &name) const {
         // Convert to lowercase for easier matching
         if (name.empty()) return Diffuse;
@@ -114,7 +105,7 @@ private:
         if (filename.find("ambientocclusion") != std::string::npos ||
             filename.find("ambient") != std::string::npos ||
             filename.find("_ao") != std::string::npos) {
-            return Ambient;
+            return AmbientOcclusion;
         }
         if (filename.find("normal") != std::string::npos ||
             filename.find("norm") != std::string::npos ||

@@ -50,7 +50,7 @@ out vec4 FragColor;
 
 // Illumination model: 0 No shading (Base color), 1 Ambient + Diffuse (Lambert), 2 Ambient + Diffuse + Specular (Blinn-Phong)
 uniform vec3 ambientLight = vec3(1.0, 0.95, 0.9); // A bit warm ambient light
-vec3 k_a = vec3(0.8); // No ambient reflectivity uniform for simplicity, workaround for baked lighting
+vec3 k_a = vec3(0.75); // No ambient reflectivity uniform for simplicity, workaround for baked lighting
 uniform vec3 k_d = vec3(1.0);
 uniform vec3 k_s = vec3(0.5);
 uniform int illum = 2;
@@ -131,7 +131,7 @@ void main() {
     }
 
     vec3 ambient = k_a * baseColor * ambientColor; // Basic global ambient
-    vec3 diffuse = totalDiffuse * diffuseColor; // k_d is used just for basColor;
+    vec3 diffuse = totalDiffuse * diffuseColor; // k_d is used just for baseColor;
     vec3 specular = k_s * totalSpecular * specularColor;
 
     vec3 color = ambient + diffuse + specular;

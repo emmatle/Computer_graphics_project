@@ -6,9 +6,7 @@
 
 class Renderer;
 
-/**
- * @brief Manages game logic and handles objects and player state and input.
- */
+// Manages game logic and handles objects and player state and input
 class Game {
     static constexpr float SPRINT = 2.0f;
     static constexpr float INSPECT_ANGULAR_SPEED = glm::radians(90.f);

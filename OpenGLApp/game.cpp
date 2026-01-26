@@ -153,7 +153,7 @@ bool Game::loadObjects() {
         obj->setRotation(angle);
         canvas.objs.push_back(obj.get());
       }
-      // Always keep track  existing objects, but ignore room/inventory.
+      // Always keep track of existing objects, but ignore room/inventory.
       objects.push_back(obj);
       continue;
     }

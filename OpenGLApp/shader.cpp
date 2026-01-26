@@ -9,9 +9,6 @@
 Shader::Shader(const std::string &path) : id(0), path(getResourcePath(path)) {
 }
 
-/**
-* @brief Compiles the shaders with custom defines and checks errors.
-*/
 bool Shader::compile(const std::string &defines) {
     if (id != 0) return true; // Already compiled
     if (path.empty()) {
@@ -72,19 +69,10 @@ void Shader::free() {
     }
 }
 
-/**
- * @brief Activates the shader program.
- */
 void Shader::use() const {
     glUseProgram(id);
 }
 
-// --- Uniform Setters -----------------------------------------
-// Wrappers for glUniform* functions. They query the location by
-// name and print an error if the uniform is not found/active
-// --------------------------------------------------------------
-
-// Integer overloads
 void Shader::set(const char *name, int v0) const {
     int uniformId = getUniform(name);
     glUniform1i(uniformId, v0);
@@ -105,7 +93,6 @@ void Shader::set(const char *name, int v0, int v1, int v2, int v3) const {
     glUniform4i(uniformId, v0, v1, v2, v3);
 }
 
-// Float overloads
 void Shader::set(const char *name, float v0) const {
     int uniformId = getUniform(name);
     glUniform1f(uniformId, v0);
@@ -126,7 +113,6 @@ void Shader::set(const char *name, float v0, float v1, float v2, float v3) const
     glUniform4f(uniformId, v0, v1, v2, v3);
 }
 
-// GLM Vector overloads
 void Shader::set(const char *name, const glm::vec1 &v0) const {
     int uniformId = getUniform(name);
     glUniform1fv(uniformId, 1, &v0[0]);
@@ -153,7 +139,6 @@ void Shader::set(const char *name, const glm::mat4 &v0) const {
     glUniformMatrix4fv(uniformId, 1, GL_FALSE, &v0[0][0]);
 }
 
-// Compiles a specific shader type
 unsigned int Shader::generate(const std::string &type, const std::string &defines) const {
     unsigned int shader;
 
@@ -179,7 +164,6 @@ unsigned int Shader::generate(const std::string &type, const std::string &define
     return shader;
 }
 
-// Checks for shader compiling or program linking errors
 bool Shader::checkCompileErrors(unsigned int id, const std::string &type) const {
     int success;
     char infoLog[1024];
@@ -199,7 +183,6 @@ bool Shader::checkCompileErrors(unsigned int id, const std::string &type) const 
     return success;
 }
 
-// Retrieves the uniform location from cached values
 int Shader::getUniform(const char *name) const {
     static bool silenceWarning = false; // Prevents multiple prints in loops
     auto it = uniformLocations.find(name);

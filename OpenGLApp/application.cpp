@@ -27,7 +27,7 @@ std::string Application::title = "Escape Room";
 int Application::width = 1024;
 int Application::height = 768;
 
-bool Application::fullscreen = false; // Overrides width and height if true
+bool Application::fullscreen = true; // Overrides width and height if true
 bool Application::vsync = false;
 float Application::mouseSensitivity = 0.1f;
 float Application::fontSize = 16.f;

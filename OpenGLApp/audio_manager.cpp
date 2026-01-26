@@ -1,7 +1,4 @@
-// cpp
-// File: `OpenGLApp/audio_manager.cpp`
 #include "audio_manager.h"
-#include <iostream>
 
 AudioManager& AudioManager::instance() {
     static AudioManager mgr;
@@ -13,8 +10,8 @@ void AudioManager::init() {
 }
 
 void AudioManager::loadSound(const std::string& name, const sf::SoundBuffer& buffer) {
-    buffers[name] = buffer; // copia il buffer
-    auto s = std::make_unique<sf::Sound>(buffers[name]); // costruisce sf::Sound con il buffer
+    buffers[name] = buffer; // Copies the buffer
+    auto s = std::make_unique<sf::Sound>(buffers[name]);
     sounds[name] = std::move(s);
 }
 
@@ -22,7 +19,7 @@ void AudioManager::playSound(const std::string& name, float volume, bool loop) {
     auto it = sounds.find(name);
     if (it == sounds.end() || !it->second) return;
     it->second->setVolume(volume);
-    it->second->setLooping(loop); // uso corretto di SFML
+    it->second->setLooping(loop);
     it->second->play();
 }
 

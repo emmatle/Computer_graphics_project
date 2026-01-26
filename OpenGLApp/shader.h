@@ -3,9 +3,7 @@
 #include <string>
 #include <glm/glm.hpp>
 
-/**
- * @brief Utility class for loading, compiling, and managing GLSL shaders.
- */
+// Utility class for loading, compiling, and managing GLSL shaders
 class Shader {
     mutable std::unordered_map<std::string, int> uniformLocations; // Cached uniform locations
     std::string source;
@@ -16,16 +14,12 @@ public:
 
     Shader(const std::string &path = "");
 
-    /**
-    * @brief Compiles the shaders with custom defines and checks errors.
-    */
+    // Compiles the shaders with custom defines and checks errors
     bool compile(const std::string &defines = "");
 
     void free();
 
-    /**
-     * @brief Activates the shader program.
-     */
+    // Activates the shader program
     void use() const;
 
     // --- Uniform Setters -----------------------------------------

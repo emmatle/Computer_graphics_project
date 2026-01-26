@@ -230,8 +230,6 @@ private:
             return;
         }
 
-        if (nameLow.find("glass") != std::string::npos) return; // Skip glass for now
-
         // Assign correct preloaded material pointer
         Material *matPtr = (mesh->mMaterialIndex < materials.size()) ? &materials[mesh->mMaterialIndex] : nullptr;
         meshes.emplace_back(vertices, indices, matPtr, name);
