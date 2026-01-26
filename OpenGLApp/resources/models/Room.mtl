@@ -1,24 +1,47 @@
-# Blender 5.0.0 MTL File: 'ArtStudio_20-01-2026-Export.blend'
+# Blender 5.0.0 MTL File: 'ArtStudio_26-01-2026.blend'
 # www.blender.org
 
 newmtl Black_Matte.001
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
+Kd 0.003936 0.003936 0.003936
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Window3.Diffuse_1024.jpg
 
-newmtl Brushed_Metal
+newmtl Brushed_Metal.001
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Texturelabs_Metal_242M.jpg
+map_Kd textures/Safe_gameasset_BaseColor.png
+map_Ns textures/Metal019_1K-JPG_Roughness.jpg
+map_refl textures/Metal019_1K-JPG_Metalness.jpg
+map_Bump -bm 1.000000 textures/Metal019_1K-JPG_NormalGL.jpg
+
+newmtl Door2_Frame
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/Door2 Frame.Diffuse_1024.jpg
+map_Ns textures/WhiteWood_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/WhiteWood_1K-JPG_NormalGL.jpg
+
+newmtl Door2_Handles.001_gameasset_Mat_1
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Door1 Handles_gameasset_BaseColor.png
 map_Ns textures/Metal019_1K-JPG_Roughness.jpg
 map_refl textures/Metal019_1K-JPG_Metalness.jpg
 map_Bump -bm 1.000000 textures/Metal019_1K-JPG_NormalGL.jpg
@@ -30,7 +53,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Room.Diffuse_4096.jpg
+map_Kd textures/Room.Diffuse_4096.png
 map_Ns textures/Room_4K-JPG_Roughness.jpg
 map_refl textures/Room_4K-JPG_Metalness.jpg
 map_Bump -bm 1.000000 textures/Room_4K-JPG_Normal.jpg
@@ -42,55 +65,11 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Marble021_1K-JPG_Color.jpg
+map_Kd textures/table.Diffuse_1024.jpg
 map_Ns textures/Marble021_1K-JPG_Roughness.jpg
 map_Bump -bm 1.000000 textures/Marble021_1K-JPG_NormalGL.jpg
 
-newmtl White_Wood
-Ka 1.000000 1.000000 1.000000
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.450000
-d 1.000000
-illum 2
-map_Kd textures/WhiteWood_1K-JPG_Color.jpg
-map_Ns textures/WhiteWood_1K-JPG_Roughness.jpg
-map_Bump -bm 1.000000 textures/WhiteWood_1K-JPG_NormalGL.jpg
-
-newmtl White_Wood.002
-Ka 1.000000 1.000000 1.000000
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.450000
-d 1.000000
-illum 2
-map_Kd textures/Door1Frame.Diffuse_1024.jpg
-map_Ns textures/WhiteWood_1K-JPG_Roughness.jpg
-map_Bump -bm 1.000000 textures/WhiteWood_1K-JPG_NormalGL.jpg
-
-newmtl White_Wood.003
-Ka 1.000000 1.000000 1.000000
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.450000
-d 1.000000
-illum 2
-map_Kd textures/Door2Frame.Diffuse_1024.jpg
-map_Ns textures/WhiteWood_1K-JPG_Roughness.jpg
-map_Bump -bm 1.000000 textures/WhiteWood_1K-JPG_NormalGL.jpg
-
-newmtl White_Wood.004
-Ka 1.000000 1.000000 1.000000
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.450000
-d 1.000000
-illum 2
-map_Kd textures/Door1.Diffuse_1024.jpg
-map_Ns textures/WhiteWood_1K-JPG_Roughness.jpg
-map_Bump -bm 1.000000 textures/WhiteWood_1K-JPG_NormalGL.jpg
-
-newmtl White_Wood.005
+newmtl White_Wood.006
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
@@ -98,5 +77,27 @@ Ni 1.450000
 d 1.000000
 illum 2
 map_Kd textures/Window1.Diffuse_1024.jpg
+map_Ns textures/WhiteWood_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/WhiteWood_1K-JPG_NormalGL.jpg
+
+newmtl White_Wood.007
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/Window2.Diffuse_1024.jpg
+map_Ns textures/WhiteWood_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/WhiteWood_1K-JPG_NormalGL.jpg
+
+newmtl White_Wood.008
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/Door1.Diffuse_1024.jpg
 map_Ns textures/WhiteWood_1K-JPG_Roughness.jpg
 map_Bump -bm 1.000000 textures/WhiteWood_1K-JPG_NormalGL.jpg

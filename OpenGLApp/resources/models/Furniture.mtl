@@ -1,4 +1,4 @@
-# Blender 5.0.0 MTL File: 'ArtStudio_20-01-2026-Export.blend'
+# Blender 5.0.0 MTL File: 'ArtStudio_26-01-2026.blend'
 # www.blender.org
 
 newmtl 3DModel_Custom.001
@@ -72,7 +72,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Curtains_1K-JPG_Color.png
+map_Kd textures/Curtains.Diffuse_1024.jpg
 map_Ns textures/Curtains_1K-JPG_Roughness.png
 map_Bump -bm 1.000000 textures/Curtains_1K-JPG_Normal.png
 
@@ -83,7 +83,18 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Wood029_1K-JPG_Color.jpg
+map_Kd textures/book_shelf.Diffuse_1024.jpg
+map_Ns textures/Wood029_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Wood029_1K-JPG_NormalGL.jpg
+
+newmtl Dark_Wood.001
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/shelf_for_vase.Diffuse_1024.jpg
 map_Ns textures/Wood029_1K-JPG_Roughness.jpg
 map_Bump -bm 1.000000 textures/Wood029_1K-JPG_NormalGL.jpg
 
@@ -95,7 +106,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Texturelabs_Wood_292M.jpg
+map_Kd textures/easle.Diffuse_1024.jpg
 
 newmtl Glass
 Ns 360.000000
@@ -126,7 +137,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/carpet beige.png
+map_Kd textures/carpet.Diffuse_1024.jpg
 
 newmtl Material.003
 Ka 1.000000 1.000000 1.000000
@@ -169,7 +180,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Texturelabs_Wood_293M.jpg
+map_Kd textures/Hemnes.Desk.Diffuse_1024.jpg
 
 newmtl Material.016
 Ns 250.000000
@@ -179,7 +190,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Texturelabs_Wood_293M.jpg
+map_Kd textures/Hemnes.Desk.Diffuse_1024.jpg
 
 newmtl Material.018
 Ns 250.000000
@@ -189,7 +200,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Texturelabs_Wood_261M.jpg
+map_Kd textures/Bar Stool.Diffuse_1024.jpg
 
 newmtl Material.022
 Ns 250.000000
@@ -209,7 +220,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Texturelabs_Wood_293M.jpg
+map_Kd textures/desk.Diffuse_1024.jpg
 
 newmtl Material.041
 Ka 1.000000 1.000000 1.000000
@@ -229,7 +240,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Marble009_1K-JPG_Color.jpg
+map_Kd textures/table.Diffuse_1024.jpg
 map_Ns textures/Marble009_1K-JPG_Roughness.jpg
 map_Bump -bm 1.000000 textures/Marble009_1K-JPG_NormalGL.jpg
 
@@ -241,7 +252,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Texturelabs_Wood_292M.jpg
+map_Kd textures/File Cabinets-Freepoly.org.Diffuse_1024.jpg
 
 newmtl Pillow
 Ka 1.000000 1.000000 1.000000
@@ -257,12 +268,12 @@ map_Bump -bm 1.000000 textures/Fabric040_1K-JPG_NormalGL.jpg
 newmtl Rod
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
-Kd 0.015929 0.003853 0.002900
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
+map_Kd textures/Lamp.Diffuse_1024.jpg
 
 newmtl Rug_Material
 Ns 250.000000
@@ -270,9 +281,9 @@ Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
+d 1.000000
 illum 2
-map_Kd textures/chinese_carpet_texture_082023.jpg
-map_d textures/chinese_carpet_texture_082023.jpg
+map_Kd textures/Rug Bottom.001.Diffuse_1024.jpg
 
 newmtl Skin
 Ka 1.000000 1.000000 1.000000
@@ -292,7 +303,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Marble021_1K-JPG_Color.jpg
+map_Kd textures/table.Diffuse_1024.jpg
 map_Ns textures/Marble021_1K-JPG_Roughness.jpg
 map_Bump -bm 1.000000 textures/Marble021_1K-JPG_NormalGL.jpg
 
@@ -318,7 +329,17 @@ Ni 1.500000
 d 1.000000
 illum 2
 
-newmtl White_Wood.006
+newmtl White_Matte.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Lamp.Diffuse_1024.jpg
+
+newmtl White_Wood.009
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
@@ -354,12 +375,12 @@ map_Bump -bm 1.000000 textures/books_Normal_OpenGL.png
 newmtl case
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
-Kd 0.454979 0.451112 0.314993
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
+map_Kd textures/pencilcase.Diffuse_1024.jpg
 
 newmtl jar_Brass_polished
 Ns 250.000000

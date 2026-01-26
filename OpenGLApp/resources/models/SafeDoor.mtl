@@ -1,4 +1,4 @@
-# Blender 5.0.0 MTL File: 'ArtStudio_20-01-2026-Export.blend'
+# Blender 5.0.0 MTL File: 'ArtStudio_26-01-2026.blend'
 # www.blender.org
 
 newmtl Brushed_Metal
@@ -8,7 +8,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd textures/Texturelabs_Metal_242M.jpg
+map_Kd textures/Safe Door_gameasset_BaseColor.png
 map_Ns textures/Metal019_1K-JPG_Roughness.jpg
 map_refl textures/Metal019_1K-JPG_Metalness.jpg
 map_Bump -bm 1.000000 textures/Metal019_1K-JPG_NormalGL.jpg
