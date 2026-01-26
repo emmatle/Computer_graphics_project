@@ -94,7 +94,7 @@ bool Game::loadObjects() {
         Pencil color = static_cast<Pencil>(pencilOrder[i]);
         if (color == Red || color == Green || color == Blue) {
             rgbSum += n;
-        } else if (i == Yellow || i == Azure || i == Purple) {
+        } else if (color == Yellow || color == Azure || color == Purple) {
             yapSum += n;
         }
         password += std::to_string(n);
