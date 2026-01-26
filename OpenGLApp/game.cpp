@@ -499,6 +499,9 @@ void Game::draw() {
         renderer->drawText(playerName + "_", static_cast<float>(fbWidth) * 0.5f,
                            static_cast<float>(fbHeight) * 0.5f, 1.2f,
                            glm::vec3(1.0f), Align::Center);
+        renderer->drawText("Score: " + std::to_string(score), static_cast<float>(fbWidth) * 0.5f,
+                     static_cast<float>(fbHeight) * 0.6f, 1.0f,
+                     glm::vec3(1.0f, 1.0f, 0.0f), Align::Center);
         renderer->drawText("Press [Enter] to save",
                            static_cast<float>(fbWidth) * 0.5f,
                            static_cast<float>(fbHeight) * 0.75f, 1.0f,
