@@ -21,8 +21,7 @@ public:
 
     std::string path;
 
-    Texture(const std::string &path = "") : type(determineType(path)), path(path) {
-    }
+    Texture(const std::string &path = "") : type(determineType(path)), path(path) {}
 
     virtual ~Texture() = default;
 

@@ -11,10 +11,11 @@ class Game {
     static constexpr float SPRINT = 2.0f;
     static constexpr float INSPECT_ANGULAR_SPEED = glm::radians(90.f);
 
-    Renderer* renderer = nullptr;
+    Renderer *renderer = nullptr;
 
 public:
-    void setRenderer(Renderer* r) { renderer = r; }
+    void setRenderer(Renderer *r) { renderer = r; }
+
     enum State {
         Splashscreen,
         InGame,
@@ -93,7 +94,7 @@ public:
     bool mouseDrag = false;
     bool paperIsNotPicked = true;
 
-    std::vector<std::pair<std::string, int>> leaderboard;
+    std::vector<std::pair<std::string, int> > leaderboard;
 
     // In game stats
     float time = 0.0f;
@@ -102,7 +103,7 @@ public:
     int score = 0;
 
     int inventoryIndex = -1; // -1 = no selection / empty inventory
-    Object* equippedObj = nullptr;
+    Object *equippedObj = nullptr;
     float playerSpeed = 2.0f;
 
     bool doorUnlocked = false;
@@ -144,8 +145,11 @@ public:
     bool loadObjects();
 
     void loadLeaderboard();
+
     void drawLeaderboard();
+
     void drawGameOver();
+
     void drawCredits(float scroll = 0.f);
 
     void update();
@@ -157,11 +161,14 @@ public:
     Object *findObject(int id);
 
     void interact(Object *obj);
+
     void checkPencils();
 
-    void equip(Object* obj);
-    void pick(Object* obj);
-    void place(Object* obj, Object* placeholder);
+    void equip(Object *obj);
+
+    void pick(Object *obj);
+
+    void place(Object *obj, Object *placeholder);
 
     // --- Callbacks ---
 

@@ -6,8 +6,7 @@
 #include <sstream>
 #include <glad/glad.h>
 
-Shader::Shader(const std::string &path) : id(0), path(getResourcePath(path)) {
-}
+Shader::Shader(const std::string &path) : id(0), path(getResourcePath(path)) {}
 
 bool Shader::compile(const std::string &defines) {
     if (id != 0) return true; // Already compiled

@@ -120,8 +120,7 @@ public:
     std::vector<AABB> collisions;
     std::string path;
 
-    Model(IAssetManager *am, const std::string &path = "") : assetManager(am), path(path) {
-    }
+    Model(IAssetManager *am, const std::string &path = "") : assetManager(am), path(path) {}
 
     bool load() {
         if (!assetManager) {
@@ -171,8 +170,7 @@ public:
                 mat.k_s = glm::vec3(specular.r, specular.g, specular.b);
 
             float shininess = 32.0f;
-            if (AI_SUCCESS == aiMat->Get(AI_MATKEY_SHININESS, shininess)) {
-            }
+            if (AI_SUCCESS == aiMat->Get(AI_MATKEY_SHININESS, shininess)) {}
 
             loadMaterialTextures(aiMat, mat);
             materials.push_back(mat);

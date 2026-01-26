@@ -34,6 +34,7 @@ namespace glm {
         value.y = j.at(1);
         value.z = j.at(2);
     }
+
     inline void to_json(nlohmann::json &j, const vec3 &value) {
         j = {value.x, value.y, value.z};
     }

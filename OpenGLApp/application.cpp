@@ -70,12 +70,11 @@ void Application::updateTime() {
 
 // Initializes GLFW, GLAD, and ImGui
 void Application::init() {
-
     if (!backgroundMusic.openFromFile(getResourcePath("sounds/BackgroundMusic.mp3"))) {
         std::cerr << "ERROR: can't load " << getResourcePath("sounds/BackgroundMusic.mp3") << std::endl;
     } else {
         backgroundMusic.setVolume(30.f);
-        backgroundMusic.setPitch(8/12.f); // -4 semitones
+        backgroundMusic.setPitch(8 / 12.f); // -4 semitones
         backgroundMusic.setLooping(true);
         backgroundMusic.play();
         backgroundLowpassActive = false;
@@ -85,7 +84,7 @@ void Application::init() {
         std::cerr << "WARNING: can't load " << getResourcePath("sounds/BackgroundMusicLowPass.mp3") << std::endl;
     } else {
         backgroundMusicLowpass.setVolume(15.f);
-        backgroundMusicLowpass.setPitch(8/12.f); // -4 semitones
+        backgroundMusicLowpass.setPitch(8 / 12.f); // -4 semitones
         backgroundMusicLowpass.setLooping(true);
     }
 
@@ -209,10 +208,10 @@ void Application::run() {
 
         // After 5 minutes make music faster
         if (game.remainingTime <= 0.5f * game.maxTime) {
-          float progress = 1.f - glm::clamp((game.remainingTime) / (0.5f * game.maxTime), 0.f, 1.f);
-          float pitch = (1 - progress) * 8/12.f + progress * 14/12.f; // From -4 to +2 semitones
-          backgroundMusic.setPitch(pitch);
-          backgroundMusicLowpass.setPitch(pitch);
+            float progress = 1.f - glm::clamp((game.remainingTime) / (0.5f * game.maxTime), 0.f, 1.f);
+            float pitch = (1 - progress) * 8 / 12.f + progress * 14 / 12.f; // From -4 to +2 semitones
+            backgroundMusic.setPitch(pitch);
+            backgroundMusicLowpass.setPitch(pitch);
         }
 
         // Begin new ImGui frame
@@ -295,11 +294,13 @@ void Application::drawDebugMenu() {
 
     ImGui::SliderFloat("Speed", &game.playerSpeed, 0.1f, 5.f);
 
-  ImGui::Checkbox("Constrain", &cam.costrain);
+    ImGui::Checkbox("Constrain", &cam.costrain);
 
-  ImGui::SeparatorText("Game Progress");
+    ImGui::SeparatorText("Game Progress");
 
-  const char *modes[] = {"Splashscreen","InGame","Inventory","Canvas","GameOver","LeaderboardEntry","Credits","ExitDialog"};
+    const char *modes[] = {
+        "Splashscreen", "InGame", "Inventory", "Canvas", "GameOver", "LeaderboardEntry", "Credits", "ExitDialog"
+    };
     int modeIndex = game.state;
     if (ImGui::Combo("State", &modeIndex, modes, 7)) {
         game.state = static_cast<Game::State>(modeIndex);

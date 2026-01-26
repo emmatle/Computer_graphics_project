@@ -369,7 +369,8 @@ const glm::mat4 &Camera::getProjectionMatrix(float distance) const {
     if (projectionDirty || distance != lastDistance) {
         if (!ortho)
             projectionMatrix = glm::perspective(_fov, _aspect, MIN_CLIPPING, distance);
-        else projectionMatrix = glm::ortho(-ORTHOGRAPHIC_SCALE * _aspect, ORTHOGRAPHIC_SCALE *_aspect, -ORTHOGRAPHIC_SCALE, ORTHOGRAPHIC_SCALE, MIN_CLIPPING, distance);
+        else projectionMatrix = glm::ortho(-ORTHOGRAPHIC_SCALE * _aspect, ORTHOGRAPHIC_SCALE * _aspect,
+                                           -ORTHOGRAPHIC_SCALE, ORTHOGRAPHIC_SCALE, MIN_CLIPPING, distance);
         lastDistance = distance;
         projectionDirty = false;
     }

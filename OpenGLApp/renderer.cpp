@@ -222,7 +222,8 @@ void Renderer::drawScene(const Scene &scene, bool picking, int activeIndex) cons
     }
 }
 
-void Renderer::drawText(const std::string &text, float x, float y, float scale, const glm::vec3 &color, Align align) const {
+void Renderer::drawText(const std::string &text, float x, float y, float scale, const glm::vec3 &color,
+                        Align align) const {
     std::string clean = convertUTF8toLatin1(text);
     glm::mat4 projectionMatrix = glm::ortho(0.0f, static_cast<float>(fbWidth), static_cast<float>(fbHeight), 0.0f);
 
