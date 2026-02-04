@@ -353,7 +353,7 @@ void Application::setBackgroundLowpass(bool enable) {
             backgroundMusic.setPlayingOffset(offset);
             backgroundMusic.play();
         } else {
-            // Se in pausa, sincronizza solo l'offset senza farla partire
+            // If paused, just sync the offset without starting it
             sf::Time offset = backgroundMusicLowpass.getPlayingOffset();
             backgroundMusic.setPlayingOffset(offset);
         }

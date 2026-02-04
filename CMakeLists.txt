@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 if (WIN32)
     message(STATUS "Using vcpkg toolchain on Windows")
     set(CMAKE_TOOLCHAIN_FILE "$ENV{USERPROFILE}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
@@ -7,6 +7,17 @@ endif ()
 set(APP_NAME "Escape_Room")
 project(${APP_NAME} LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
+
+# === Install into a local folder inside the build directory (portable) ===
+set(CMAKE_INSTALL_PREFIX
+        ${CMAKE_SOURCE_DIR}/dist
+        CACHE PATH "Install path"
+        FORCE
+)
+
+if (MSVC)
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME ON)
+endif ()
 
 # === Collect all source files ===
 file(GLOB_RECURSE APP_SOURCES
@@ -117,3 +128,75 @@ message(STATUS "FreeType: ${FREETYPE_LIBRARIES}")
 message(STATUS "Assimp: ${ASSIMP_LIBRARIES}")
 message(STATUS "GLFW: ${GLFW_LIBRARIES}")
 message(STATUS "-----------------------------")
+
+# === Installation ===
+install(TARGETS ${APP_NAME}
+        RUNTIME DESTINATION .           # Windows / Linux
+        BUNDLE DESTINATION .              # macOS .app bundle
+)
+
+# Install dynamic libraries
+if (WIN32)
+    # On Windows with vcpkg, DLLs are often in the same folder as the executable after build
+    # We can use a post-install script or glob them.
+    # Better yet, use file(GET_RUNTIME_DEPENDENCIES) in an install script.
+    install(CODE [[
+        file(GET_RUNTIME_DEPENDENCIES
+            EXECUTABLES $<TARGET_FILE:Escape_Room>
+            RESOLVED_DEPENDENCIES_VAR _resolved_deps
+            UNRESOLVED_DEPENDENCIES_VAR _unresolved_deps
+            POST_EXCLUDE_REGEXES ".*system32/.*" ".*SYSTEM32/.*" ".*winsxs/.*" ".*WINSXS/.*"
+        )
+        foreach(_file ${_resolved_deps})
+            file(INSTALL
+                DESTINATION "${CMAKE_INSTALL_PREFIX}"
+                TYPE SHARED_LIBRARY
+                FILES "${_file}"
+            )
+        endforeach()
+    ]])
+elseif (UNIX AND NOT APPLE)
+    # Linux
+    install(CODE [[
+        file(GET_RUNTIME_DEPENDENCIES
+            EXECUTABLES $<TARGET_FILE:Escape_Room>
+            RESOLVED_DEPENDENCIES_VAR _resolved_deps
+            UNRESOLVED_DEPENDENCIES_VAR _unresolved_deps
+        )
+        foreach(_file ${_resolved_deps})
+            file(INSTALL
+                DESTINATION "${CMAKE_INSTALL_PREFIX}"
+                TYPE SHARED_LIBRARY
+                FILES "${_file}"
+            )
+        endforeach()
+    ]])
+elseif (APPLE)
+    # macOS - normally handled by bundle tools, but if we want them in the bundle:
+    # We can use fixup_bundle in an install script
+    install(CODE [[
+        include(BundleUtilities)
+        fixup_bundle("${CMAKE_INSTALL_PREFIX}/Escape_Room.app" "" "")
+    ]])
+endif ()
+
+if (APPLE)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/OpenGLApp/resources
+            DESTINATION ${APP_NAME}.app/Contents
+    )
+else ()
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/OpenGLApp/resources
+            DESTINATION .
+    )
+endif ()
+
+# Custom install targets for different build configurations
+add_custom_target(install_debug
+        COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --config Debug
+        COMMENT "Installing Debug build"
+)
+
+add_custom_target(install_release
+        COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --config Release
+        COMMENT "Installing Release build"
+)
